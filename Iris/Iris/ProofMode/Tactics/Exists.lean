@@ -12,6 +12,9 @@ public import Iris.ProofMode.ProofModeM
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI
 
 @[rocq_alias tac_exist]

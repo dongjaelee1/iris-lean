@@ -13,6 +13,9 @@ public import Iris.ProofMode.Tactics.Frame
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI
 
 theorem specialize_wand [BI PROP] {q p : Bool} {A Q P1 P2 : PROP}
@@ -108,27 +111,28 @@ theorem specialize_dup_context [BI PROP] {P : PROP} {pa A P' pb B B'}
 public meta section
 open Lean Elab Tactic Meta Qq Iris.Std
 
-structure SpecializeState {prop : Q(Type u)} {bi : Q(BI $prop)} (orig goal : Q($prop)) where
+structure SpecializeState {u w} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} (orig goal : Q($prop)) where
   {e : Q($prop)} (hyps : Hyps bi e) (p : Q(Bool)) (out : Q($prop))
   pf : Q(($e ∗ □?$p $out ⊢ $goal) → $orig ⊢ $goal)
 
-private def SpecializeState.updateCont {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    {orig goal : Q($prop)} (st : @SpecializeState u prop bi orig goal)
+private def SpecializeState.updateCont {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {orig goal : Q($prop)} (st : @SpecializeState u w si sidx prop bi orig goal)
     {e' : Q($prop)} (hyps' : Hyps bi e') (p' : Q(Bool)) (out' : Q($prop))
     (pfStep : Q(($e' ∗ □?$p' $out' ⊢ $goal) → $(st.e) ∗ □?$(st.p) $(st.out) ⊢ $goal)) :
-    @SpecializeState u prop bi orig goal :=
+    @SpecializeState u w si sidx prop bi orig goal :=
   { hyps := hyps', p := p', out := out', pf := q(fun h => $(st.pf) ($pfStep h)) }
 
-private def SpecializeState.update {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    {orig goal : Q($prop)} (st : @SpecializeState u prop bi orig goal)
+private def SpecializeState.update {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {orig goal : Q($prop)} (st : @SpecializeState u w si sidx prop bi orig goal)
     {e' : Q($prop)} (hyps' : Hyps bi e') (p' : Q(Bool)) (out' : Q($prop))
     (pfStep : Q($(st.e) ∗ □?$(st.p) $(st.out) ⊢ $e' ∗ □?$p' $out')) :
-    @SpecializeState u prop bi orig goal :=
+    @SpecializeState u w si sidx prop bi orig goal :=
   st.updateCont hyps' p' out' q($(pfStep).trans)
 
 -- TODO: move this somewhere else?
-private def synthIntoWand {u} {prop : Q(Type u)} (bi : Q(BI $prop))
-    (p : Q(Bool)) (out : Q($prop)) (persistent : Bool) :
+private def synthIntoWand {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    (bi : Q(BI $prop)) (p : Q(Bool)) (out : Q($prop)) (persistent : Bool) :
     ProofModeM <| (out1 : Q($prop)) × (out2 : Q($prop)) ×
       Q(IntoWand $p $persistent $out .unknown $out1 $out2) := do
   let out1 ← mkFreshExprMVarQ prop
@@ -137,7 +141,8 @@ private def synthIntoWand {u} {prop : Q(Type u)} (bi : Q(BI $prop))
     | throwIPMError "{out} is not a wand"
   return ⟨out1, out2, inst⟩
 
-private def finishSubgoal {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
+private def finishSubgoal {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {e}
     (hyps : Hyps bi e) (goal : Q($prop)) (spec : Option <| SpecGoal × Name) :
     ProofModeM ((e' : Q($prop)) × Hyps bi e' × Q($e ⊢ $e' ∗ $goal)) := do
   match spec with
@@ -182,9 +187,11 @@ private def finishSubgoal {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
   Otherwise, it is the `SpecGoal` value paired with the name for the subgoal.
   Keeping this function outside of the `mutual` block improves compilation time of this file.
 -/
-private def processSpecGoal {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {orig goal : Q($prop)}
-    (specState : @SpecializeState u prop bi orig goal) (kind : SpecGoalKind)
-    (spec : Option <| SpecGoal × Name) : ProofModeM (@SpecializeState u prop bi orig goal) := do
+private def processSpecGoal {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {orig goal : Q($prop)}
+    (specState : @SpecializeState u w si sidx prop bi orig goal) (kind : SpecGoalKind)
+    (spec : Option <| SpecGoal × Name) :
+    ProofModeM (@SpecializeState u w si sidx prop bi orig goal) := do
   let { hyps, p, out, .. } := specState
   match kind with
   -- Handle `[ H₁ … Hₙ ]`, `[- H₁ … Hₙ ]`, `[$]`, `[> H₁ … Hₙ ]`, `[>- H₁ … Hₙ ]` and `[>$]`
@@ -221,9 +228,10 @@ private def processSpecGoal {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {orig goal
 
 mutual
 
-partial def processWand {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {orig goal : Q($prop)}
-    (specState : @SpecializeState u prop bi orig goal) (spat : SpecPat) :
-    ProofModeM (@SpecializeState u prop bi orig goal) := do
+partial def processWand {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {orig goal : Q($prop)}
+    (specState : @SpecializeState u w si sidx prop bi orig goal) (spat : SpecPat) :
+    ProofModeM (@SpecializeState u w si sidx prop bi orig goal) := do
   let { e, hyps, p, out, .. } := specState
   let ⟨ref, spat⟩ := spat
   withRef ref do
@@ -278,8 +286,8 @@ A tuple containing:
 - `B`: Resulting proposition after applying all patterns
 - `pf`: Proof of `(e' ∗ □?pb B ⊢ goal) → e ∗ □?pa $A ⊢ goal`
 -/
-partial def iSpecializeCore {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
-    (hyps : Hyps bi e) (pa : Q(Bool)) (A : Q($prop)) (goal : Q($prop))
+partial def iSpecializeCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {e} (hyps : Hyps bi e) (pa : Q(Bool)) (A : Q($prop)) (goal : Q($prop))
     (spats : List SpecPat) (try_dup_context : Bool := false) :
     ProofModeM ((e' : _) × Hyps bi e' × (pb : Q(Bool)) × (B : Q($prop)) ×
       Q(($e' ∗ □?$pb $B ⊢ $goal) → $e ∗ □?$pa $A ⊢ $goal)) := do
@@ -293,8 +301,8 @@ partial def iSpecializeCore {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
   For cases where no modality-related specialisation pattern involved.
   This returns the proof `e ∗ □?pa $A ⊢ e' ∗ □?pb B`.
 -/
-partial def iSpecializeCoreNoModal {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
-    (hyps : Hyps bi e) (pa : Q(Bool)) (A : Q($prop))
+partial def iSpecializeCoreNoModal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {e} (hyps : Hyps bi e) (pa : Q(Bool)) (A : Q($prop))
     (spats : List SpecPat) (try_dup_context : Bool := false) :
     ProofModeM ((e' : _) × Hyps bi e' × (pb : Q(Bool)) × (B : Q($prop)) ×
       Q($e ∗ □?$pa $A ⊢ $e' ∗ □?$pb $B)) := do

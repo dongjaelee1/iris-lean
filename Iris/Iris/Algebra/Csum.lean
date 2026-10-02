@@ -10,7 +10,8 @@ public import Iris.Algebra.Updates
 public import Iris.Algebra.LocalUpdates
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -31,7 +32,7 @@ namespace Csum
 
 #rocq_ignore csum_equiv "OFE is Leibniz; use equality"
 
-@[simp, rocq_alias csum_dist] def Dist [OFE α] [OFE β] (n : Nat) : Csum α β → Csum α β → Prop
+@[simp, rocq_alias csum_dist] def Dist [OFE α] [OFE β] (n : SI) : Csum α β → Csum α β → Prop
   | inl a, inl a' => a ≡{n}≡ a'
   | inr b, inr b' => b ≡{n}≡ b'
   | invalid, invalid => True
@@ -139,6 +140,20 @@ def chainR [OFE α] [OFE β] (c : Chain (Csum α β)) (b : β) : Chain β where
     have hc := c.cauchy h; revert hc
     cases c.chain i <;> cases c.chain n <;> simp [OFE.Dist]
 
+@[rocq_alias csum_bchain_l]
+def bchainL [OFE α] [OFE β] {n : SI} (c : BChain (Csum α β) n) (a : α) : BChain α n where
+  bchain m hm := (c.bchain m hm).getInlD a
+  bcauchy {m p} hm hp h := by
+    have hc := c.bcauchy hm hp h; revert hc
+    cases c.bchain p hp <;> cases c.bchain m hm <;> simp [OFE.Dist]
+
+@[rocq_alias csum_bchain_r]
+def bchainR [OFE α] [OFE β] {n : SI} (c : BChain (Csum α β) n) (b : β) : BChain β n where
+  bchain m hm := (c.bchain m hm).getInrD b
+  bcauchy {m p} hm hp h := by
+    have hc := c.bcauchy hm hp h; revert hc
+    cases c.bchain p hp <;> cases c.bchain m hm <;> simp [OFE.Dist]
+
 @[rocq_alias csum_cofe]
 instance [OFE α] [OFE β] [IsCOFE α] [IsCOFE β] : IsCOFE (Csum α β) where
   compl c :=
@@ -147,7 +162,7 @@ instance [OFE α] [OFE β] [IsCOFE α] [IsCOFE β] : IsCOFE (Csum α β) where
     | inr b => inr (IsCOFE.compl (chainR c b))
     | invalid => invalid
   conv_compl {n c} := by
-    have h0n := c.cauchy (Nat.zero_le n)
+    have h0n := c.cauchy (SIdx.le_0_l (n := n))
     revert h0n
     rcases e0 : c.chain 0 with a|b|_ <;> rcases en : c.chain n with a'|b'|_ <;> try (· exact id)
     · intro _
@@ -158,9 +173,41 @@ instance [OFE α] [OFE β] [IsCOFE α] [IsCOFE β] : IsCOFE (Csum α β) where
       change IsCOFE.compl (chainR c b) ≡{n}≡ b'
       refine OFE.Dist.trans COFE.conv_compl ?_
       simp [chainR, en]
-  lbcompl := (·.elim)
-  conv_lbcompl := (·.elim)
-  lbcompl_ne := (·.elim)
+  lbcompl {n} hn c :=
+    match c.bchain 0 hn.limit_lt_0 with
+    | inl a => inl (IsCOFE.lbcompl hn (bchainL c a))
+    | inr b => inr (IsCOFE.lbcompl hn (bchainR c b))
+    | invalid => invalid
+  conv_lbcompl {n} hn c {m} hm := by
+    have h0m := c.bcauchy hn.limit_lt_0 hm SIdx.le_0_l
+    revert h0m
+    rcases e0 : c.bchain 0 hn.limit_lt_0 with a|b|_ <;>
+      rcases em : c.bchain m hm with a'|b'|_ <;> try (· exact id)
+    · intro _
+      change IsCOFE.lbcompl hn (bchainL c a) ≡{m}≡ a'
+      refine OFE.Dist.trans (IsCOFE.conv_lbcompl hn _ hm) ?_
+      simp [bchainL, em]
+    · intro _
+      change IsCOFE.lbcompl hn (bchainR c b) ≡{m}≡ b'
+      refine OFE.Dist.trans (IsCOFE.conv_lbcompl hn _ hm) ?_
+      simp [bchainR, em]
+  lbcompl_ne {n} hn c1 c2 {m} hc := by
+    have h0 := hc 0 hn.limit_lt_0
+    revert h0
+    rcases e1 : c1.bchain 0 hn.limit_lt_0 with a1|b1|_ <;>
+      rcases e2 : c2.bchain 0 hn.limit_lt_0 with a2|b2|_ <;> try (· exact id)
+    · intro (h0 : a1 ≡{m}≡ a2)
+      change IsCOFE.lbcompl hn (bchainL c1 a1) ≡{m}≡ IsCOFE.lbcompl hn (bchainL c2 a2)
+      refine IsCOFE.lbcompl_ne hn _ _ fun p hp => ?_
+      have := hc p hp; revert this
+      simp only [bchainL]
+      cases c1.bchain p hp <;> cases c2.bchain p hp <;> simp [OFE.Dist, h0]
+    · intro (h0 : b1 ≡{m}≡ b2)
+      change IsCOFE.lbcompl hn (bchainR c1 b1) ≡{m}≡ IsCOFE.lbcompl hn (bchainR c2 b2)
+      refine IsCOFE.lbcompl_ne hn _ _ fun p hp => ?_
+      have := hc p hp; revert this
+      simp only [bchainR]
+      cases c1.bchain p hp <;> cases c2.bchain p hp <;> simp [OFE.Dist, h0]
 
 #rocq_ignore csum_compl "Included in IsCOFE instance"
 
@@ -171,7 +218,7 @@ instance [OFE α] [OFE β] [IsCOFE α] [IsCOFE β] : IsCOFE (Csum α β) where
   | inr b => ✓ b
   | invalid => False
 
-@[simp] abbrev validN [CMRA α] [CMRA β] (n : Nat) : Csum α β → Prop
+@[simp] abbrev validN [CMRA α] [CMRA β] (n : SI) : Csum α β → Prop
   | inl a => ✓{n} a
   | inr b => ✓{n} b
   | invalid => False
@@ -225,8 +272,8 @@ instance [CMRA α] [CMRA β] : CMRA (Csum α β) where
   validN_ne {n x y} h hv := by
     cases x <;> cases y <;> first | exact CMRA.validN_ne h hv | exact h.elim | trivial
   valid_iff_validN {x} := by cases x <;> simp [CMRA.valid_iff_validN]
-  validN_succ {x _} h := by
-    cases x with | inl | inr => exact CMRA.validN_succ h | invalid => exact h
+  validN_le {x _ _} h hle := by
+    cases x with | inl | inr => exact CMRA.validN_le h hle | invalid => exact h
   assoc {x y z} := by
     cases x <;> cases y <;> cases z <;> first | trivial | exact congrArg _ CMRA.assoc
   comm {x y} := by cases x <;> cases y <;> first | trivial | exact congrArg _ CMRA.comm

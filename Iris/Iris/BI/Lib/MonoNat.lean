@@ -13,7 +13,8 @@ public import Iris.ProofMode
 public import Iris.Instances.IProp
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 open Auth BI MonoNat
@@ -158,7 +159,7 @@ theorem own_alloc_strong (P : Nat → Prop) n
 theorem own_alloc {GF : BundledGFunctors} [MonoNatG GF] (n : MaxNat) :
   ⊢@{IProp GF} |==> (∃ γ, (γ ↪●MN n) ∗ (γ ↪◯MN n)) := by
   imod (own_alloc_strong (fun _ => True) n) with ⟨%γ, ⟨-, H⟩⟩
-  · intro n; exists n
+  · intro n; exact ⟨n, Nat.le_refl n, trivial⟩
   · iexists γ
     imodintro
     iframe

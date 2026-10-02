@@ -13,6 +13,8 @@ public import Iris.HeapLang
 namespace IrisTest
 open Iris
 
+variable {SI : Type _} [SIdx SI]
+
 /- This section checks whether the syntax is recognized correctly for all combinations -/
 section TestWP
 set_option linter.unusedVariables false

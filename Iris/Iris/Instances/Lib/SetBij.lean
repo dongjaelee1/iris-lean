@@ -14,6 +14,9 @@ meta import Iris.Std.RocqPorting
 
 @[expose] public section
 
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 /-!
 # Propositions for reasoning about monotone partial bijections
 -/
@@ -34,7 +37,7 @@ attribute [reducible, instance] SetBijG.elem
 
 section definitions
 
-variable {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
+variable {GF : BundledGFunctors} {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
 
 @[rocq_alias gset_bij_own_auth]
 def set_bij_own_auth (γ : GName) (dq : DFrac) (L : S) : IProp GF :=
@@ -59,7 +62,7 @@ notation γ " ↪◯BIJ⟨" a ", " b "⟩" => set_bij_own_elem γ a b
 
 section lemmas
 
-variable {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
+variable {GF : BundledGFunctors} {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
 variable {γ : GName} {dq dq₁ dq₂ : DFrac} {L L₁ L₂ : S}
 
 @[rocq_alias gset_bij_own_auth_timeless]
@@ -128,7 +131,7 @@ end lemmas
 
 section finiteLemmas
 
-variable {A B S : Type _} [LawfulFiniteSet S (A × B)] [SetBijG GF A B S]
+variable {GF : BundledGFunctors} {A B S : Type _} [LawfulFiniteSet S (A × B)] [SetBijG GF A B S]
 variable {γ : GName} {dq : DFrac} {L : S}
 
 @[rocq_alias gset_bij_own_elem_get_big]
@@ -156,7 +159,7 @@ end finiteLemmas
 
 section updates
 
-variable {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
+variable {GF : BundledGFunctors} {A B S : Type _} [LawfulSet S (A × B)] [SetBijG GF A B S]
 variable {γ : GName} {L : S}
 
 @[rocq_alias gset_bij_own_extend]

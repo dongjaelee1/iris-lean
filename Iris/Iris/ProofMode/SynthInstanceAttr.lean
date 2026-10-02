@@ -42,6 +42,20 @@ def isUncheckedInParam (e : Expr) : Bool :=
     (e.isOutParam && e.appArg!.isAppOfArity ``uncheckedInParam 1)
 
 /--
+Return `true` if the binder of type `d` with body `b` is a step-index parameter: a type `SI`
+(possibly marked as `outParam`) followed by an instance binder `[SIdx SI]`, or that instance binder
+itself. The step index is determined by the other parameters (e.g. via `[BI PROP]`), so it is
+treated as `uncheckedIn`.
+-/
+def isStepIndexParam (d b : Expr) : Bool :=
+  let isSIdx (e : Expr) := e.isAppOfArity `Iris.SIdx 1
+  isSIdx d ||
+    ((if d.isOutParam then d.appArg! else d).isSort &&
+      match b with
+      | .forallE _ d' _ .instImplicit => isSIdx d' && d'.appArg! == .bvar 0
+      | _ => false)
+
+/--
 The parameters of a class declared with `ipm_class` are categorized into the following categories:
 
 1. in: This is the default for a parameter when not annotated in another way.
@@ -50,7 +64,9 @@ The parameters of a class declared with `ipm_class` are categorized into the fol
 3. semiOut: These are parameters marked with `semiOutParamIPM`. The `InOut` argument of
    `semiOutParamIPM` determines whether the semiOut parameter is treated as an input or an output.
 4. uncheckedIn: These are parameters marked with `uncheckedInParam`. These behave like `in`
-   parameters, but allow mvars to match terms (see below).
+   parameters, but allow mvars to match terms (see below). Step-index parameters
+   `{SI : Type _} [SIdx SI]` (with or without `outParam`) are also `uncheckedIn`
+   (see `isStepIndexParam`).
 
 The following constraints apply to the parameters:
 (In the following, semiOut parameters are treated as inputs according to the value of their `InOut`
@@ -160,7 +176,7 @@ private partial def computeParamKinds (params : Array ParamKind) (type : Expr) :
   | .forallE _ d b _ =>
     -- we need to check this before outParam since `outParam (uncheckedInParam _)` should be
     -- an `uncheckedInParam`
-    if isUncheckedInParam d then
+    if isUncheckedInParam d || isStepIndexParam d b then
       computeParamKinds (params.push .uncheckedIn) b
     else if d.isOutParam then
       computeParamKinds (params.push .out) b

@@ -9,11 +9,14 @@ public import Iris.HeapLang.ProofMode
 public import Iris.HeapLang.PrimitiveLaws
 public import Iris.Instances.Lib.Invariants
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Iris.HeapLang
 
 public section
 
-variable [HeapLangGS hlc GF]
+variable {GF : BundledGFunctors} [HeapLangGS hlc GF]
 
 @[rocq_alias heap_lang.nondet_bool]
 def nondetBool := hl_val% λ _,

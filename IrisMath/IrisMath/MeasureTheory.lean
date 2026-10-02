@@ -10,7 +10,8 @@ public import Iris
 /-! Measure Theoretic CMRA -/
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI]
 
 noncomputable section
 

@@ -10,7 +10,8 @@ public import Iris.BI
 public import Iris.ProofMode
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

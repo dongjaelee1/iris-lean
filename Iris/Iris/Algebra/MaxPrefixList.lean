@@ -19,7 +19,8 @@ Here, the term "List" be being used liberally: it is implemented with an ExtTree
 the List type itself. However, there is an embedding of Lists in to this data structure. -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -106,8 +107,9 @@ theorem toMaxPrefixList_dist_inj {n} {l1 l2 : List α}
   cases h1 : l1[i]? <;> cases h2 : l2[i]? <;> rw [h1, h2] at hi <;> simp_all
   exact Agree.toAgree_injN hi
 
+omit [OFE α] in
 @[rocq_alias to_max_prefix_list_inj]
-theorem toMaxPrefixList_inj {l1 l2 : List α}
+theorem toMaxPrefixList_inj [OFE α] {l1 l2 : List α}
     (h : toMaxPrefixList l1 = toMaxPrefixList l2) : l1 = l2 :=
   eq_dist_2 fun _ => toMaxPrefixList_dist_inj (Dist.of_eq h)
 

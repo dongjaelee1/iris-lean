@@ -13,6 +13,8 @@ meta import Iris.Std.RocqPorting
 
 public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 
 open Iris.Algebra BigOpM BIBase Iris.Std BigSepM LawfulPartialMap PartialMap
@@ -124,7 +126,7 @@ theorem bigSepM2_mono {Φ Ψ : K → A → B → PROP} {m1 : M A} {m2 : M B}
     h h1 h2
 
 @[rocq_alias big_sepM2_ne]
-theorem bigSepM2_dist (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B) (n : Nat)
+theorem bigSepM2_dist (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B) (n : SI)
     (h : ∀ {k x1 x2}, get? m1 k = some x1 → get? m2 k = some x2 → Φ k x1 x2 ≡{n}≡ Ψ k x1 x2) :
     ([∗map] k ↦ x1;x2 ∈ m1;m2, Φ k x1 x2) ≡{n}≡ [∗map] k ↦ x1;x2 ∈ m1;m2, Ψ k x1 x2 :=
   and_ne.ne .rfl <| bigSepM_dist fun hget =>
@@ -158,7 +160,7 @@ theorem bigSepM2_proper_2 [HasEquiv A] [HasEquiv B]
   exact h hx1 hx1' (by grind) hx2 hx2' (by grind)
 
 @[rocq_alias big_sepM2_ne']
-theorem bigSepM2_dist_of_forall (n : Nat) (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B)
+theorem bigSepM2_dist_of_forall (n : SI) (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B)
     (h : ∀ {k x1 x2}, Φ k x1 x2 ≡{n}≡ Ψ k x1 x2) :
     ([∗map] k ↦ x1;x2 ∈ m1;m2, Φ k x1 x2) ≡{n}≡ [∗map] k ↦ x1;x2 ∈ m1;m2, Ψ k x1 x2 :=
   bigSepM2_dist Φ Ψ m1 m2 n fun _ _ => h
@@ -627,7 +629,7 @@ theorem bigSepM_bigSepM2_diag (Φ : K → A → A → PROP) (m : M A) :
 
 @[rocq_alias big_sepM2_ne_2]
 theorem bigSepM2_dist_2 (A B : Type uV) [OFE A] [OFE B]
-    (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B) (m1' : M A) (m2' : M B) (n : Nat)
+    (Φ Ψ : K → A → B → PROP) (m1 : M A) (m2 : M B) (m1' : M A) (m2' : M B) (n : SI)
     (hm1 : ∀ k, Option.Rel (fun x y => x ≡{n}≡ y) (get? m1 k) (get? m1' k))
     (hm2 : ∀ k, Option.Rel (fun x y => x ≡{n}≡ y) (get? m2 k) (get? m2' k))
     (h : ∀ k x1 x1' x2 x2', get? m1 k = some x1 → get? m1' k = some x1' →

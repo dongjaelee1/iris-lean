@@ -9,7 +9,8 @@ public import Iris.Algebra.CMRA
 public import Iris.ProofMode.SynthInstanceAttr
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -34,7 +35,7 @@ end
   to split `a` into `b1` and `b2`.
 -/
 @[ipm_class, rocq_alias IsOp, rocq_alias IsOp', rocq_alias IsOp'LR]
-class IsOp [CMRA α]
+class IsOp {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α]
     (d : IsOp.Direction) (a : semiOutParamIPM d.toInOut α)
     (b1 : semiOutParamIPM d.toInOut.negate α)
     (b2 : semiOutParamIPM d.toInOut.negate α) where

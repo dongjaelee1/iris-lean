@@ -21,6 +21,9 @@ Note: this is not a port. Upstream Iris has no completeness proof, so there are
 no `rocq_alias` annotations in this file. -/
 
 @[expose] public section
+
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 namespace Iris.HeapLang
 
 open Iris ProgramLogic Iris.BI Language Language.Notation Iris.Std

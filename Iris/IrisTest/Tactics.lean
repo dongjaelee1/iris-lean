@@ -20,10 +20,13 @@ public import Iris.ProgramLogic.Language
 public import Iris.ProgramLogic.WeakestPre
 
 @[expose] public section
-local stepindex Nat
 
 namespace IrisTest
 open Iris BI CMRA DFrac CancelableInvariant NonAtomicInvariant ProgramLogic
+
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+-- Tests over `IProp` additionally assume `[SIdxFinite SI]`.
+variable {SI : Type} [SIdx SI]
 
 /- This file contains tests with various scenarios for all available tactics. -/
 
@@ -434,6 +437,8 @@ example [BI PROP] (m n : Nat) (a b c : Prop) :
 error: Tactic `subst` failed: invalid equality proof, it is not of the form (x = t) or (t = x)
   P
 
+SI : Type
+inst✝¹ : SIdx SI
 PROP : Type u_1
 inst✝ : BI PROP
 P : Prop
@@ -547,6 +552,8 @@ example [BI PROP] (Φ : Bool → PROP) : ⊢ ∀ x, <affine> ⌜x = true⌝ -∗
 
 /- Tests that `irevert` clears binder info (see https://github.com/leanprover-community/iris-lean/pull/393#issuecomment-4506443579). -/
 /-- trace:
+SI : Type
+inst✝¹ : SIdx SI
 PROP : Type u_1
 inst✝ : BI PROP
 P : PROP
@@ -1728,7 +1735,7 @@ example [BI PROP] [BIUpdate PROP]
       iassumption
 
 /-- Tests `ispecialize` for its use of the type class instance `add_modal_fupd_wp`. -/
-example {hlc : HasLC} {Expr State Obs Val : Type _} [Language Expr State Obs Val]
+example [SIdxFinite SI] {hlc : HasLC} {Expr State Obs Val : Type _} [Language Expr State Obs Val]
     {GF : BundledGFunctors} [IrisGS_gen hlc Expr GF]
     (s : Stuckness) (E : CoPset) (e : Expr) (P : IProp GF) (Φ : Val → IProp GF) :
     ⊢ (P -∗ WP e @ s ; E {{ Φ }}) -∗ (|={E}=> P) -∗ WP e @ s ; E {{ Φ }} := by
@@ -2000,6 +2007,8 @@ example [BI PROP] (P Q : PROP) : Q ∧ <pers> P ⊢ Q := by
 
 /- Tests `icases` on conjunction with persistent right in an affine logic. -/
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
 PROP : Type u_1
 inst✝¹ : BI PROP
 inst✝ : BIAffine PROP
@@ -2290,6 +2299,8 @@ example [BI PROP] (m n : Nat) (a b c : Prop) :
 error: Tactic `subst` failed: invalid equality proof, it is not of the form (x = t) or (t = x)
   P
 
+SI : Type
+inst✝¹ : SIdx SI
 PROP : Type u_1
 inst✝ : BI PROP
 P : Prop
@@ -2760,7 +2771,7 @@ example [BI PROP] (p : Bool) (P Q R : PROP)
   inext
   iapply h $$ HPQ1 HPQ2 HPQ3
 
-variable {GF : BundledGFunctors} [InvGS GF]
+variable [SIdxFinite SI] {GF : BundledGFunctors} [InvGS GF]
 
 /- Tests `inext` with later credits consumption. -/
 example (E : CoPset) (P : IProp GF) : ⊢ £ 1 -∗ ▷ (|={E}=> P) -∗ |={E}=> P := by
@@ -2987,6 +2998,8 @@ example [BI PROP] (P : PROP) : P ⊢ P := by
 
 /- Tests `iframe` not closing goal with non-affine assumption. -/
 /-- trace:
+SI : Type
+inst✝¹ : SIdx SI
 PROP : Type u_1
 inst✝ : BI PROP
 P Q : PROP
@@ -3171,13 +3184,15 @@ example [BI PROP] {α} (a : α) {β} (b : β) (P : PROP)
 
 /- Tests `iframe` with multiple existential quantifiers framed at once. -/
 /-- trace:
+SI : Type
+inst✝¹ : SIdx SI
 PROP : Type u_1
-inst✝ : BI PROP
+inst✝ : @BI SI inst✝¹ PROP
 α : Sort u_2
 P : PROP
 Q : α → PROP
 ⊢ ⏎
-  ⊢ @«exists» PROP (@toBIBase PROP inst✝) α fun {n} => Q n
+  ⊢ @«exists» PROP (@toBIBase SI inst✝¹ PROP inst✝) α fun {n} => Q n
 -/
 #guard_msgs (trace, drop error) in
 set_option pp.explicit true in
@@ -3253,6 +3268,7 @@ example [BI PROP] (P : Option Nat → PROP) :
   iframe HP
   exact 0
 
+variable [SIdxFinite SI]
 variable {hlc : outParam HasLC} {Expr State Obs Val} [Λ : Language Expr State Obs Val]
 variable {GF : BundledGFunctors}
 variable [IrisGS_gen hlc Expr GF]
@@ -3439,6 +3455,8 @@ example [BI PROP] {P Q R : PROP} : ⊢ P -∗ Q -∗ □ R -∗ R ∗ P ∗ Q :=
   iintro HP HQ #HR
   icombine %a as HNew1
 
+variable [SIdxFinite SI]
+
 /-- Tests `icombine` for combining propositions involving `iOwn`, where
     `a2` and `a3` can be combined as `b` instead of `a2 • a3` as
     the former takes higher precedence. Likewise, `a1` and `b` is merged
@@ -3543,6 +3561,8 @@ variable {PROP : Type u} [ι₁ : BI PROP] [ι₂ : BILoeb PROP]
 
 /- Tests `iloeb` basic. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3559,6 +3579,8 @@ example (P Q : PROP) :
 
 /- Tests `iloeb` automatically generalizing spatial context. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3577,6 +3599,8 @@ example (P Q : PROP) :
 
 /- Tests `iloeb` not automatically generalizing persistent context. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3596,6 +3620,8 @@ example (P₁ P₂ Q : PROP) :
 
 /- Tests reordering spatial hypothesis in `iloeb`. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3616,6 +3642,8 @@ example (P₁ P₂ P₃ Q : PROP) :
 
 /- Tests `iloeb` with pure hypothesis. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3637,6 +3665,8 @@ example (n : Nat) (H₁ : Nat → Prop) (P Q : Nat → PROP) :
 
 /- Tests `iloeb` with pure hypothesis in affine logic. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3702,6 +3732,8 @@ example {n : Nat} {P T : Nat → PROP} {Q : Nat → Prop} {h1 : Q n} {_ : (Q n) 
 
 /- Same test as above, except `generalizing!` is used. -/
 /-- trace:
+SI : Type
+inst✝ : SIdx SI
 PROP : Type u
 ι₁ : BI PROP
 ι₂ : BILoeb PROP
@@ -3726,7 +3758,7 @@ end iloeb
 
 section iinv
 
-variable {hlc : HasLC} {GF : BundledGFunctors} [InvGS_gen hlc GF] {N : Namespace}
+variable [SIdxFinite SI] {hlc : HasLC} {GF : BundledGFunctors} [InvGS_gen hlc GF] {N : Namespace}
 
 /--
   Tests `iinv` with `elimInv_acc_without_close`, `elimAcc_fupd` and

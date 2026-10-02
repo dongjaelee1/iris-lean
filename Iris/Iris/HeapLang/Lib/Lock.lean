@@ -13,7 +13,8 @@ namespace Iris.HeapLang
 open BI
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 @[rocq_alias heap_lang.lock]
 class Lock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
@@ -46,7 +47,7 @@ instance instInhabitedLockName [IrisGS_gen hlc Exp GF] [lk : Lock GF] : Inhabite
 
 section lemmas
 
-variable [IrisGS_gen hlc Exp GF] [lk : Lock GF] (N : lk.lockG GF)
+variable {GF : BundledGFunctors} [IrisGS_gen hlc Exp GF] [lk : Lock GF] (N : lk.lockG GF)
 
 instance instPersistentLockIsLock γ v R : Persistent (lk.isLock N γ v R) :=
   lk.isLock_persistent γ v R
@@ -62,13 +63,13 @@ theorem isLock_contractive γ v : OFE.Contractive (lk.isLock N γ v) := by
   imodintro
   isplit
   · iintro #H
-    iapply Lock.isLock_iff $$ H
+    iapply lk.isLock_iff $$ H
     iintro !> !>
     irewrite [HEQ]
     · exact ⟨fun _ _ _ h => wandIff_ne.ne h .rfl⟩
     · iapply equiv_wandIff; exact .rfl
   · iintro #H
-    iapply Lock.isLock_iff $$ H
+    iapply lk.isLock_iff $$ H
     iintro !> !>
     irewrite [HEQ]
     · exact ⟨fun _ _ _ h => wandIff_ne.ne .rfl h⟩

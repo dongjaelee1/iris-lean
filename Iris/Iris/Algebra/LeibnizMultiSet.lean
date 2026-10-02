@@ -12,7 +12,8 @@ public import Iris.Algebra.Updates
 public import Iris.Std.GenMultiSets
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 /-! ## The multiset union CMRA -/
 
@@ -47,7 +48,7 @@ instance : CMRA (LeibnizMultiSet MS) where
   pcore_ne {_ _ _ cx} _ H := ⟨cx, H, .rfl⟩
   validN_ne _ _ := trivial
   valid_iff_validN := by simp
-  validN_succ _ := trivial
+  validN_le _ _ := trivial
   validN_op_left _ := trivial
   assoc := by grind
   comm := by grind

@@ -16,7 +16,7 @@ open Iris BI ProofMode CMRA UPred
 
 section
 
-variable [UCMRA M] (a b : M) (c : M) [CoreId c]
+variable {SI : Type _} [SIdx SI] [SIdxFinite SI] [UCMRA M] (a b : M) (c : M) [CoreId c]
 
 /- Tests `fromSep_ownM`. -/
 /-- info:

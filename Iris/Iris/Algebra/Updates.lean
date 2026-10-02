@@ -9,6 +9,8 @@ public import Iris.Algebra.CMRA
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris
 
 @[rocq_alias cmra_updateP]
@@ -120,7 +122,7 @@ theorem Update.valid0 {x y : α} : (✓{0} x → x ~~> y) → x ~~> y :=
 
 @[rocq_alias cmra_total_updateP]
 theorem UpdateP.total [CMRA.IsTotal α] :
-    x ~~>: P ↔ ∀ (n : Nat) (z : α), ✓{n} (x • z) → ∃ y, P y ∧ ✓{n} (y • z) where
+    x ~~>: P ↔ ∀ (n : SI) (z : α), ✓{n} (x • z) → ∃ y, P y ∧ ✓{n} (y • z) where
   mp uxp := fun n z v => uxp n (some z) v
   mpr h := fun n mz v =>
     match mz with
@@ -131,7 +133,7 @@ theorem UpdateP.total [CMRA.IsTotal α] :
 
 @[rocq_alias cmra_total_update]
 theorem Update.total [CMRA.IsTotal α] :
-    x ~~> y ↔ ∀ (n : Nat) (z : α), ✓{n} (x • z) → ✓{n} (y • z) where
+    x ~~> y ↔ ∀ (n : SI) (z : α), ✓{n} (x • z) → ✓{n} (y • z) where
   mp uxy := fun n z v => uxy n (some z) v
   mpr h := fun n mz v =>
     match mz with

@@ -11,7 +11,8 @@ public import Iris.BI.Lib.Fractional
 public import Iris.ProofMode
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
@@ -27,7 +28,8 @@ attribute [reducible, instance] GhostMapG.elem
 
 section definitions
 
-variable [LawfulFiniteMap H K] [GhostMapG GF K V H]
+variable {GF : BundledGFunctors} {K V : Type _} {H : Type _ → Type _} [LawfulFiniteMap H K]
+variable [GhostMapG GF K V H]
 
 @[rocq_alias ghost_map_auth]
 def ghost_map_auth (γ : GName) (dq : DFrac) (m : H V) : IProp GF :=
@@ -57,7 +59,7 @@ notation γ " ↪◯MAP[" k "] " v => ghost_map_elem γ (DFrac.own 1) k v
 
 section lemmas
 
-variable {K V : Type _} {H : Type _ → Type _} [LawfulFiniteMap H K]
+variable {GF : BundledGFunctors} {K V : Type _} {H : Type _ → Type _} [LawfulFiniteMap H K]
 variable [GhostMapG GF K V H]
 
 open LawfulPartialMap
@@ -99,7 +101,7 @@ theorem ghost_map_elems_unseal [DecidableEq K] γ (m : H V) dq :
   by_cases h : m = ∅
   · subst h
     simp only [BigOpM.bigOpM_empty]
-    iapply iOwn_unit (γ := γ) (ε := unit)
+    iapply iOwn_unit (γ := γ)
   · imodintro
     iapply bigOpM_iOwn _ _ _ h
     unfold ghost_map_elem
@@ -229,7 +231,7 @@ theorem ghost_map_alloc_strong_empty [DecidableEq K] (P : GName → Prop)
 theorem ghost_map_alloc [DecidableEq K] (m : H V) :
     ⊢@{IProp GF} |==> ∃ γ, (γ ↪●MAP m) ∗ [∗map] k ↦ v ∈ m, γ ↪◯MAP[k] v := by
   imod (ghost_map_alloc_strong (fun _ => True) m) with ⟨%γ, -, H1, H2⟩
-  · intro N; exists N
+  · intro N; exact ⟨N, Nat.le_refl N, trivial⟩
   · iexists γ
     iframe H1 H2
 

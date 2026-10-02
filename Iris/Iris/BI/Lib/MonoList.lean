@@ -22,6 +22,8 @@ Wraps the `MonoList` RA, providing three assertions:
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Iris
 
 open BI MonoList

@@ -36,9 +36,6 @@ instance natSIdx : SIdx Nat where
 instance natSIdxFinite : SIdxFinite Nat where
   finite_index | 0 => .inl rfl | n + 1 => .inr ⟨n, rfl⟩
 
-def SIdx.Limit.elim {I : Type u} [SIdx I] [SIdxFinite I] {n : I} {C : Sort v}
-    (h : SIdx.Limit n) : C := SIdx.limit_finite n h |>.elim
-
 namespace OFE
 
 local stepindex Nat

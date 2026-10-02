@@ -8,6 +8,9 @@ module
 public import Iris.HeapLang
 public import Iris.HeapLang.Lib.NondetBool
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 /-! # The clairvoyant coin -/
 
 namespace Iris.HeapLang

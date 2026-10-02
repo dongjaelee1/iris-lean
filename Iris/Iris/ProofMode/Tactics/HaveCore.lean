@@ -20,6 +20,9 @@ public meta import Iris.ProofMode.Tactics.Specialize
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI
 
 @[rocq_alias tac_pose_proof]
@@ -56,7 +59,7 @@ A tuple containing:
 - `out`: Asserted proposition
 - `pf`: Proof of `hyps ⊢ hyps' ∗ □?p out`
 -/
-private def iHaveCore {e} (hyps : @Hyps u prop bi e)
+private def iHaveCore {e} (hyps : @Hyps w u si sidx prop bi e)
     (tm : Term) (keep : Bool) :
     ProofModeM ((e' : _) × Hyps bi e' × (p : Q(Bool)) ×
       (out : Q($prop)) × Q($e ⊢ $e' ∗ □?$p $out)) := do
@@ -99,7 +102,7 @@ private def iHaveCore {e} (hyps : @Hyps u prop bi e)
 
     return ⟨_, hyps, q(true), hyp, q(have_asEmpValid $val)⟩
 
-def iHave {e} (hyps : @Hyps u prop bi e) (goal : Q($prop))
+def iHave {e} (hyps : @Hyps w u si sidx prop bi e) (goal : Q($prop))
     (pmt : PMTerm) (keep : Bool) (try_dup_context : Bool := false) :
     ProofModeM ((e' : _) × Hyps bi e' × (p : Q(Bool)) × (out : Q($prop)) ×
       Q(($e' ∗ □?$p $out ⊢ $goal) → $e ⊢ $goal)) := do

@@ -12,6 +12,9 @@ public meta import Iris.ProofMode.Tactics.Basic
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open Qq BI Iris.Std
 
 /-- Reified version of ModalityAction -/
@@ -108,8 +111,8 @@ A tuple containing:
 - Transformed context `hyps'` in `prop1`
 - Proof of `hyps ⊢ M hyps'`
 -/
-def iModAction {prop1 prop2 : Q(Type u)} {bi1 : Q(BI $prop1)} {bi2} {e}
-  (hyps : @Hyps u prop2 bi2 e) (M : Q(Modality $prop1 $prop2)) :
+def iModAction {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop1 prop2 : Q(Type u)} {bi1 : Q(BI $prop1)}
+  {bi2 : Q(BI $prop2)} {e} (hyps : Hyps bi2 e) (M : Q(Modality $prop1 $prop2)) :
   ProofModeM ((e' : _) × Hyps bi1 e' × Q($e ⊢ $(M).M $e')) := do
   -- pre-compute the actions
   let iact ← parseModalityActionQ q($(M).action true)
@@ -118,7 +121,7 @@ def iModAction {prop1 prop2 : Q(Type u)} {bi1 : Q(BI $prop1)} {bi2} {e}
 where go {e}
   (iact : ModalityActionQ prop1 prop2)
   (sact : ModalityActionQ prop1 prop2)
-  (hyps : @Hyps u prop2 bi2 e) :
+  (hyps : Hyps bi2 e) :
   ProofModeM ((e' : _) × Hyps bi1 e' × Q($e ⊢ $(M).M $e')) :=
   match hyps with
   | .emp _ => return ⟨_, .mkEmp bi1, q($(M).emp)⟩
@@ -177,9 +180,10 @@ where go {e}
 # Returns
 Proof term of `hyps ⊢ goal`
 -/
-def iModIntroCore {e} (hyps : @Hyps u prop bi e) (goal : Q($prop))
+def iModIntroCore {e} (hyps : @Hyps w u si sidx prop bi e) (goal : Q($prop))
   (sel : TSyntax `term)
-  (k : ∀ {prop' bi' P}, @Hyps u prop' bi' P → ∀ Q : Q($prop'), ProofModeM Q($P ⊢ $Q) := addBIGoal)
+  (k : ∀ {prop' bi' P}, @Hyps w u si sidx prop' bi' P → ∀ Q : Q($prop'),
+    ProofModeM Q($P ⊢ $Q) := addBIGoal)
    : ProofModeM (Q($e ⊢ $goal)) := do
     let prop' : Q(Type u) ← mkFreshExprMVarQ q(Type u)
     let bi' ← mkFreshExprMVarQ q(BI $prop')
@@ -190,7 +194,8 @@ def iModIntroCore {e} (hyps : @Hyps u prop bi e) (goal : Q($prop))
     let Q ← mkFreshExprMVarQ q($prop')
     -- `M Q ⊢ goal`
     let .some _ ←
-      ProofModeM.trySynthInstanceQ q(@FromModal .out $prop' $prop $α $bi' $bi $M $Φ $sel $goal $Q)
+      ProofModeM.trySynthInstanceQ
+        q(@FromModal $si $sidx .out $prop' $prop $α $bi' $bi $M $Φ $sel $goal $Q)
       | throwIPMError "{goal} is not a \
           modality{if sel.isMVar then m!"" else m!" matching {sel}"}"
     -- show the side condition

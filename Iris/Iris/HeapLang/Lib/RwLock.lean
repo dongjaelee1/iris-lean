@@ -16,6 +16,9 @@ open BI OFE
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 /-- A general interface for a reader-writer lock. -/
 @[rocq_alias heap_lang.rwlock]
 structure RwLock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
@@ -58,7 +61,7 @@ structure RwLock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
 
 section lemmas
 
-variable [IrisGS_gen hlc Exp GF] (rw : RwLock GF) (L : rw.rwlockG GF)
+variable {GF : BundledGFunctors} [IrisGS_gen hlc Exp GF] (rw : RwLock GF) (L : rw.rwlockG GF)
 
 instance instPersistentIsRwLock γ lk Φ : Persistent (rw.isRwLock L γ lk Φ) :=
   rw.isRwLock_persistent γ lk Φ

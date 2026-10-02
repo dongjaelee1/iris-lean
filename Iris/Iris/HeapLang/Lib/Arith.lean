@@ -17,6 +17,9 @@ open BI Iris ProgramLogic
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Arith
 
 @[rocq_alias heap_lang.minimum]

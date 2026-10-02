@@ -6,12 +6,12 @@ Authors: Zongyuan Liu
 module
 
 public import Iris.Algebra.OFE
-public import Iris.Algebra.StepIndexFinite
 
 public section
-local stepindex Nat
 
 namespace Iris.Algebra
+
+variable {SI : Type _} [SIdx SI]
 
 /-! # Monoids for Big Operators
 
@@ -25,7 +25,7 @@ open OFE
 /-- A commutative monoid on an OFE, used for big operators.
 The operation must be non-expansive, associative, commutative, and have a left identity. -/
 @[rocq_alias Monoid]
-class MonoidOps {M : Type u} [OFE M] (op : M → M → M) (unit : outParam M) where
+class MonoidOps {SI : outParam (Type _)} [SIdx SI] {M : Type u} [OFE M] (op : M → M → M) (unit : outParam M) where
   /-- The operation is non-expansive in both arguments -/
   op_ne : NonExpansive₂ op
   /-- Associativity -/
@@ -79,7 +79,7 @@ end MonoidOps
 
 /-- A weak monoid homomorphism preserves the operation but not necessarily the unit. -/
 @[rocq_alias WeakMonoidHomomorphism]
-class WeakMonoidHomomorphism {M₁ : Type u} {M₂ : Type v} [OFE M₁] [OFE M₂]
+class WeakMonoidHomomorphism {SI : outParam (Type _)} [SIdx SI] {M₁ : Type u} {M₂ : Type v} [OFE M₁] [OFE M₂]
     (op₁ : M₁ → M₁ → M₁) (op₂ : M₂ → M₂ → M₂) (unit₁ : M₁) (unit₂ : M₂)
     [MonoidOps op₁ unit₁] [MonoidOps op₂ unit₂]
     (R : M₂ → M₂ → Prop) (f : M₁ → M₂) where
@@ -98,7 +98,7 @@ class WeakMonoidHomomorphism {M₁ : Type u} {M₂ : Type v} [OFE M₁] [OFE M�
 
 /-- A monoid homomorphism preserves both the operation and the unit. -/
 @[rocq_alias MonoidHomomorphism]
-class MonoidHomomorphism {M₁ : Type u} {M₂ : Type v} [OFE M₁] [OFE M₂]
+class MonoidHomomorphism {SI : outParam (Type _)} [SIdx SI] {M₁ : Type u} {M₂ : Type v} [OFE M₁] [OFE M₂]
     (op₁ : M₁ → M₁ → M₁) (op₂ : M₂ → M₂ → M₂) (unit₁ : M₁) (unit₂ : M₂)
     [MonoidOps op₁ unit₁] [MonoidOps op₂ unit₂]
     (R : M₂ → M₂ → Prop) (f : M₁ → M₂)

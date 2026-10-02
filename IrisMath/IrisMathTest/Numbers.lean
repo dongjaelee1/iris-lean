@@ -8,6 +8,8 @@ public import IrisMath.Numbers
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Real
 
 open Iris

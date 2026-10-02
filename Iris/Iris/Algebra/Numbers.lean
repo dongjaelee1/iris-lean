@@ -23,7 +23,8 @@ These are newtyped to avoid clashing with the normal mathematical operations.
 -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 open Std
 

@@ -13,7 +13,9 @@ public import Iris.Algebra.COFESolver
 public import Init.Data.Vector
 
 @[expose] public section
-local stepindex Nat
+
+universe s v
+variable {SI : Type s} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -59,7 +61,11 @@ instance (GF : BundledGFunctors) (i : GName) : RFunctorContractive ((GF i).fst) 
 
 section IProp
 
-variable (GF : BundledGFunctors)
+-- The solution of the domain equation (`OFunctor.Fix`) needs finite step indices.
+/- The universe levels of `GF` are spelled out: left to inference, the instance problems that
+arise when unifying `IProp GF` with the solution of the domain equation carry undetermined level
+metavariables, and elaborating `IProp.fold`/`unfold` took ~5s each instead of ~0.1s. -/
+variable [SIdxFinite SI] (GF : BundledGFunctors.{s, max s v, max s v, v})
 
 @[rocq_alias iProp_solution.iPrePropO, rocq_alias iProp_solution.iProp_result]
 def IPre : Type _ := OFunctor.Fix (UPredOF (IResF GF))
@@ -68,14 +74,14 @@ def IPre : Type _ := OFunctor.Fix (UPredOF (IResF GF))
 instance : COFE (IPre GF) := inferInstanceAs (COFE (OFunctor.Fix _))
 
 @[rocq_alias iProp_solution.iResUR]
-def IResUR.{u} : Type u := (i : GType) → GenMap (GF i |>.fst (IPre GF) (IPre GF))
+def IResUR : Type _ := (i : GType) → GenMap (GF i |>.fst (IPre GF) (IPre GF))
 
 #rocq_ignore iResUR "Sealed copy of `iProp_solution.iResUR`; not needed since Lean does not seal it."
 
 instance : UCMRA (IResUR GF) :=
   ucmraDiscreteFunO (β := fun (i : GType) => GenMap (GF i |>.fst (IPre GF) (IPre GF)))
 
-abbrev IProp.{u} : Type u := UPred (IResUR GF)
+abbrev IProp : Type _ := UPred (IResUR GF)
 
 @[rocq_alias iProp_solution.iProp_unfold]
 def IProp.unfold : IProp GF -n> IPre GF :=

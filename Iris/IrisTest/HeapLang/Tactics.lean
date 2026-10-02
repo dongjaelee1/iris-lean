@@ -12,6 +12,7 @@ namespace Iris.HeapLang
 
 section Fractional
 
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 variable {hlc : HasLC} {GF : BundledGFunctors} [ι : HeapLangGS hlc GF]
 
 /--

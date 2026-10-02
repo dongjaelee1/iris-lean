@@ -13,7 +13,8 @@ public import Iris.Algebra.LocalUpdates
 public import Iris.Algebra.IsOp
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -101,7 +102,7 @@ instance instCMRADFrac : CMRA DFrac where
   pcore_ne {_} := by rintro ⟨⟩ ⟨⟩ <;> simp [pcore] <;> nofun
   validN_ne H := H ▸ id
   valid_iff_validN := ⟨fun x _ => x, fun x => x 0⟩
-  validN_succ := id
+  validN_le h _ := h
   validN_op_left {_} := by rintro ⟨⟩ ⟨⟩ <;> simp [valid, op] <;> grind
   assoc := by rintro ⟨⟩ ⟨⟩ ⟨⟩ <;> grind [op]
   comm := by rintro ⟨⟩ ⟨⟩ <;> grind [op]

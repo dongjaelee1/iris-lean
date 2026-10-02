@@ -11,6 +11,9 @@ public import Iris.ProofMode.ClassesMake
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI Iris.Std
 
 /-- Auxiliary lemma for combining two hypotheses using `CombineSepAs` -/
@@ -123,7 +126,8 @@ open Lean Elab Tactic Meta Qq BI Iris.Std
   The tactic with the `gives` syntax allows one to derive an additional
   hypothesis in the intuitionistic context without changing existing hypotheses.
 -/
-private structure CombineState {u} {prop : Q(Type u)} {bi} (origE goal : Q($prop)) where
+private structure CombineState {u w} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} (origE goal : Q($prop)) where
   -- The remaining hypotheses after combining hypotheses
   {newE : Q($prop)}
   (newHyps : Hyps bi newE)
@@ -144,9 +148,9 @@ private structure CombineState {u} {prop : Q(Type u)} {bi} (origE goal : Q($prop
   hypothesis at a time. This function is called by `iCombineCore` iteratively
   for every hypotheses being combined.
 -/
-private def CombineState.combineProofModeHyp {u prop bi origE goal} :
-    @CombineState u prop bi origE goal → IVarId →
-    ProofModeM (@CombineState u prop bi origE goal)
+private def CombineState.combineProofModeHyp {u w si sidx prop bi origE goal} :
+    @CombineState u w si sidx prop bi origE goal → IVarId →
+    ProofModeM (@CombineState u w si sidx prop bi origE goal)
   | { newHyps, p := p1, outAs, pfAs, outGives, pfGives, .. }, ivar => do
     let some (_, ⟨_, hyps2, _, out2, p2, _, pf2⟩) ←
         newHyps.removeG false <| fun _ ivar' _ _ => return guard <| ivar' == ivar
@@ -195,9 +199,9 @@ private def CombineState.combineProofModeHyp {u prop bi origE goal} :
   iteratively calls `CombineState.combineProofMode` for each hypothesis in `hs`
   and returns the instance.
 -/
-private def iCombineCore {u} {prop : Q(Type $u)} {bi} {e : Q($prop)}
-    (ivars : List IVarId) (hyps : Hyps bi e) (goal : Q($prop)) :
-    ProofModeM (@CombineState u prop bi e goal) := do
+private def iCombineCore {u w} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type $u)}
+    {bi : Q(BI $prop)} {e : Q($prop)} (ivars : List IVarId) (hyps : Hyps bi e) (goal : Q($prop)) :
+    ProofModeM (@CombineState u w si sidx prop bi e goal) := do
   match ivars.reverse with
   | [] =>
     return { newHyps := hyps, p := q(true), outAs := q(emp),
@@ -219,8 +223,8 @@ private def iCombineCore {u} {prop : Q(Type $u)} {bi} {e : Q($prop)}
     return st
 
 /-- Parse the selection patterns and return a list of `IVarID` values. -/
-private def iCombineParseSelPats {u} {prop : Q(Type $u)} {bi} {e : Q($prop)}
-    (hyps : Hyps bi e) (patSels : TSyntaxArray `selPat) :
+private def iCombineParseSelPats {u w} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type $u)}
+    {bi : Q(BI $prop)} {e : Q($prop)} (hyps : Hyps bi e) (patSels : TSyntaxArray `selPat) :
     ProofModeM (List IVarId) := do
   let selPats ← liftMacroM <| SelPat.parse patSels
   let targets ← SelPat.resolve hyps selPats .topToBottom

@@ -17,6 +17,7 @@ telescopes parses, elaborates to the corresponding `atomic_update`/`atomic_acc` 
 prints back in notation form. -/
 
 section atomicNotation
+variable {SI : Type _} [SIdx SI]
 variable {PROP : Type} [BI PROP] [BIFUpdate PROP] (Eo Ei : CoPset) (P Q : PROP)
   (α : Nat → PROP) (β : Nat → Bool → PROP) (Ψ : Nat → Bool → PROP)
 
@@ -114,6 +115,8 @@ end atomicNotation
 /-! Tests for the logically atomic Hoare triple notation. -/
 
 section atomicWpNotation
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [SIdx SI] [SIdxFinite SI]
 variable {hlc : HasLC} {Expr State Obs Val : Type _} [Language Expr State Obs Val]
 variable {GF : BundledGFunctors} [IrisGS_gen hlc Expr GF]
 variable (e : Expr) (E : CoPset) (w : Val) (P : IProp GF)
@@ -183,6 +186,7 @@ example : (<<{ ∀∀ x, α x }>> e @ E <<{ ∃∃ y, β x y | RET w }>>) ⊢
 end atomicWpNotation
 section ProofModeTactics
 
+variable {SI : Type _} [SIdx SI]
 variable {PROP : Type u} [instBI : BI PROP] [instBIFUpd : BIFUpdate PROP] {TA TB : Tele}
 variable {Eo Ei : CoPset} {α : TA.Arg → PROP} {β Φ : TA.Arg → TB.Arg → PROP}
 

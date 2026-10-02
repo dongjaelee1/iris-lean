@@ -416,6 +416,10 @@ theorem limit_finite [inst : SIdxFinite I] (n : I) : ¬Limit n := by
     subst hm
     assumption
 
+/-- With finite step indices there are no limit indices. -/
+def Limit.elim [SIdxFinite I] {n : I} {C : Sort v} (h : Limit n) : C :=
+  limit_finite n h |>.elim
+
 @[rocq_alias SIdx.case]
 def case (n : I) : (n = 0) ⊕' (Σ' m, n = succᵢ m) ⊕' Limit n :=
   if h : n = 0 then .inl h

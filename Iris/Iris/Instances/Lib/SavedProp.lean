@@ -13,7 +13,8 @@ public import Iris.BI.InternalEq
 public import Iris.ProofMode
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
@@ -339,8 +340,7 @@ theorem saved_pred_valid_2 (γ : GName) (dq1 dq2 : DFrac) (Φ Ψ : A → IProp G
     saved_pred_own γ dq1 Φ ∗ saved_pred_own γ dq2 Ψ ⊢@{IProp GF}
       ⌜✓ (dq1 • dq2)⌝ ∧ ▷ internalEq (Φ x) (Ψ x) := by
   unfold saved_pred_own
-  refine (saved_anything_valid_2 (F := DiscreteFunOF (fun _ : A => LaterOF IdOF))
-    γ dq1 dq2 _ _).trans (and_mono_right ?_)
+  refine (saved_anything_valid_2 γ dq1 dq2 _ _).trans (and_mono_right ?_)
   exact ((discreteFun_equivI _ _).mp.trans (forall_elim x)).trans (later_equivI (Φ x) (Ψ x)).mp
 
 @[rocq_alias saved_pred_agree]

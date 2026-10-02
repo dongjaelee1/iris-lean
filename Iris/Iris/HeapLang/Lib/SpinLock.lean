@@ -18,6 +18,9 @@ open BI Iris ProgramLogic
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace SpinLock
 
 @[rocq_alias heap_lang.spin_lock.newlock]
@@ -46,7 +49,7 @@ def spinlockN : Namespace := ndot nroot "spinlock"
 
 section Predicates
 
-variable [HeapLangGS hlc GF] [SpinLockG GF]
+variable {GF : BundledGFunctors} [HeapLangGS hlc GF] [SpinLockG GF]
 
 @[rocq_alias heap_lang.spin_lock.locked]
 def locked (γ : GName) : IProp GF := token γ

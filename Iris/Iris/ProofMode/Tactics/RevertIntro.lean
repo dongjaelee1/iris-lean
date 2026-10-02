@@ -14,17 +14,18 @@ open Lean Meta Elab.Tactic Qq
 public meta section
 
 abbrev ProofModeContinuationIntro :=
-  ∀ {u : Level} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
-    (_hyps : Hyps bi e) (goal: Q($prop)),
+  ∀ {u w : Level} {si : Q(Type w)} {_sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+    {e : Q($prop)} (_hyps : Hyps bi e) (goal: Q($prop)),
     ProofModeM Q($e ⊢ $goal)
 
 abbrev ProofModeContinuationRevert :=
-  ∀ {u : Level} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
-    (_hyps : Hyps bi e) (goal : Q($prop)), ProofModeContinuationIntro →
+  ∀ {u w : Level} {si : Q(Type w)} {_sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+    {e : Q($prop)} (_hyps : Hyps bi e) (goal : Q($prop)), ProofModeContinuationIntro →
     ProofModeM Q($e ⊢ $goal)
 
 def iRevertIntro
-  {prop: Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)} (hyps : Hyps bi e) (goal: Q($prop))
+  {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
+    (hyps : Hyps bi e) (goal: Q($prop))
   (hs : List SelTarget)
   (k : ∀ {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
     (_hyps : Hyps bi e) (goal: Q($prop)), ProofModeContinuationRevert →

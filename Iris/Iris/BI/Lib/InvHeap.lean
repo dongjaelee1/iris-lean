@@ -13,6 +13,9 @@ public import Iris.Instances.Lib.Invariants
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Iris
 
 open Iris.Std Std.PartialMap Std.LawfulPartialMap Iris.Algebra CMRA BI ProofMode
@@ -52,6 +55,7 @@ theorem get?_toInvHeap_some {h : H (V × (V → Prop))} {l : L}
   rw [toInvHeap, get?_map] at hl
   rcases hh : get? h l with _ | ⟨v, I⟩ <;> rw [hh] at hl <;> simp_all
 
+omit [Iris.SIdxFinite SI] in
 private theorem singleton_inc_toInvHeap {h : H (V × (V → Prop))} {l : L} {I : V → Prop}
     {mv : Option (Excl (DiscreteO V))}
     (hinc : ({[l := (mv, toAgree ⟨I⟩)]} : InvHeapMapUR V H) ≼ toInvHeap h) :
@@ -62,6 +66,7 @@ private theorem singleton_inc_toInvHeap {h : H (V × (V → Prop))} {l : L} {I :
   cases DiscreteO.eqv_inj (toAgree_included.mp hI)
   exact ⟨v, hh, hv⟩
 
+omit [Iris.SIdxFinite SI] in
 @[rocq_alias to_inv_heap_valid]
 theorem toInvHeap_valid (h : H (V × (V → Prop))) : ✓ toInvHeap h := fun l => by
   rcases hh : get? h l with _ | ⟨v, I⟩
@@ -88,7 +93,7 @@ class invHeapPreS (L V : Type _) (GF : BundledGFunctors) (H : outParam <| Type _
 attribute [reducible, instance] invHeapPreS.invHeap
 
 @[rocq_alias inv_heapGS]
-class invHeapGS (L V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
+class invHeapGS {SI : outParam Type} [SIdx SI] (L V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
     (H : outParam <| Type _ → Type _) [LawfulFiniteMap H L]
     extends invHeapPreS L V GF H where
   invHeapName : GName
@@ -192,7 +197,7 @@ theorem invPointsToOwn_inv (l : L) (v : V) (I : V → Prop) :
 variable [genHeapGS L V GF H]
 
 local instance instTimelessInvHeapInvP : Timeless invHeapInvP :=
-  @exists_timeless _ _ _ _ fun _ => inferInstance
+  @exists_timeless _ _ _ _ _ _ fun _ => inferInstance
 
 @[rocq_alias inv_pointsto_acc]
 theorem invPointsTo_acc {E : CoPset} {l : L} {I : V → Prop} (hN : ↑invHeapN ⊆ E) :

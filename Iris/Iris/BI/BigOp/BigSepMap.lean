@@ -15,6 +15,8 @@ import Batteries.Data.List.Perm
 
 public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 
 open Iris.Algebra BigOpL BigOpM BIBase Iris.Std BigSepL LawfulPartialMap PartialMap
@@ -86,7 +88,7 @@ theorem bigSepM_eq_of_forall_eq {Φ Ψ : K → V → PROP} {m : M V}
   bigOpM_eq_of_forall_eq m h
 
 @[rocq_alias big_sepM_ne]
-theorem bigSepM_dist {Φ Ψ : K → V → PROP} {m : M V} {n : Nat}
+theorem bigSepM_dist {Φ Ψ : K → V → PROP} {m : M V} {n : SI}
     (h : ∀ {k x}, get? m k = some x → Φ k x ≡{n}≡ Ψ k x) :
     ([∗map] k ↦ x ∈ m, Φ k x) ≡{n}≡ [∗map] k ↦ x ∈ m, Ψ k x :=
   bigOpM_dist h

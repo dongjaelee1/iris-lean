@@ -12,7 +12,8 @@ public import Iris.Algebra
 public import Iris.Std.HeapInstances
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris.Examples
 open Iris.BI COFE
@@ -21,7 +22,7 @@ section Example1
 
 abbrev F0 : OFunctorPre := constOF (Agree (DiscreteO String))
 
-variable {GF} [E0 : ElemG GF F0]
+variable {GF : BundledGFunctors} [E0 : ElemG GF F0]
 
 private theorem autoverse : ⊢
     (|==> ∃ (γ : GName), iOwn (F := F0) γ (toAgree ⟨"Paul Durham"⟩) : IProp GF) := by
@@ -57,7 +58,7 @@ abbrev F1 : OFunctorPre :=
   constOF <| HeapView Nat (Agree (DiscreteO String)) (Std.ExtTreeMap Nat · compare)
 
 /- Our OFunctor is present in the global list of OFunctors. -/
-variable {GF} [ElemG GF F1]
+variable {GF : BundledGFunctors} [ElemG GF F1]
 
 /- Allow the type of GF to be inferred by γ alone. Doing it this way allows us to define a
    notation for the points-to that does not require explicit type parameters. Having it in the
@@ -100,7 +101,7 @@ variable (Expr State Value : Type _) [OperationalSemantics Expr State Value]
 /- Let's say that we are also given two OFunctors, and an interpretation of the state into
    state using these resources. -/
 variable (F3 F4 : OFunctorPre) [RFunctorContractive F3] [RFunctorContractive F4]
-variable {GF} [ElemG GF F3] [ElemG GF F4]
+variable {GF : BundledGFunctors} [ElemG GF F3] [ElemG GF F4]
 class StateInterpretation (State : Type _) (GF : BundledGFunctors) where
   state_interp : State → IProp GF
 export StateInterpretation (state_interp)
@@ -117,10 +118,10 @@ class abbrev Ex3WP {Expr : Type _} {State Value : outParam (Type _)} {GF : outPa
 def wp_F (wp : Expr → (Value → IProp GF) → IProp GF) (e : Expr) (Φ : Value → IProp GF) :
     IProp GF := iprop(
   (∃ v : Value, ⌜@to_value _ State _ _ e = some v⌝ ∗ |==> Φ v) ∨
-  ∀ s, @state_interp State _ _ s -∗
-    ∃ e' s', ⌜@step _ _ Value _ (e, s) = (e', s') ⌝ ∗ ▷ |==> (@state_interp _ _ _  s' ∗ wp e' Φ))
+  ∀ s, state_interp (State := State) s -∗
+    ∃ e' s', ⌜@step _ _ Value _ (e, s) = (e', s') ⌝ ∗ ▷ |==> (state_interp s' ∗ wp e' Φ))
 
-instance wp_F_contractive : Contractive (@wp_F Expr State Value _ GF _) where
+instance wp_F_contractive : Contractive (wp_F Expr State Value (GF := GF)) where
   distLater_dist {n x y HL} e Φ := by
     refine or_ne.ne (.of_eq rfl) ?_
     refine forall_ne (fun _ => ?_)
@@ -133,17 +134,19 @@ instance wp_F_contractive : Contractive (@wp_F Expr State Value _ GF _) where
     refine sep_ne.ne (.of_eq rfl) ?_
     exact HL m Hm v Φ
 
-def wp {Expr State Value : Type _} [@Ex3WP Expr State Value GF] (e : Expr) (Φ : Value → IProp GF) : IProp GF :=
-  (fixpoint <| @wp_F Expr State Value _ GF _) e Φ
+def wp {Expr State Value : Type _}
+    [Ex3WP (Expr := Expr) (State := State) (Value := Value) (GF := GF)]
+    (e : Expr) (Φ : Value → IProp GF) : IProp GF :=
+  (fixpoint <| wp_F Expr State Value (GF := GF)) e Φ
 
 theorem wp_unfold (e : Expr) (Φ : Value → IProp GF) :
     wp e Φ = iprop(
         (∃ v : Value, ⌜@to_value _ State _ _ e = some v⌝ ∗ |==> Φ v) ∨
-        ∀ s, @state_interp State _ _ s -∗
+        ∀ s, state_interp (State := State) s -∗
           ∃ e' s', ⌜@step _ _ Value _ (e, s) = (e', s') ⌝ ∗
-          ▷ |==> (@state_interp _ _ _  s' ∗ wp e' Φ)) := by
-  exact OFE.eq_dist_2 fun _n => (fixpoint_unfold (f := ⟨(@wp_F Expr State Value _ GF _),
-                                @OFE.ne_of_contractive _ _ _ _ _ _ (@wp_F Expr State Value _ GF _) _⟩)).dist (SI := Nat) e Φ
+          ▷ |==> (state_interp s' ∗ wp e' Φ)) := by
+  exact OFE.eq_dist_2 fun _n => (fixpoint_unfold (f := ⟨(wp_F Expr State Value (GF := GF)),
+                                OFE.ne_of_contractive (wp_F Expr State Value (GF := GF))⟩)).dist e Φ
 
 /- Now, we can derive some example proof rules. First let's prove a rule for pure deterministic steps: -/
 example (e e' : Expr) Φ (Hstep : ∀ {s : State}, @step _ _ Value _ (e, s) = (e', s)) :
@@ -162,8 +165,8 @@ example (e e' : Expr) Φ (Hstep : ∀ {s : State}, @step _ _ Value _ (e, s) = (e
    in the stepped-to state.
    Then, it suffies to have access to P, and show that access to P' is enough to verify e'. -/
 example (e e' : Expr) (P P' : IProp GF) Φ
-      (Hstep : ∀ s, iprop(P ∗ @state_interp State GF _ s ⊢ ∃ s',
-          ⌜step Value (e, s) = (e', s')⌝ ∗ |==> (P' ∗ @state_interp State GF _ s'))) :
+      (Hstep : ∀ s, iprop(P ∗ state_interp (State := State) s ⊢ ∃ s',
+          ⌜step Value (e, s) = (e', s')⌝ ∗ |==> (P' ∗ state_interp (State := State) s'))) :
     P ∗ (P' -∗ wp e' Φ) ⊢ wp e Φ := by
   iintro ⟨HP, Hspec⟩
   iapply wp_unfold

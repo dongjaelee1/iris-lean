@@ -10,11 +10,13 @@ public import Iris.ProofMode.Classes
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 open Iris BI CMRA ProofMode Std
 
 namespace UPred
 
-variable [UCMRA M]
+variable [UCMRA M] [SIdxFinite SI]
 
 @[rocq_alias from_sep_ownM]
 instance fromSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :

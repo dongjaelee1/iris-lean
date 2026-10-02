@@ -10,7 +10,8 @@ public import Iris.Algebra.LocalUpdates
 public import Iris.Algebra.Numbers
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

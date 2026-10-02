@@ -12,6 +12,9 @@ public meta import Iris.ProofMode.Patterns.SelPattern
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI
 
 theorem frame_init [BI PROP] {e goal : PROP} :
@@ -76,12 +79,14 @@ theorem frame_finish_close_emp [BI PROP] {e origE origGoal : PROP}
 public meta section
 open Lean Elab Tactic Meta Qq Iris.Std
 
-structure FrameResult {u} {prop : Q(Type u)} (bi : Q(BI $prop)) (origE origGoal : Q($prop)) where
+structure FrameResult {u w} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    (bi : Q(BI $prop)) (origE origGoal : Q($prop)) where
   (progress : Bool) (e : Q($prop)) (hyps : Hyps bi e) (goal : Q($prop))
   pf : Q($origE ⊢ $e ∗ ($goal -∗ $origGoal))
 
-private def FrameResult.step {u prop bi origE origGoal} :
-    @FrameResult u prop bi origE origGoal → SelTarget → ProofModeM (FrameResult bi origE origGoal)
+private def FrameResult.step {u w si sidx prop bi origE origGoal} :
+    @FrameResult u w si sidx prop bi origE origGoal → SelTarget →
+      ProofModeM (FrameResult bi origE origGoal)
   | st@{hyps, goal, pf, ..}, {explicit, kind := .ipm ivar, ..} => do
     let ⟨e', hyps', _, out', p, _, hrem⟩ := hyps.remove false ivar
     let goal' ← mkFreshExprMVarQ q($prop)
@@ -105,8 +110,8 @@ private def FrameResult.step {u prop bi origE origGoal} :
     else
       return st
 
-def iFrame {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
-    (hyps : Hyps bi e) (goal : Q($prop)) (sels : List SelTarget) :
+def iFrame {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+    {e : Q($prop)} (hyps : Hyps bi e) (goal : Q($prop)) (sels : List SelTarget) :
     ProofModeM (FrameResult bi e goal) := do
   let mut st : FrameResult bi e goal := { progress := false, e, hyps, goal, pf := q(frame_init) }
   for sel in sels do st ← st.step sel
@@ -117,7 +122,8 @@ def iFrame {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)}
   handles the subgoal remaining after framing. This function k might not be called if the framing
   made the goal trivial.
 -/
-def FrameResult.finish {u prop bi origE origGoal} (res : @FrameResult u prop bi origE origGoal)
+def FrameResult.finish {u w si sidx prop bi origE origGoal}
+    (res : @FrameResult u w si sidx prop bi origE origGoal)
     (k : ∀ {e}, Hyps bi e → (goal : Q($prop)) → ProofModeM Q($e ⊢ $goal)) :
     ProofModeM Q($origE ⊢ $origGoal) := do
   let {progress, e, hyps, goal, pf} := res
@@ -136,8 +142,8 @@ def FrameResult.finish {u prop bi origE origGoal} (res : @FrameResult u prop bi 
 
 /-- FrameResult.finishClose checks that the original goal was fully solved by framing and gives it
   back with the remaining hypotheses. -/
-def FrameResult.finishClose {u prop bi origE origGoal}
-    (res : @FrameResult u prop bi origE origGoal) :
+def FrameResult.finishClose {u w si sidx prop bi origE origGoal}
+    (res : @FrameResult u w si sidx prop bi origE origGoal) :
     ProofModeM ((e : Q($prop)) × (_ : Hyps bi e) × Q($origE ⊢ $e ∗ $origGoal)) := do
   let {e, hyps, goal, pf, ..} := res
   -- try closing the goal for emp or True without calling k

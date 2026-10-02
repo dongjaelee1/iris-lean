@@ -9,6 +9,8 @@ public import Iris.BI.BI
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 
 /-- Require that the proposition `P` is persistent. -/

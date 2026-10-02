@@ -12,6 +12,8 @@ public import Iris.ProofMode
 namespace IrisTest
 open Lean Elab Meta Iris
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 meta section
 
 partial def collectTags {α} (t : Widget.TaggedText α)

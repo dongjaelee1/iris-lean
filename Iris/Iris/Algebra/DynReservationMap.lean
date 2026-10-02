@@ -17,7 +17,8 @@ public import Iris.Algebra.LeibnizSet
 namespace Iris
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris.Std PartialMap
 
@@ -129,7 +130,7 @@ section
 variable [LawfulPartialMap H Pos] [CMRA A]
 
 @[rocq_alias dyn_reservation_map_validN_instance]
-def ValidN (n : Nat) (x : DynReservationMap A H) : Prop :=
+def ValidN (n : SI) (x : DynReservationMap A H) : Prop :=
   match x.token with
   | .valid e => ✓{n} x.data ∧ setInfinite (⊤ \ e) ∧ ∀ i, get? x.data i = none ∨ i ∉ e
   | .error => False
@@ -150,7 +151,7 @@ def Infinite (x : DynReservationMap A H) : Prop :=
   | .valid e => setInfinite ((⊤ : CoPset) \ e)
   | .error => True
 
-theorem validN_iff {n : Nat} {x : DynReservationMap A H} :
+theorem validN_iff {n : SI} {x : DynReservationMap A H} :
     x.ValidN n ↔ ✓{n} x.data ∧ ✓{n} x.token ∧ x.Infinite ∧
       ∀ i, get? x.data i = none ∨ i ∉ x.token := by
   refine ⟨fun h => ?_, fun ⟨vd, vt, inf, disj⟩ => ?_⟩
@@ -182,16 +183,16 @@ theorem valid_iff {x : DynReservationMap A H} :
       exact ⟨vd, inf, disj⟩
     · exact ((h ▸ not_valid_invalid (S := CoPset)) vt)
 
-theorem validN_data_of_validN {n : Nat} {x : DynReservationMap A H} (h : x.ValidN n) :
+theorem validN_data_of_validN {n : SI} {x : DynReservationMap A H} (h : x.ValidN n) :
     ✓{n} x.data := (validN_iff.mp h).left
 
-theorem validN_token_of_validN {n : Nat} {x : DynReservationMap A H} (h : x.ValidN n) :
+theorem validN_token_of_validN {n : SI} {x : DynReservationMap A H} (h : x.ValidN n) :
     ✓{n} x.token := (validN_iff.mp h).right.left
 
-theorem validN_infinite {n : Nat} {x : DynReservationMap A H} (h : x.ValidN n) :
+theorem validN_infinite {n : SI} {x : DynReservationMap A H} (h : x.ValidN n) :
     x.Infinite := (validN_iff.mp h).right.right.left
 
-theorem validN_disj {n : Nat} {x : DynReservationMap A H} (h : x.ValidN n) (i : Pos) :
+theorem validN_disj {n : SI} {x : DynReservationMap A H} (h : x.ValidN n) (i : Pos) :
     get? x.data i = none ∨ i ∉ x.token := (validN_iff.mp h).right.right.right i
 
 theorem valid_data_of_valid {x : DynReservationMap A H} (h : x.Valid) :
@@ -286,10 +287,10 @@ instance instUCMRADynReservationMap : UCMRA (DynReservationMap A H) where
       · exact valid_iff_validN.mpr (fun n => validN_token_of_validN (v n))
       · exact validN_infinite (v 0)
       · exact validN_disj (v 0)
-  validN_succ {x n} v := by
+  validN_le {x n n'} v hle := by
     refine validN_iff.mpr ⟨?_, ?_, ?_, ?_⟩
-    · exact validN_succ (validN_data_of_validN v)
-    · exact (valid_0_iff_validN n).mp (validN_token_of_validN (n := n.succ) v)
+    · exact validN_of_le hle (validN_data_of_validN v)
+    · exact (valid_0_iff_validN n').mp (validN_token_of_validN (n := n) v)
     · exact validN_infinite v
     · exact validN_disj v
   validN_op_left {n x y} v := by
@@ -308,22 +309,24 @@ instance instUCMRADynReservationMap : UCMRA (DynReservationMap A H) where
   assoc := eq_dist_2 <| by refine fun _ => ⟨?_, ?_⟩ <;> exact CMRA.assoc.dist
   comm := eq_dist_2 <| by refine fun _ => ⟨?_, ?_⟩ <;> exact CMRA.comm.dist
   pcore_op_left {x cx} h := eq_dist_2 <| by
+    cases (Option.some_inj.mp h : core x = cx)
     refine fun n => ⟨?_, ?_⟩
-    · simp only [←Option.some_inj.mp h, op_data', core_data]
+    · simp only [op_data', core_data]
       exact (core_op x.data).dist
-    · simp [←Option.some_inj.mp h, op_token', core_token, core_op_L]
+    · simp [op_token', core_token, core_op_L]
   pcore_idem {x cx} h := by
     cases Option.some_inj.mp h.symm
     rcases x with ⟨xd, xt⟩
     grind only [core, core_idem]
   pcore_op_mono {x cx} h y := by
+    cases (Option.some_inj.mp h : core x = cx)
     obtain ⟨z, hz⟩ := core_op_mono x.data y.data
     obtain ⟨w, hw⟩ := core_op_mono x.token y.token
     refine ⟨mk z w, eq_dist_2 ?_⟩
     refine fun n => ⟨?_, ?_⟩
-    · simp only [op_data', core_data, (Option.some_inj.mp h.symm)]
+    · simp only [op_data', core_data]
       exact hz.dist
-    · simp only [core_token, op_token', (Option.some_inj.mp h.symm)]
+    · simp only [core_token, op_token']
       exact hw.dist
   extend {n x y₁ y₂} v exy := by
     obtain ⟨z₁, z₂, xzz, zy₁, zy₂⟩ := CMRA.extend (validN_data_of_validN v) exy.left
@@ -453,7 +456,7 @@ theorem infinite_data_op_token {a : H A} {b : CoPset} (h : ✓{n} mk a ∅ • m
   simpa only [Infinite, show (mk a ∅ • mkToken b).token = .valid b from
     pcore_op_left_L rfl] using validN_infinite h
 
-theorem validN_data_op_token {n : Nat} {a : H A} {b : CoPset} (vd : ✓{n} a)
+theorem validN_data_op_token {n : SI} {a : H A} {b : CoPset} (vd : ✓{n} a)
     (inf : setInfinite ((⊤ : CoPset) \ b)) (disj : ∀ i, get? a i = none ∨ i ∉ b) :
     ✓{n} mk a ∅ • mkToken b := by
   have abdp : (mk a ∅ • mkToken b).data = a :=

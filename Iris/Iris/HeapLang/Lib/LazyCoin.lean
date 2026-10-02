@@ -8,6 +8,9 @@ public import Iris.HeapLang
 public import Iris.BI
 public import Iris.HeapLang.Lib.NondetBool
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Iris.HeapLang
 
 -- type Coin := Ref (Option Bool) × ProphId

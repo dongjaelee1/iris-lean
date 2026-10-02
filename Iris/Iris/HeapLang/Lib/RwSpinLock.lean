@@ -20,6 +20,9 @@ open BI Iris Iris.Std ProgramLogic CMRA OFE LeibnizMultiSet FiniteMultiSet
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace RwSpinLock
 
 @[rocq_alias heap_lang.rw_spin_lock.newlock]
@@ -116,6 +119,7 @@ instance instWriterLockedTimeless (γ : GName) :
 
 /-! ## Ghost-state lemmas for the reader set -/
 
+omit [Iris.SIdxFinite SI] in
 @[rocq_alias heap_lang.auth_valid_gmultiset_singleton]
 theorem auth_valid_singleton {dq : DFrac} {v : Qp} {g : ReaderFracs}
     (h : ✓ ((●{dq} .ofSet g : Auth (LeibnizMultiSet ReaderFracs)) •

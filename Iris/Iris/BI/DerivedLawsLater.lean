@@ -15,7 +15,8 @@ public import Iris.Std.Rewrite
 public import Iris.Std.TC
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 open Iris.Std BI

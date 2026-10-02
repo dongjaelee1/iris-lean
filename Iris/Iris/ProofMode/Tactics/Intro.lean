@@ -14,6 +14,9 @@ public import Iris.ProofMode.Tactics.Trivial
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI Iris.Std
 
 @[rocq_alias tac_impl_intro_drop]
@@ -84,8 +87,8 @@ open Lean Elab Tactic Meta Qq BI Iris.Std
   using `FromForall` fails. The fallback option is applicable only for
   `.all` and `.allwand`.
 -/
-private def iIntroCoreForallIntro {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    {P : Q($prop)} (hyps : Hyps bi P) (pat : TSyntax `rcasesPat)
+private def iIntroCoreForallIntro {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {P : Q($prop)} (hyps : Hyps bi P) (pat : TSyntax `rcasesPat)
     (Q : Q($prop)) (k' : Option <| ProofModeM Q($P ⊢ $Q))
     (k : MVarId → ∀ {P' : Q($prop)}, Hyps bi P' → (B : Q($prop)) → ProofModeM Q($P' ⊢ $B)) :
     ProofModeM Q($P ⊢ $Q) := do
@@ -107,8 +110,8 @@ private def iIntroCoreForallIntro {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
     return q(from_forall_intro (Q := $Q) $pf)
 
 /-- Return `true` if there is a premise to introduce using `.allwand` (`**`). -/
-private def iIntroCoreAllWandCheck {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    (P Q : Q($prop)) : ProofModeM Bool := do
+private def iIntroCoreAllWandCheck {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} (P Q : Q($prop)) : ProofModeM Bool := do
   let A1 ← mkFreshExprMVarQ q($prop)
   let A2 ← mkFreshExprMVarQ q($prop)
 
@@ -129,10 +132,10 @@ The type of the current goal is given by `Q`.
 This function returns the proof of `P ⊢ Q` to be assigned. The new context is included in the
 `goals` directly by the tactic.
 -/
-partial def iIntroCore {u} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    {P} (hyps : Hyps bi P) (Q : Q($prop)) (pats : List (Syntax × IntroPat))
-    (k : ∀ {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e : Q($prop)},
-      Hyps bi e → (goal: Q($prop)) → ProofModeM Q($e ⊢ $goal) := addBIGoal) :
+partial def iIntroCore {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
+    {bi : Q(BI $prop)} {P} (hyps : Hyps bi P) (Q : Q($prop)) (pats : List (Syntax × IntroPat))
+    (k : ∀ {u w} {si : Q(Type w)} {_sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+      {e : Q($prop)}, Hyps bi e → (goal: Q($prop)) → ProofModeM Q($e ⊢ $goal) := addBIGoal) :
     ProofModeM (Q($P ⊢ $Q)) := do
   match pats with
   | [] => k hyps Q

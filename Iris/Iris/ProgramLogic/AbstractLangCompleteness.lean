@@ -25,6 +25,9 @@ open Language Language.Notation
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 section AbstractCompleteness
 
 variable {Expr State Obs Val : Type _} [Language Expr State Obs Val]
@@ -150,7 +153,7 @@ theorem weakestpre_completeness {Cini : List Expr × State} {f : Forking} {γ : 
       imodintro
       iframe
       ipureintro ; grind
-  · imod AbstractLangCompletenessGen.lang_completeness $$ %HnotStuck' He [Hheap HtpInv]
+  · imod ACG.lang_completeness $$ %HnotStuck' He [Hheap HtpInv]
         with (⟨%K, %e₁, %Hctx, %Heq, %Hval, %Hatom, H⟩|⟨Hheap, Htpinv, H⟩)
     · have aux : cfgSafe (cfg.fst, cfg.snd) := cfgSafe_of_cfgSafeForking Hsafe
       iframe %aux Hheap HtpInv

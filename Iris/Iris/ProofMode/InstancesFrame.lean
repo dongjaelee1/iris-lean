@@ -26,6 +26,8 @@ end
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.ProofMode
 open Qq Iris.BI Iris.Std
 
@@ -431,8 +433,10 @@ theorem frameInstantiateExistsDisabled_of [BI PROP] {p} {R P Q : PROP} (h : Fram
 
 @[ipm_tactic_instance FrameInstantiateExistDisabled _ _ _ _]
 def frameNoInstantiateExist : SynthTactic := fun e => do
-  let_expr FrameInstantiateExistDisabled prop bi p R P G := e | return .continue
-  have u := e.getAppFn.constLevels![0]!
+  let_expr FrameInstantiateExistDisabled si sidx prop bi p R P G := e | return .continue
+  let [w, u] := e.getAppFn.constLevels! | return .continue
+  have si : Q(Type w) := si
+  have _sidx : Q(SIdx $si) := sidx
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   have p : Q(Bool) := p
@@ -445,8 +449,8 @@ def frameNoInstantiateExist : SynthTactic := fun e => do
 
 /-- corresponds to the MaybeFrame typeclass in Rocq -/
 @[rocq_alias MaybeFrame', rocq_alias maybe_frame_frame]
-def maybeFrame {prop : Q(Type u)} {bi : Q(BI $prop)} (p : Q(Bool))
-    (R P Q : Q($prop)) (f : Option Q(Frame $p $R $P $Q)) :
+def maybeFrame {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+    (p : Q(Bool)) (R P Q : Q($prop)) (f : Option Q(Frame $p $R $P $Q)) :
   MetaM (Option Q(Frame $p $R $P $Q)) := do
   if let some f := f then return some f
   match matchBool p with
@@ -463,8 +467,10 @@ def maybeFrame {prop : Q(Type u)} {bi : Q(BI $prop)} (p : Q(Bool))
 
 @[ipm_tactic_instance Frame _ _ iprop(_ ∗ _) _]
 def frameSep : SynthTactic := fun e => do
-  let_expr Frame prop bi p R P _ := e | return .continue
-  have u := e.getAppFn.constLevels![0]!
+  let_expr Frame si sidx prop bi p R P _ := e | return .continue
+  let [w, u] := e.getAppFn.constLevels! | return .continue
+  have si : Q(Type w) := si
+  have _sidx : Q(SIdx $si) := sidx
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   have p : Q(Bool) := p
@@ -497,8 +503,10 @@ def frameSep : SynthTactic := fun e => do
 
 @[ipm_tactic_instance Frame _ _ iprop(_ ∧ _) _]
 def frameAnd : SynthTactic := fun e => do
-  let_expr Frame prop bi p R P _ := e | return .continue
-  have u := e.getAppFn.constLevels![0]!
+  let_expr Frame si sidx prop bi p R P _ := e | return .continue
+  let [w, u] := e.getAppFn.constLevels! | return .continue
+  have si : Q(Type w) := si
+  have _sidx : Q(SIdx $si) := sidx
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   have p : Q(Bool) := p
@@ -511,8 +519,8 @@ def frameAnd : SynthTactic := fun e => do
   let Q2 : Q($prop) ← mkFreshExprMVarQ q($prop)
   let f2 ← synthInstanceRecursiveQ q(Frame $p $R $P2 $Q2)
   if f1.isNone && f2.isNone then return .continue
-  let .some _ ← maybeFrame p R P1 Q1 f1 | return .continue
-  let .some _ ← maybeFrame p R P2 Q2 f2 | return .continue
+  let .some (_ : Q(Frame $p $R $P1 $Q1)) ← maybeFrame p R P1 Q1 f1 | return .continue
+  let .some (_ : Q(Frame $p $R $P2 $Q2)) ← maybeFrame p R P2 Q2 f2 | return .continue
   let Q' : Q($prop) ← mkFreshExprMVarQ q($prop)
   let .some _ ← synthInstanceRecursiveQ q(MakeAnd $Q1 $Q2 $Q') |
     throwError "MakeAnd should always succeed"
@@ -525,8 +533,10 @@ def isBITrue (e : Expr) : Bool :=
 
 @[ipm_tactic_instance Frame _ _ iprop(_ ∨ _) _]
 def frameOr : SynthTactic := fun e => do
-  let_expr Frame prop bi p R P _ := e | return .continue
-  have u := e.getAppFn.constLevels![0]!
+  let_expr Frame si sidx prop bi p R P _ := e | return .continue
+  let [w, u] := e.getAppFn.constLevels! | return .continue
+  have si : Q(Type w) := si
+  have _sidx : Q(SIdx $si) := sidx
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   have p : Q(Bool) := p
@@ -548,8 +558,8 @@ def frameOr : SynthTactic := fun e => do
      || (f1.isSome && isBITrue Q1) -- or if the left side was changed to True
      || (f2.isSome && isBITrue Q2) -- or if the right side was changed to True
   then
-    let .some _ ← maybeFrame p R P1 Q1 f1 | return .continue
-    let .some _ ← maybeFrame p R P2 Q2 f2 | return .continue
+    let .some (_ : Q(Frame $p $R $P1 $Q1)) ← maybeFrame p R P1 Q1 f1 | return .continue
+    let .some (_ : Q(Frame $p $R $P2 $Q2)) ← maybeFrame p R P2 Q2 f2 | return .continue
     let Q' : Q($prop) ← mkFreshExprMVarQ q($prop)
     let .some _ ← synthInstanceRecursiveQ q(MakeOr $Q1 $Q2 $Q') |
       throwError "MakeOr should always succeed"
@@ -558,8 +568,10 @@ def frameOr : SynthTactic := fun e => do
 
 @[ipm_tactic_instance Frame _ _ iprop(∃ _, _) _]
 def frameExist : SynthTactic := fun e => do
-  let_expr Frame prop bi p R P _ := e | return .continue
-  have u := e.getAppFn.constLevels![0]!
+  let_expr Frame si sidx prop bi p R P _ := e | return .continue
+  let [w, u] := e.getAppFn.constLevels! | return .continue
+  have si : Q(Type w) := si
+  have _sidx : Q(SIdx $si) := sidx
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   have p : Q(Bool) := p

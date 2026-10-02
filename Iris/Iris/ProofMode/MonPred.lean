@@ -12,6 +12,8 @@ public import Iris.ProofMode.SynthInstance
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.ProofMode
 open BI Iris.Std MonPred
 

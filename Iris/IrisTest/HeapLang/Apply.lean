@@ -18,6 +18,7 @@ goals an application created. -/
 
 namespace Iris.HeapLang
 
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 variable {hlc : HasLC} {GF : BundledGFunctors} [HeapLangGS hlc GF]
 set_option linter.unusedVariables false
 set_option pp.mvars false
@@ -57,6 +58,9 @@ example {l : Loc} {v : Val} : ⊢@{IProp GF}
 
 -- application under an evaluation context
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -104,6 +108,9 @@ example {l : Loc} {Φ : Val → IProp GF} : ⊢@{IProp GF}
 
 -- the post-pass must not reach a sibling goal
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -113,6 +120,9 @@ P : IProp GF
 ⊢
   ⊢ l ↦ some v -∗ ⌜v = v⌝
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -134,6 +144,9 @@ example {l : Loc} {v : Val} {P : IProp GF} : ⊢@{IProp GF}
 -- also goals that are part of the specialization pattern have ▷ stripped
 -- (this differs from Rocq)
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -156,6 +169,9 @@ example {l : Loc} {v : Val} : ⊢@{IProp GF}
 
 -- the post-pass runs once, in the successful iteration: `▷ ▷` loses exactly one `▷`
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -186,6 +202,9 @@ example {l : Loc} {v : Val} : ⊢@{IProp GF}
 -- unifies and only the order decides: outermost leaves the expression the caller wrote,
 -- innermost would return a goal about `#l`.
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -194,6 +213,9 @@ l : Loc
 ⊢
   ⊢ WP hl((!#l + #1)) {{ ?_ }}
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -202,6 +224,9 @@ l : Loc
 ⊢
   ⊢ ∀ v, ?_ v -∗ Φ v
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -240,6 +265,9 @@ example {l : Loc} {Φ Ψ : Val → IProp GF} : ⊢@{IProp GF}
 
 -- it targets the last goal the application produced, leaving the others untouched
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -249,6 +277,9 @@ v : Val
 ⊢
   ⊢ l ↦ some v
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -270,6 +301,9 @@ example {l : Loc} {v : Val} {Φ : Val → IProp GF} : ⊢@{IProp GF}
 
 -- test `with` notation
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -304,6 +338,9 @@ example {l : Loc} {v : Val} : ⊢@{IProp GF}
 
 -- `with` targets a `$$` goal when the application produced none
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -324,6 +361,9 @@ example {Q R : IProp GF} {e : Exp} {Φ : Val → IProp GF} : ⊢@{IProp GF}
 
 -- the continuation handed to a `$$` pattern
 /-- trace:
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -344,7 +384,10 @@ example {l : Loc} {Φ Ψ : Val → IProp GF} : ⊢@{IProp GF}
 
 -- `wp_apply ... with` when there are mvars after the last Iris goal
 /--
-trace: hlc : HasLC
+trace: SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
+hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
 l : Loc
@@ -352,6 +395,9 @@ l : Loc
 ⊢ ⏎
   ⊢ ⌜l = ?_⌝
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF
@@ -362,6 +408,9 @@ x✝ : l = l'
 ⊢ ⏎
   ⊢ WP hl(!#l') {{ Φ }}
 
+SI : Type
+inst✝² : SIdx SI
+inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 inst✝ : HeapLangGS hlc GF

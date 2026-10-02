@@ -17,7 +17,8 @@ A variant of the Frac CMRA with unbounded validity (>1).
 -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -53,7 +54,7 @@ instance : CMRA UFrac where
   pcore_ne _ H := by rcases H
   validN_ne _ := id
   valid_iff_validN := ⟨fun _ _ => trivial, fun _ => trivial⟩
-  validN_succ := id
+  validN_le h _ := h
   validN_op_left _ := trivial
   assoc := ext_iff.mpr <| Subtype.ext (Rat.add_assoc ..).symm
   comm := ext_iff.mpr <| Subtype.ext (Rat.add_comm ..)

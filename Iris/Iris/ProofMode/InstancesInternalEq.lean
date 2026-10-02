@@ -10,7 +10,8 @@ public import Iris.ProofMode.ModalityInstances
 public import Iris.ProofMode.NatCancel
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.ProofMode
 open Iris.BI Iris.Std

@@ -11,6 +11,9 @@ public meta import Iris.ProofMode.Tactics.Cases
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI
 
 @[rocq_alias tac_assert]

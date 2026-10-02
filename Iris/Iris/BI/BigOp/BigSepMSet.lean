@@ -15,6 +15,8 @@ import Iris.Std.TC
 
 public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 
 open Iris.Algebra BigOpL BigOpMS BIBase Iris.Std BigSepL
@@ -32,7 +34,7 @@ theorem bigSepMS_mono {Φ Ψ : A → PROP} {X : MS} (h : ∀ {x}, x ∈ X → Φ
   bigOpMS_gen_proper _ .rfl sep_mono h
 
 @[rocq_alias big_sepMS_ne]
-theorem bigSepMS_ne {Φ Ψ : A → PROP} {X : MS} {n : Nat} (h : ∀ {x}, x ∈ X → Φ x ≡{n}≡ Ψ x) :
+theorem bigSepMS_ne {Φ Ψ : A → PROP} {X : MS} {n : SI} (h : ∀ {x}, x ∈ X → Φ x ≡{n}≡ Ψ x) :
     ([∗mset] x ∈ X, Φ x) ≡{n}≡ ([∗mset] x ∈ X, Ψ x) :=
   bigOpMS_dist h
 

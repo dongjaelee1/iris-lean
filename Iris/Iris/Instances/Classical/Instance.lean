@@ -10,7 +10,8 @@ public import Iris.Instances.Data
 public import Iris.Std.Equivalence
 
 @[expose] public section
-local stepindex Nat
+universe s
+variable {SI : Type s} [Iris.SIdx SI]
 
 namespace Iris.Instances.Classical
 open Iris.BI Iris.Instances.Data Iris.Std

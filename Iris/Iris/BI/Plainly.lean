@@ -17,7 +17,8 @@ public import Iris.BI.InternalEq
 public import Iris.Std.Positives
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open BI
@@ -337,7 +338,7 @@ instance plainly_absorbing (P : PROP) : Absorbing iprop(■ P) where
   absorbing := absorbingly_elim_plainly.1
 
 @[rocq_alias plainly_si_pure]
-theorem plainly_siPure {Pi : SiProp} :
+theorem plainly_siPure {Pi : SiProp SI} :
     iprop(■ (<si_pure> Pi : PROP) ⊣⊢ <si_pure> Pi) :=
   ⟨siPure_mono siEmpValid_siPure.mp, siPure_mono siEmpValid_siPure.mpr⟩
 
@@ -447,6 +448,7 @@ instance wand_persistent [Plain P] [Persistent Q] [Absorbing Q] :
 @[rocq_alias limit_preserving_Plain]
 theorem limitPreserving_plain {A} [COFE A] (Φ : A → PROP) [Φne : OFE.NonExpansive Φ] :
   LimitPreserving (fun x => Plain (Φ x)) := by
+    haveI := Sbi.sidxFinite PROP
     letI _ : OFE.NonExpansive fun x => iprop(■ Φ x) := .comp inferInstance Φne
     refine ⟨fun c h => ⟨?_⟩, fun hn _ _ => absurd hn (SIdx.limit_finite _)⟩
     refine (LimitPreserving.entails _ (fun x => iprop(■ (Φ x)))).compl _ ?_
@@ -654,11 +656,11 @@ instance from_option_plain {A : Type _} (P : PROP) (Ψ : A → PROP) (x? : Optio
   match x? with | (x : A) => hΨ x | .none => hP
 
 @[rocq_alias si_pure_plain]
-instance siPure_plain (P : SiProp) : Plain (PROP := PROP) (siPure P) where
+instance siPure_plain (P : SiProp SI) : Plain (PROP := PROP) (siPure P) where
   plain := plainly_siPure.2
 
 @[rocq_alias si_emp_valid_plain]
-instance siEmpValid_plain (P : PROP) : Plain (siEmpValid P) where
+instance siEmpValid_plain [SIdxFinite SI] (P : PROP) : Plain (siEmpValid P) where
   plain := .rfl
 
 @[rocq_alias big_sepL_nil_plain]
@@ -805,6 +807,7 @@ instance bigSepMS_plain {MS A} [LawfulFiniteMultiSet MS A] (Φ : A → PROP) (X 
 
 @[rocq_alias plainly_timeless]
 instance plainly_timeless (P : PROP) [Timeless P] : Timeless iprop(■ P) :=
+  haveI := Sbi.sidxFinite PROP
   inferInstanceAs (Timeless iprop(<si_pure> <si_emp_valid> P))
 
 @[rocq_alias plainly_internal_eq]
@@ -922,12 +925,14 @@ theorem except0_plainly_1 (P : PROP) : ◇ ■ P ⊢ ■ ◇ P :=
 
 @[rocq_alias except_0_plainly]
 theorem except0_plainly {P : PROP} : ◇ ■ P ⊣⊢ ■ ◇ P :=
+  haveI := Sbi.sidxFinite PROP
   calc iprop(◇ <si_pure> <si_emp_valid> P)
     _ ⊣⊢@{PROP} <si_pure> (◇ <si_emp_valid> P)   := siPure_except0.symm
     _ ⊣⊢        <si_pure> (<si_emp_valid> (◇ P)) := .ofMono siPure_mono siEmpValid_except0.symm
 
 @[rocq_alias only_0_plainly]
 theorem only0_plainly {P : PROP} : <only0> ■ P ⊣⊢ ■ <only0> P :=
+  haveI := Sbi.sidxFinite PROP
   calc iprop(<only0> <si_pure> <si_emp_valid> P)
     _ ⊣⊢@{PROP} <si_pure> (<only0> <si_emp_valid> P)   := siPure_only0.symm
     _ ⊣⊢        <si_pure> (<si_emp_valid> (<only0> P)) := .ofMono siPure_mono siEmpValid_only0.symm

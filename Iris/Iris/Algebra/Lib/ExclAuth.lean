@@ -9,7 +9,8 @@ public import Iris.Algebra.Auth
 public import Iris.Algebra.Excl
 
 public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 /-!
 # Exclusive Authoritative CMRA

@@ -14,7 +14,8 @@ public import Iris.Std.Namespaces
 public import Iris.Std.CoPset
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type` because of `WsatGS` (see `WSat.lean`).
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 

@@ -10,6 +10,9 @@ public import Iris.ProofMode.Tactics.Basic
 namespace Iris.ProofMode
 
 public section
+
+variable {SI : Type _} [Iris.SIdx SI]
+
 open BI Iris.Std
 
 @[rocq_alias tac_pure]
@@ -63,7 +66,7 @@ def iPureCases (ty : Q(Prop)) (pat : TSyntax `rcasesPat)
   for g in gs do g.withContext do g.assign (← k g)
   instantiateMVars m
 
-def iPureCore {prop : Q(Type u)} {bi : Q(BI $prop)}
+def iPureCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
     (P : Q($prop)) {P' : Q($prop)} (hyps' : Hyps bi P') (p : Q(Bool))
     (A Q : Q($prop)) (purePat : TSyntax `rcasesPat)
     (pf : Q($P ⊣⊢ $P' ∗ □?$p $A))
@@ -86,7 +89,7 @@ def iPureCore {prop : Q(Type u)} {bi : Q(BI $prop)}
     | throwIPMError "{A} is not affine and the goal not absorbing"
     return q(pure_elim_spatial (A := $A) $pf $f)
 
-def iPureIntroCore {u} {prop : Q(Type u)} (_bi : Q(BI $prop))
+def iPureIntroCore {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} (_bi : Q(BI $prop))
     (e goal : Q($prop)) :
     ProofModeM <| Q($e ⊢ $goal) × MVarId := do
   let b : Q(Bool) ← mkFreshExprMVarQ q(Bool)

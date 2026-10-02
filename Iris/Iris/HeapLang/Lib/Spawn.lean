@@ -16,7 +16,8 @@ namespace Iris.HeapLang
 open BI Iris ProgramLogic
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Spawn
 
@@ -42,7 +43,7 @@ abbrev SpawnG (GF : BundledGFunctors) := TokenG GF
 
 section Predicates
 
-variable [HeapLangGS hlc GF] [SpawnG GF] (N : Namespace)
+variable {GF : BundledGFunctors} [HeapLangGS hlc GF] [SpawnG GF] (N : Namespace)
 
 @[rocq_alias heap_lang.spawn_inv]
 def spawnInv (γ : GName) (l : Loc) (Ψ : Val → IProp GF) : IProp GF := iprop%
@@ -75,7 +76,7 @@ end Predicates
 -- TODO: redo with texan triples
 section Specs
 
-variable [HeapLangGS hlc GF] [SpawnG GF] (N : Namespace)
+variable {GF : BundledGFunctors} [HeapLangGS hlc GF] [SpawnG GF] (N : Namespace)
 
 @[rocq_alias heap_lang.spawn_spec]
 theorem spawn_spec (Ψ : Val → IProp GF) (f : Val) :

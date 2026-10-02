@@ -12,6 +12,8 @@ meta import Iris.Std.RocqPorting
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 /-! # RA for monotone partial bijections -/
 
 namespace Iris

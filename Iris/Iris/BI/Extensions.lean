@@ -9,7 +9,8 @@ public import Iris.BI.Classes
 public import Iris.BI.BI
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 

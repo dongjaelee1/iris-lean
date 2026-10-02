@@ -14,7 +14,8 @@ public import Iris.BI.Algebra
 public import Iris.Instances.IProp
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-! ## Later credits -/
 
@@ -42,7 +43,7 @@ scoped instance : COFE Credit := COFE.ofDiscrete _
 scoped instance : Discrete Credit := ⟨fun h => h⟩
 scoped instance : UCMRA Credit := CommMonoidLike.instUCMRA
 scoped instance : CMRA.Discrete Credit := CommMonoidLike.instDiscrete
-scoped instance {a : Credit} : CMRA.Cancelable a := inferInstance
+scoped instance {a : Credit} : CMRA.Cancelable a := CommMonoidLike.instCancelable
 
 /-- Later credits inclusion typeclass (`GF` contains the necessary functors for later credits) -/
 @[rocq_alias lcGpreS]
@@ -236,10 +237,7 @@ instance {P : IProp GF} : Contractive (le_upd_pre P) where
     refine exists_ne (fun m => ?_)
     refine sep_ne.ne .rfl ?_
     refine sep_ne.ne .rfl ?_
-    refine Contractive.distLater_dist ?_
-    cases n
-    · exact distLater_zero
-    · exact distLater_succ.mpr (distLater_succ.mp H)
+    exact Contractive.distLater_dist H
 
 #rocq_ignore le_upd.le_upd_def "`le_upd` is defined directly without `seal`/`unseal`."
 #rocq_ignore le_upd.le_upd_aux "`le_upd` is defined directly without `seal`/`unseal`."
@@ -266,7 +264,7 @@ theorem le_upd_unfold {P : IProp GF} :
 @[rocq_alias le_upd.le_upd_ne]
 instance : NonExpansive (le_upd (GF := GF)) where
   ne {n} := by
-    apply WellFounded.induction Nat.lt_wfRel.wf n
+    apply SIdx.lt_wf.induction n
     intro m IH P Q H
     refine ((equiv_iff.mpr le_upd_unfold).dist).trans ?_
     refine .trans ?_ ((equiv_iff.mpr le_upd_unfold).dist).symm
@@ -523,7 +521,7 @@ delab_rule le_upd_finally
 | `($_ $P) => do ``(iprop(|==£|> $(← unpackIprop P)))
 
 section le_upd_finally_rules
-variable {hlc : HasLC} [LcGS hlc GF]
+variable {GF : BundledGFunctors} {hlc : HasLC} [LcGS hlc GF]
 
 @[rocq_alias le_upd.le_upd_finally_ne]
 instance le_upd_finally_ne : NonExpansive (le_upd_finally (GF := GF)) where

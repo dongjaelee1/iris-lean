@@ -22,6 +22,9 @@ open ProgramLogic Language Language.Notation Iris.Std
 
 @[expose] public section
 
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 abbrev AbstractWP (Expr Val : Type _) (GF : BundledGFunctors) :=
   CoPset → Expr → (Val → IProp GF) → IProp GF
 

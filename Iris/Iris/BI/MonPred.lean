@@ -22,7 +22,8 @@ public import Iris.BI.BigOp.BigSepMSet
 public import Iris.BI.BigOp.BigSepSet
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 open Iris Iris.Std OFE
@@ -139,20 +140,47 @@ theorem toSig_ofSig (P : { f : I.car → PROP // ∀ {i j : I.car}, I.rel.le i j
 
 end MonPred
 
+namespace MonPred
+
+/-- `P ↦ P i` as a nonexpansive map. -/
+def atHom (i : I.car) : MonPred I PROP -n> PROP where
+  f P := P.monPred_at i
+  ne.1 _ _ _ h := h i
+
+/-- Bounded limits of monotone predicates: the pointwise bounded limit need not be monotone, so
+take its monotone closure `fun i => ∃ j, ⌜j ⊑ i⌝ ∧ lbcompl (c · j)`. It agrees with every
+`c m` (`m < n`) up to `m`, because each `c m` is already monotone. (Lean addition: Rocq's step
+indices are finite, so there are no bounded limits.) -/
+def lbcompl {n : SI} (hn : SIdx.Limit n) (c : BChain (MonPred I PROP) n) : MonPred I PROP where
+  monPred_at i := iprop(∃ j, ⌜I.rel.le j i⌝ ∧ IsCOFE.lbcompl hn (c.map (atHom j)))
+  monPred_mono h := exists_mono fun _ => and_mono_left (pure_mono fun hj => Trans.trans hj h)
+
+/-- A monotone predicate is its own monotone closure. -/
+theorem exists_le_and_at (P : MonPred I PROP) (i : I.car) :
+    iprop(∃ j, ⌜I.rel.le j i⌝ ∧ P.monPred_at j) = P.monPred_at i :=
+  BIBase.BiEntails.to_eq ⟨exists_elim fun _ => pure_elim_left fun h => P.monPred_mono h,
+    exists_intro_trans i (and_intro (pure_intro (Std.Refl.refl i : I.rel.le i i)) .rfl)⟩
+
+end MonPred
+
 @[rocq_alias monPred_cofe]
 instance : IsCOFE (MonPred I PROP) where
   compl c :=
     let cf := c.map ((⟨Subtype.val, inferInstance⟩ : _ -n> (I.car → PROP)).comp MonPred.toSig)
     { monPred_at := fun i => COFE.compl cf i
       monPred_mono := fun {i j} h =>
-        (LimitPreserving.entails (A := I.car → PROP) (applyHom i) (applyHom j)).compl cf
+        entails_compl (A := I.car → PROP) (applyHom i) (applyHom j) cf
           (fun n => (c n).monPred_mono h) }
   conv_compl {n c} :=
     IsCOFE.conv_compl (n := n)
       (c := c.map ((⟨Subtype.val, inferInstance⟩ : _ -n> (I.car → PROP)).comp MonPred.toSig))
-  lbcompl := (·.elim)
-  conv_lbcompl := (·.elim)
-  lbcompl_ne := (·.elim)
+  lbcompl := MonPred.lbcompl
+  conv_lbcompl hn c m hm i :=
+    (exists_ne fun j => and_ne.ne .rfl (IsCOFE.conv_lbcompl hn (c.map (MonPred.atHom j)) hm)).trans
+      (.of_eq (MonPred.exists_le_and_at (c.bchain m hm) i))
+  lbcompl_ne hn c1 c2 _ h _ :=
+    exists_ne fun j => and_ne.ne .rfl
+      (IsCOFE.lbcompl_ne hn (c1.map (MonPred.atHom j)) (c2.map (MonPred.atHom j)) fun p hp => h p hp j)
 
 end OFE
 
@@ -381,7 +409,7 @@ theorem entails_at {P Q : MonPred I PROP} :
 #rocq_ignore monPred_at_equiv "OFE is Leibniz; use equality"
 
 @[rocq_alias monPred_at_dist]
-theorem dist_at {n : Nat} {P Q : MonPred I PROP} :
+theorem dist_at {n : SI} {P Q : MonPred I PROP} :
     (P ≡{n}≡ Q) ↔ ∀ i, P.monPred_at i ≡{n}≡ Q.monPred_at i := Iff.rfl
 
 #rocq_ignore monPred_dist "Covered by dist_at."
@@ -1546,66 +1574,67 @@ instance : SiEmpValid (MonPred I PROP) where
 
 @[rocq_alias monPred_si_pure_unfold]
 theorem monPred_siPure_unfold :
-    (SiPure.siPure : SiProp → MonPred I PROP) =
+    (SiPure.siPure : SiProp SI → MonPred I PROP) =
       fun Pi => iprop(⎡(<si_pure> Pi : PROP)⎤) := rfl
 
 @[rocq_alias monPred_si_emp_valid_unfold]
 theorem monPred_siEmpValid_unfold :
-    (SiEmpValid.siEmpValid : MonPred I PROP → SiProp) =
+    (SiEmpValid.siEmpValid : MonPred I PROP → SiProp SI) =
       fun P => SiEmpValid.siEmpValid iprop(∀ i, P.monPred_at i) := rfl
 
 @[rocq_alias monPred_sbi]
-instance instSbiMonPred : Sbi (MonPred I PROP) where
-  siPure_ne := ⟨fun _ _ _ h => dist_at.mpr fun _ => Sbi.siPure_ne.ne h⟩
-  siEmpValid_ne := ⟨fun _ _ _ h => Sbi.siEmpValid_ne.ne (forall_ne fun i => dist_at.mp h i)⟩
-  siPure_mono h := entails_at.mpr fun _ => siPure_mono h
-  siEmpValid_mono h := siEmpValid_mono (forall_mono fun i => entails_at.mp h i)
-  siEmpValid_siPure {Pi} := by
-    refine ⟨?_, ?_⟩
-    · refine (siEmpValid_mono (P := iprop(∀ _ : I.car, <si_pure> Pi)) (Q := iprop(<si_pure> Pi))
-        (forall_elim (default : I.car))).trans siEmpValid_siPure.mp
-    · refine siEmpValid_siPure.mpr.trans (siEmpValid_mono
-        (P := iprop(<si_pure> Pi)) (Q := iprop(∀ _ : I.car, <si_pure> Pi))
-        (forall_intro fun _ => .rfl))
-  siPure_siEmpValid {P} := entails_at.mpr fun i =>
-    siPure_siEmpValid.trans (persistently_mono (forall_elim i))
-  siPure_imp_mpr {Pi Qi} := entails_at.mpr fun i =>
-    (monPred_impl_force i (SiPure.siPure Pi : MonPred I PROP) (SiPure.siPure Qi)).trans
-      siPure_imp_mpr
-  siPure_sForall_mpr {Ψi} := entails_at.mpr fun i => by
-    refine .trans ?_ (siPure_sForall_mpr (PROP := PROP))
-    refine (monPred_at_forall i (fun q : SiProp => iprop(⌜Ψi q⌝ → <si_pure> q))).mp.trans ?_
-    exact forall_mono fun q =>
-      monPred_impl_force i iprop(⌜Ψi q⌝) (SiPure.siPure q : MonPred I PROP)
-  persistently_imp_siPure {P Q} := entails_at.mpr fun i => by
-    refine (forall_elim i).trans ?_
-    refine (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans ?_
-    refine persistently_imp_siPure.trans (persistently_mono ?_)
-    refine forall_intro fun j => imp_intro <| pure_elim_right fun (hij : I.rel.le i j) => ?_
-    exact imp_mono_right (Q.monPred_mono hij)
-  siPure_later {Pi} :=
-    ⟨entails_at.mpr fun _ => siPure_later.mp, entails_at.mpr fun _ => siPure_later.mpr⟩
-  siPure_absorbing Pi := ⟨entails_at.mpr fun i => (monPred_at_absorbingly i _).mp.trans
-    ((Sbi.siPure_absorbing Pi).absorbing)⟩
-  siEmpValid_later_mp {P} :=
-    (siEmpValid_mono later_forall.mpr).trans (siEmpValid_later_mp.trans (later_mono .rfl))
-  siEmpValid_affinely_mpr {P} :=
-    siEmpValid_forall.mp.trans <|
-      (forall_mono fun i =>
-        siEmpValid_affinely_mpr.trans (siEmpValid_mono (monPred_at_affinely i P).mpr)).trans
-      siEmpValid_forall.mpr
-  prop_ext_siEmpValid {P Q} := by
-    have hforce : ∀ i, (iprop(P ∗-∗ Q) : MonPred I PROP).monPred_at i ⊢
-        iprop(P.monPred_at i ∗-∗ Q.monPred_at i) := fun i =>
-      and_mono (monPred_wand_force i P Q) (monPred_wand_force i Q P)
-    have hstep : SiEmpValid.siEmpValid iprop(∀ i, (iprop(P ∗-∗ Q) : MonPred I PROP).monPred_at i)
-        ⊢@{SiProp} ∀ i, P.monPred_at i ≡ Q.monPred_at i :=
-      siEmpValid_forall.mp.trans <| forall_mono fun i =>
-        (siEmpValid_mono (hforce i)).trans (BI.prop_ext_siEmpValid_mpr _ _)
-    refine hstep.trans ?_
-    refine (BI.discreteFun_equivI (PROP := SiProp) P.monPred_at Q.monPred_at).mpr.trans ?_
-    refine (BI.sig_equivI (PROP := SiProp) _ (toSig P) (toSig Q)).mp.trans ?_
-    exact BI.internalEq.of_internalEquiv_ne (PROP := SiProp) ofSig
+instance instSbiMonPred : Sbi (MonPred I PROP) :=
+  haveI := Sbi.sidxFinite PROP
+  { siPure_ne := ⟨fun _ _ _ h => dist_at.mpr fun _ => Sbi.siPure_ne.ne h⟩
+    siEmpValid_ne := ⟨fun _ _ _ h => Sbi.siEmpValid_ne.ne (forall_ne fun i => dist_at.mp h i)⟩
+    siPure_mono h := entails_at.mpr fun _ => siPure_mono h
+    siEmpValid_mono h := siEmpValid_mono (forall_mono fun i => entails_at.mp h i)
+    siEmpValid_siPure {Pi} := by
+      refine ⟨?_, ?_⟩
+      · refine (siEmpValid_mono (P := iprop(∀ _ : I.car, <si_pure> Pi)) (Q := iprop(<si_pure> Pi))
+          (forall_elim (default : I.car))).trans siEmpValid_siPure.mp
+      · refine siEmpValid_siPure.mpr.trans (siEmpValid_mono
+          (P := iprop(<si_pure> Pi)) (Q := iprop(∀ _ : I.car, <si_pure> Pi))
+          (forall_intro fun _ => .rfl))
+    siPure_siEmpValid {P} := entails_at.mpr fun i =>
+      siPure_siEmpValid.trans (persistently_mono (forall_elim i))
+    siPure_imp_mpr {Pi Qi} := entails_at.mpr fun i =>
+      (monPred_impl_force i (SiPure.siPure Pi : MonPred I PROP) (SiPure.siPure Qi)).trans
+        siPure_imp_mpr
+    siPure_sForall_mpr {Ψi} := entails_at.mpr fun i => by
+      refine .trans ?_ (siPure_sForall_mpr (PROP := PROP))
+      refine (monPred_at_forall i (fun q : SiProp SI => iprop(⌜Ψi q⌝ → <si_pure> q))).mp.trans ?_
+      exact forall_mono fun q =>
+        monPred_impl_force i iprop(⌜Ψi q⌝) (SiPure.siPure q : MonPred I PROP)
+    persistently_imp_siPure {P Q} := entails_at.mpr fun i => by
+      refine (forall_elim i).trans ?_
+      refine (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans ?_
+      refine persistently_imp_siPure.trans (persistently_mono ?_)
+      refine forall_intro fun j => imp_intro <| pure_elim_right fun (hij : I.rel.le i j) => ?_
+      exact imp_mono_right (Q.monPred_mono hij)
+    siPure_later {Pi} :=
+      ⟨entails_at.mpr fun _ => siPure_later.mp, entails_at.mpr fun _ => siPure_later.mpr⟩
+    siPure_absorbing Pi := ⟨entails_at.mpr fun i => (monPred_at_absorbingly i _).mp.trans
+      ((Sbi.siPure_absorbing Pi).absorbing)⟩
+    siEmpValid_later_mp {P} :=
+      (siEmpValid_mono later_forall.mpr).trans (siEmpValid_later_mp.trans (later_mono .rfl))
+    siEmpValid_affinely_mpr {P} :=
+      siEmpValid_forall.mp.trans <|
+        (forall_mono fun i =>
+          siEmpValid_affinely_mpr.trans (siEmpValid_mono (monPred_at_affinely i P).mpr)).trans
+        siEmpValid_forall.mpr
+    prop_ext_siEmpValid {P Q} := by
+      have hforce : ∀ i, (iprop(P ∗-∗ Q) : MonPred I PROP).monPred_at i ⊢
+          iprop(P.monPred_at i ∗-∗ Q.monPred_at i) := fun i =>
+        and_mono (monPred_wand_force i P Q) (monPred_wand_force i Q P)
+      have hstep : SiEmpValid.siEmpValid iprop(∀ i, (iprop(P ∗-∗ Q) : MonPred I PROP).monPred_at i)
+          ⊢@{SiProp SI} ∀ i, P.monPred_at i ≡ Q.monPred_at i :=
+        siEmpValid_forall.mp.trans <| forall_mono fun i =>
+          (siEmpValid_mono (hforce i)).trans (BI.prop_ext_siEmpValid_mpr _ _)
+      refine hstep.trans ?_
+      refine (BI.discreteFun_equivI (PROP := SiProp SI) P.monPred_at Q.monPred_at).mpr.trans ?_
+      refine (BI.sig_equivI (PROP := SiProp SI) _ (toSig P) (toSig Q)).mp.trans ?_
+      exact BI.internalEq.of_internalEquiv_ne (PROP := SiProp SI) ofSig }
 
 #rocq_ignore monPred_sbi_mixin "Rocq mixin record; subsumed by the Sbi instance."
 #rocq_ignore monPred_sbi_prop_ext_mixin "Rocq mixin record; subsumed by the Sbi instance."
@@ -1649,7 +1678,7 @@ theorem monPred_equivI {PROP' : Type _} [Sbi PROP'] (P Q : MonPred I PROP) :
 /-! ### Objective and plain instances -/
 
 @[rocq_alias si_pure_objective]
-instance siPure_objective (Pi : SiProp) : Objective (iprop(<si_pure> Pi) : MonPred I PROP) where
+instance siPure_objective (Pi : SiProp SI) : Objective (iprop(<si_pure> Pi) : MonPred I PROP) where
   objective_at _ _ := .rfl
 
 @[rocq_alias internal_eq_objective]
@@ -1698,6 +1727,7 @@ instance monPred_subjectively_plain (P : MonPred I PROP) [Plain P] :
 theorem monPred_sbi_emp_valid_exist {bot : I.car} [BiIndexBottom I bot] [SbiEmpValidExist PROP] :
     SbiEmpValidExist (MonPred I PROP) where
   siEmpValid_sExists_1 Ψ := by
+    haveI := Sbi.sidxFinite PROP
     refine (siEmpValid_mono (forall_elim bot)).trans ?_
     refine (siEmpValid_sExists_1
       (fun p => ∃ q : MonPred I PROP, Ψ q ∧ q.monPred_at bot = p)).trans ?_
@@ -1731,7 +1761,7 @@ instance monPred_bi_fupd_sbi [BIFUpdate PROP] [BIFUpdateSbi PROP] :
   fupd_siPure_sForall_2 E Φ := entails_at.mpr fun i => by
     refine .trans ?_ (BIFUpdateSbi.fupd_siPure_sForall_2 (PROP := PROP) E Φ)
     refine (monPred_at_forall i
-      (fun q : SiProp => iprop(⌜Φ q⌝ → |={E}=> <si_pure> q))).mp.trans ?_
+      (fun q : SiProp SI => iprop(⌜Φ q⌝ → |={E}=> <si_pure> q))).mp.trans ?_
     exact forall_mono fun q =>
       monPred_impl_force i iprop(⌜Φ q⌝) iprop(|={E}=> <si_pure> q)
 

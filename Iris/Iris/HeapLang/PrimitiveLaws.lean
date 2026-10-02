@@ -21,6 +21,9 @@ public import Iris.ProofMode
 public import Std.Data.ExtTreeMap
 
 @[expose] public section
+
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 namespace Iris.HeapLang
 
 open Iris ProgramLogic Language.Notation Iris.Std FromMathlib
@@ -93,12 +96,12 @@ instance heapLangInst [HeapLangGS hlc GF] : IrisGS_gen hlc Exp GF where
   numLatersPerStep n := 0
   forkPost v := iprop(True)
   stateInterp_mono σ ns obs nt := by
-    let := @HeapLangGS.invGS hlc GF _
+    let := HeapLangGS.invGS (hlc := hlc) (GF := GF)
     iintro $
 
 theorem state_interp_step [HeapLangGS hlc GF] (σ : State) (ns : Nat)
     (κs : List Observation) (nt : Nat) :
-    stateInterp (GF := GF) σ ns κs nt ⊢ |==> stateInterp σ (ns + 1) κs nt := bupd_intro
+    stateInterp (GF := GF) σ ns κs nt ⊢@{IProp GF} |==> stateInterp σ (ns + 1) κs nt := bupd_intro
 
 def HeapLangS : BundledGFunctors
   | 0 => ⟨InvMapF, by infer_instance⟩

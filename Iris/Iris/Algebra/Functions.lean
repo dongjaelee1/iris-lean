@@ -8,7 +8,8 @@ module
 public import Iris.Algebra.Updates
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open OFE CMRA
@@ -130,7 +131,7 @@ instance instDiscreteFunSingletonDiscrete {x : ι} (y : β x)
   instDiscreteFunInsertDiscrete (fun _ => unit) x y
 
 @[rocq_alias discrete_fun_singleton_validN]
-theorem discreteFunSingleton_validN_iff (n : Nat) {x : ι} (y : β x) :
+theorem discreteFunSingleton_validN_iff (n : SI) {x : ι} (y : β x) :
     ✓{n} discreteFunSingleton x y ↔ ✓{n} y := by
   constructor
   · exact fun h => discreteFunSingleton_self y ▸ h x

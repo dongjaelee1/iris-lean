@@ -18,7 +18,8 @@ This version follows Iris Rocq in fixing the underlying type of fractions to be 
 -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Rat
 
@@ -80,7 +81,7 @@ instance instCMRAQp : CMRA Qp where
   pcore_ne _ H := by rcases H
   validN_ne H := by rw [(H : _ = _)]; exact id
   valid_iff_validN := .symm (forall_const _)
-  validN_succ := id
+  validN_le h _ := h
   validN_op_left {n x y} h := by
     show x.val ≤ 1
     have h' : x.val + y.val ≤ 1 := h

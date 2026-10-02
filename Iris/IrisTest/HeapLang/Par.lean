@@ -12,6 +12,8 @@ namespace IrisTest.HeapLang.Par
 
 open Iris HeapLang BI Iris ProgramLogic Spawn Iris.HeapLang.Par
 
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 -- Regression test for
 -- https://leanprover.zulipchat.com/#narrow/channel/490604-iris-lean/topic/Porting.20iris-tutorial/near/613886178
 -- testing substitution into `par`

@@ -15,7 +15,8 @@ public import Iris.Std.Infinite
 public import Iris.Std.CoPset
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 /-! ## Leibniz Set algebras
 This file defines generic set algebras.
@@ -25,7 +26,6 @@ OFE/CMRA on the element type.
 -/
 
 open Iris Std CMRA OFE LawfulSet
-
 
 inductive DisjointLeibnizSet (S : Type _) where
   | valid : S → DisjointLeibnizSet S
@@ -81,7 +81,7 @@ instance : CMRA (DisjointLeibnizSet S) where
   pcore_ne {_ _ _ cx} _ H := ⟨cx, H, .rfl⟩
   validN_ne H G := (H : _ = _) ▸ G
   valid_iff_validN := ⟨(fun _ => ·), (· 0)⟩
-  validN_succ := id
+  validN_le h _ := h
   validN_op_left {_ x y} := by rcases x <;> rcases y <;> simp
   assoc {x y z} := by
     rcases x with (x|_) <;> rcases y with (y|_) <;> rcases z with (z|_) <;> (try · simp)
@@ -327,7 +327,7 @@ instance : CMRA (LeibnizSet S) where
   pcore_ne {_ _ _} _ H1 H2 :=  ⟨_, rfl, .trans (.of_eq <| Option.some.injEq _ _ ▸ H2.symm) H1⟩
   validN_ne _ _ := by simp
   valid_iff_validN := by simp
-  validN_succ _ := by simp
+  validN_le _ _ := by simp
   validN_op_left _ := by simp
   assoc := by simp [union_assoc]
   comm := by simp [union_comm]

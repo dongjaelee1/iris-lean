@@ -15,7 +15,9 @@ public import Iris.Std.HeapInstances
 public import Iris.Instances.IProp
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type`: `InvMapF` maps `IProp` into the same `BundledGFunctors` as constant functors
+-- (`constOF` of a `Type`), and the universes only agree when the step-index type is in `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-! ## World satisfaction
 This file defines the world satisfaction (wsat) predicate for Iris.

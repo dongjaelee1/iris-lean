@@ -18,7 +18,8 @@ public import Iris.BI.Plainly
 public import Iris.Std
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type` because of `WsatGS` (see `WSat.lean`).
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
@@ -575,7 +576,7 @@ theorem fupd_soundness_no_lc_unfold [InvGpreS GF] m E :
     £ m ∗ ω E ∗ □ (∀ E1 E2 P, (|={E1, E2}=> P) -∗ ω E1 ==∗ ◇ (ω E2 ∗ P)) := by
   imod wsat_alloc with ⟨%W, Hw, HE⟩
   icases (lc_alloc_no_lc m) with ⟨%Hc, _, Hlc⟩
-  let Hi := @InvGS_gen.mk .hasNoLC GF (inferInstance) W Hc
+  let Hi : InvGS_gen .hasNoLC GF := { toInvGpreS := inferInstance, toWsatGS := W, toLcGS := Hc }
   iexists Hi, (fun E => iprop(wsat ∗ ownE E))
   rw [diff_subset_decomp (s₁ := E) (s₂ := ⊤) (fun _ _ => CoPset.mem_full)]
   icases (ownE_op (disjoint_symm disjoint_diff_right)) $$ HE with ⟨_, HE⟩
@@ -645,7 +646,7 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
     Lean.Elab.Term.synthesizeSyntheticMVarsNoPostponing
     instantiateMVars n
 
-  ProofModeM.runTactic `inext fun mvar { u, prop, bi, e, hyps, goal, .. } => do
+  ProofModeM.runTactic `inext fun mvar { w, u, si, sidx, prop, bi, e, hyps, goal, .. } => do
     -- Search for the later credit hypothesis from the context
     let ivar ← hyps.findWithInfo h
     let some ⟨name, _, p, ty⟩ := hyps.getDecl? ivar
@@ -653,18 +654,18 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
     if isTrue p then throwError "inext: {h} is not in the spatial context"
     -- We use direct `Expr` manipulation here and below since `Qq` makes compiling this function very slow
     --- see https://github.com/leanprover-community/iris-lean/pull/633
-    let some #[_, _, _, c] := Expr.appM? ty ``lc
+    let some #[_, _, _, _, _, _, c] := Expr.appM? ty ``lc
       | throwError m!"inext: {h} is not a spatial later credit hypothesis"
-    let some #[GF] := Expr.appM? prop ``IProp
+    let some #[_, _, fin, GF] := Expr.appM? prop ``IProp
       | throwError "inext: the goal must be an `IProp`"
     let ⟨e', hyps', _, _, _, _, pfEq⟩ := hyps.remove false ivar
-    let .some instInvGS ← trySynthInstance (mkApp (.const ``InvGS []) GF)
+    let .some instInvGS ← trySynthInstance (mkAppN (.const ``InvGS []) #[si, sidx, GF])
       | throwError "inext: requires an InvGS (HasLC) context"
 
     let φ ← mkFreshExprMVarQ q(Prop)
     let E ← mkFreshExprMVarQ q(CoPset)
     let Q' ← mkFreshExprMVarQ q($prop)
-    let elimTy := mkAppN (.const ``ElimFUpdGoal []) #[GF, instInvGS, φ, E, goal, Q']
+    let elimTy := mkAppN (.const ``ElimFUpdGoal []) #[si, sidx, fin, GF, instInvGS, φ, E, goal, Q']
     let .some ⟨inst, _⟩ ← ProofMode.trySynthInstance elimTy
     | throwError "inext: ElimModal type class synthesis failed with {goal}"
     unless ← isDefEq Q' goal do
@@ -681,8 +682,8 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
     unless ← isDefEq newN q(0) do
       throwError "inext: insufficient credits"
 
-    have modality : Q(@Modality $prop $prop $bi $bi) :=
-      mkAppN (.const ``modality_laterN [u]) #[prop, n, bi]
+    have modality : Q(Modality $prop $prop) :=
+      mkAppN (.const ``modality_laterN [w, u]) #[si, sidx, prop, n, bi]
 
     let newC : Q(Nat) ← instantiateMVars newC
     match newC.nat? with
@@ -691,7 +692,7 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
       let ⟨eQ, newHyps', pfModAction⟩ ← iModAction hyps' modality
       let pf ← addBIGoal newHyps' goal
       mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_full [])
-        #[GF, instInvGS, φ, n, c, stuck, E,
+        #[si, sidx, fin, GF, instInvGS, φ, n, c, stuck, E,
           e, e', eQ, goal, pfEq, inst, hφ, hcancel, pfModAction, pf]
     -- Update the later credits hypothesis and introduce it into the context
     | _ =>
@@ -700,7 +701,7 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
       let ⟨eQ, newHyps', pfModAction⟩ ← iModAction newHyps modality
       let pf ← addBIGoal newHyps' goal
       mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_split [])
-        #[GF, instInvGS, φ, n, c, newC, stuck, E,
+        #[si, sidx, fin, GF, instInvGS, φ, n, c, newC, stuck, E,
           e, e', eAdd, eQ, goal, pfEq, inst, hφ, hcancel, pfNewHyps, pfModAction, pf]
 
 end

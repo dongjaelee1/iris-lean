@@ -13,7 +13,8 @@ meta import Iris.Std.RocqPorting
 /-! # Monotone lists -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -25,7 +26,7 @@ variable {α : Type _} [OFE α]
 def MonoList (α : Type _) [OFE α] := Auth (MaxPrefixList α)
 
 instance : OFE (MonoList α) :=
-  Auth.instOFENat
+  Auth.instOFE
 
 instance : CMRA (MonoList α) :=
   Auth.instCMRA

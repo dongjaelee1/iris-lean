@@ -13,6 +13,8 @@ public import Iris.Std.DelabRule
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 open Iris.Std Lean
 
@@ -33,14 +35,14 @@ macro_rules
 /-- A delaborator for the telescopic universal quantifier. -/
 @[app_delab Iris.BI.tforall]
 meta def delabBITforall : PrettyPrinter.Delaborator.Delab :=
-  delabQuant 4 unpackIprop
+  delabQuant 6 unpackIprop
     (fun x xs body => `(iprop(∀.. $x:ident $[$xs:ident]*, $body)))
     (fun | `(∀.. $x:ident $[$xs:ident]*, $Ψ) => some (x, xs, Ψ) | _ => none)
 
 /-- A delaborator for the telescopic existential quantifier. -/
 @[app_delab Iris.BI.texist]
 meta def delabBITexist : PrettyPrinter.Delaborator.Delab :=
-  delabQuant 4 unpackIprop
+  delabQuant 6 unpackIprop
     (fun x xs body => `(iprop(∃.. $x:ident $[$xs:ident]*, $body)))
     (fun | `(∃.. $x:ident $[$xs:ident]*, $Ψ) => some (x, xs, Ψ) | _ => none)
 

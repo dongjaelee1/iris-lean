@@ -13,6 +13,8 @@ public import Iris.Std.Classes
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.BI
 open Iris.Std
 open BI

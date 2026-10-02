@@ -18,7 +18,8 @@ coincides with `R`.
 -/
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -122,7 +123,7 @@ instance (R : α → α → Prop) : CMRA (Mra R) where
   pcore_ne hxy h := ⟨_, (congrArg some hxy.symm).trans h, .rfl⟩
   validN_ne _ := id
   valid_iff_validN := by simp
-  validN_succ := id
+  validN_le h _ := h
   validN_op_left _ := trivial
   assoc {x y z} := by
     induction x, y, z using ind₃ with

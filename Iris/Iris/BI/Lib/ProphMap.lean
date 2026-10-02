@@ -10,6 +10,9 @@ public import Iris.Std.GenSets
 
 @[expose] public section
 
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
+
 namespace Iris
 
 open Iris.Std PartialMap LawfulPartialMap LawfulSet Iris.Algebra CMRA BI ProofMode
@@ -33,7 +36,8 @@ class prophMapPreS (P V : Type _) (GF : BundledGFunctors) (H : outParam <| Type 
 attribute [reducible, instance] prophMapPreS.inG
 
 @[rocq_alias proph_mapGS]
-class prophMapGS (P V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
+class prophMapGS {SI : outParam (Type usi)} [SIdx SI]
+    (P V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
     (H : outParam <| Type _ → Type _) [LawfulFiniteMap H P]
     extends prophMapPreS P V GF H where
   prophMapName : GName

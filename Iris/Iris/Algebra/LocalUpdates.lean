@@ -8,7 +8,8 @@ module
 public import Iris.Algebra.CMRA
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

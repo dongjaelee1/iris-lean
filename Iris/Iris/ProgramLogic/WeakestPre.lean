@@ -19,7 +19,8 @@ namespace Iris
 open ProgramLogic Language.Notation Iris.Std Iris.BI
 
 @[expose] public section
-local stepindex Nat
+-- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
+variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-!
 TODO: AddModal, ElimAcc instances
@@ -130,13 +131,13 @@ section Wp
 theorem wp_unfold {s E} {e : Expr} {Φ : Val → IProp GF} :
     WP e @ s ; E {{ Φ }} ⊣⊢ wp.pre s (Wp.wp (PROP := IProp GF) s) E e Φ :=
   BI.equiv_iff.1 <| OFE.eq_dist_2 <|
-    fun _n => (fixpoint_unfold (f := (wp.pre s).toContractiveHom)).dist (SI := Nat) E e Φ
+    fun _n => (fixpoint_unfold (f := (wp.pre s).toContractiveHom)).dist E e Φ
 
 @[rocq_alias wp_ne]
 instance wp_ne {s : Stuckness} {E} {e : Expr} :
     OFE.NonExpansive (Wp.wp (PROP := IProp GF) s E e) where
   ne {n Φ₁ Φ₂} HΦ := by
-    induction n using Nat.strongRecOn generalizing e E Φ₁ Φ₂ with | ind n IH =>
+    induction n using SIdx.lt_wf.induction generalizing e E Φ₁ Φ₂ with | h n IH =>
     simp only [wp_unfold.to_eq]
     dsimp only [wp.pre]
     cases toVal e

@@ -6,16 +6,73 @@ Authors: Mario Carneiro, Sebastian Graf
 module
 
 public import Iris.Algebra.OFE
-public import Iris.Algebra.StepIndexFinite
 
 @[expose] public section
-local stepindex Nat
+
+/-!
+# Solver for recursive domain equations
+
+America and Rutten's construction of a solution `F X ≅ X` for a locally contractive functor `F`.
+
+The file is generic over the step-index type `SI`, but, like the Rocq version (which fixes
+`SI := nat`), the solution requires finite step indices (`[SIdxFinite SI]`). The tower `A F k` is
+indexed by `Nat` levels `k`, and level `k` only agrees with the solution up to step index
+`SIdx.ofNat k` (`up_down`, `Tower.embed_self`). So the chain defining `unfold` and the proof of the
+isomorphism send a step index `n` to level `SIdx.toNat n`, which is only correct when
+`SIdx.ofNat (SIdx.toNat n) = n`, i.e. when there are no limit indices. For the same reason the
+bounded-limit completions `lbcompl` of the tower are vacuous. The parts that do not need the
+completion of the tower (`up_down`, `Tower.up`, `Tower.embed_self`, ...) hold for any `SIdx`.
+-/
 
 #rocq_ignore solution "Use OFE.iso + Inhabited + COFE"
 
-namespace Iris.COFE.OFunctor
+namespace Iris.SIdx
+
+variable {SI : Type _} [SIdx SI]
+
+/-- The `k`-th successor of `0`, i.e. the embedding of `Nat` into the step indices. -/
+def ofNat : Nat → SI
+  | 0 => 0
+  | k + 1 => succᵢ (ofNat k)
+
+theorem ofNat_mono {a b : Nat} (h : a ≤ b) : (ofNat a : SI) ≤ ofNat b := by
+  induction h with
+  | refl => exact le_refl
+  | step _ ih => exact le_trans ih le_succ_diag_r
+
+theorem ofNat_strictMono {a b : Nat} (h : a < b) : (ofNat a : SI) < ofNat b :=
+  lt_le_trans (lt_succ_self _) (ofNat_mono (SI := SI) h)
+
+variable [SIdxFinite SI]
+
+/-- The inverse of `ofNat` for finite step indices. -/
+def toNat : SI → Nat := rec' 0 (fun _ k => k + 1) (fun n h _ => (limit_finite n h).elim)
+
+@[simp] theorem toNat_zero : toNat (0 : SI) = 0 := rec_zero ..
+
+@[simp] theorem toNat_succ (n : SI) : toNat (succᵢ n) = toNat n + 1 := rec_succ ..
+
+@[simp] theorem toNat_ofNat (k : Nat) : toNat (ofNat k : SI) = k := by
+  induction k with
+  | zero => exact toNat_zero
+  | succ k ih => exact (toNat_succ _).trans (congrArg (· + 1) ih)
+
+@[simp] theorem ofNat_toNat (n : SI) : ofNat (toNat n) = n := by
+  induction n using lt_wf.induction with
+  | h n ih =>
+    rcases SIdxFinite.finite_index n with rfl | ⟨m, rfl⟩
+    · rw [toNat_zero]; rfl
+    · rw [toNat_succ]; exact congrArg SIdx.succ (ih m (lt_succ_self m))
+
+theorem toNat_mono {n m : SI} (h : n ≤ m) : toNat n ≤ toNat m :=
+  Nat.le_of_not_lt fun hlt => lt_nge.mp (ofNat_toNat m ▸ ofNat_toNat n ▸ ofNat_strictMono hlt) h
+
+end SIdx
+
+namespace COFE.OFunctor
 open OFE
 
+variable {SI : Type _} [SIdx SI]
 
 variable {F : ∀ α β [COFE α] [COFE β], Type u} [OFunctorContractive F]
 variable [∀ α [COFE α], IsCOFE (F α α)]
@@ -64,7 +121,7 @@ theorem down_up : ∀ {k} x, down F k (up F k x) = x
       (map_id _).dist
 
 @[rocq_alias solver.fg]
-theorem up_down {k} (x) : up F (k+1) (down F (k+1) x) ≡{k}≡ x := by
+theorem up_down {k} (x) : up F (k+1) (down F (k+1) x) ≡{SIdx.ofNat k}≡ x := by
   refine (map_comp _ _ _ _ _).dist.symm.trans <| .trans ?_ (map_id _).dist
   open OFunctorContractive in exact match k with
   | 0 => map_contractive.zero (x := (_, _)) (y := (_, _)) _ _
@@ -86,7 +143,7 @@ instance : OFE (Tower F) where
     symm h _ := dist_eqv.symm (h _)
     trans h1 h2 _ := dist_eqv.trans (h1 _) (h2 _)
   }
-  eq_dist' {_ _} := by rw [Tower.ext_iff, funext_iff]; simpa only [eq_dist (SI:=_)] using forall_comm
+  eq_dist' {_ _} := by rw [Tower.ext_iff, funext_iff]; simpa only [eq_dist] using forall_comm
   dist_lt h1 h2 _ := dist_lt (h1 _) h2
 
 #rocq_ignore solver.tower_equiv "Included in OFE (Tower F) instance"
@@ -98,16 +155,16 @@ def towerChain (c : Chain (Tower F)) (k : Nat) : Chain (A F k) where
   chain i := c.1 i k
   cauchy h := c.cauchy h k
 
-instance : COFE (Tower F) where
+instance [SIdxFinite SI] : COFE (Tower F) where
   compl c := by
     refine ⟨fun k => compl ⟨fun i => c.1 i k, fun h => c.cauchy h k⟩, ?_⟩
     refine OFE.eq_dist_2 (fun n => ?_)
     refine ((down ..).ne.1 conv_compl).trans <| .trans ?_ conv_compl.symm
     exact (c.chain n).down.dist
   conv_compl _ := conv_compl
-  lbcompl := (·.elim)
-  conv_lbcompl := (·.elim)
-  lbcompl_ne := (·.elim)
+  lbcompl hn := (SIdx.limit_finite _ hn).elim
+  conv_lbcompl hn := (SIdx.limit_finite _ hn).elim
+  lbcompl_ne hn := (SIdx.limit_finite _ hn).elim
 
 #rocq_ignore solver.tower_cofe "Use IsCOFE instance"
 #rocq_ignore solver.tower_compl "Use IsCOFE instance"
@@ -131,15 +188,16 @@ theorem downN_upN {k} (x : A F k) : ∀ {i}, downN F i (upN F i x) = x
   | n+1 => (congrArg (fun a => (downN F n) a) (down_up _)).trans (downN_upN _)
 
 @[rocq_alias solver.f_tower]
-protected theorem Tower.up (X : Tower F) : up F (k+1) (X (k+1)) ≡{k}≡ X (k+2) :=
+protected theorem Tower.up (X : Tower F) : up F (k+1) (X (k+1)) ≡{SIdx.ofNat k}≡ X (k+2) :=
   ((up ..).ne.1 X.down.symm.dist).trans <| up_down _
 
 @[rocq_alias solver.ff_tower]
-protected theorem Tower.upN (X : Tower F) : ∀ i, upN F i (X (k+1)) ≡{k}≡ X (k+1+i)
+protected theorem Tower.upN (X : Tower F) :
+    ∀ i, upN F i (X (k+1)) ≡{SIdx.ofNat k}≡ X (k+1+i)
   | 0 => .rfl
   | n+1 => by
-    have : ∀ j, k+n+1 = j → up F j (X j) ≡{k}≡ X (j+1) := by
-      rintro _ rfl; exact X.up.le (Nat.le_add_right ..)
+    have : ∀ j, k+n+1 = j → up F j (X j) ≡{SIdx.ofNat k}≡ X (j+1) := by
+      rintro _ rfl; exact X.up.le (SIdx.ofNat_mono (Nat.le_add_right ..))
     exact ((up ..).ne.1 (X.upN _)).trans <| this _ (Nat.add_right_comm ..)
 
 @[rocq_alias solver.gg_tower]
@@ -211,7 +269,7 @@ protected def Tower.embed (k) : A F k -n> Tower F := by
 @[rocq_alias solver.embed_f]
 theorem Tower.embed_up (x : A F k) :
     Tower.embed (k+1) (up F k x) = Tower.embed k x := by
-  refine OFE.eq_dist_2 (fun (n : Nat) i => ?_)
+  refine OFE.eq_dist_2 (fun n i => ?_)
   dsimp [Tower.embed, embed]; split <;> rename_i h₁
   · simp [Nat.le_of_succ_le h₁]
     suffices ∀ a b (e₁ : k + 1 + a = i) (e₂ : k+b = i),
@@ -240,13 +298,13 @@ theorem Tower.embed_up (x : A F k) :
 
 @[rocq_alias solver.embed_tower]
 theorem Tower.embed_self (X : Tower F) :
-    Tower.embed (k+1) (X (k+1)) ≡{k}≡ X := by
+    Tower.embed (k+1) (X (k+1)) ≡{SIdx.ofNat k}≡ X := by
   refine fun i => ?_
   dsimp [Tower.embed, embed]; split <;> rename_i h₁
   · refine ((eqToHom _).ne.1 (X.upN _)).trans ?_
     suffices ∀ a e, eqToHom e (X a) = X i from this .. ▸ .rfl
     rintro _ rfl; rfl
-  · suffices ∀ a e, downN F a (eqToHom e (X (k + 1))) ≡{k}≡ X i from this ..
+  · suffices ∀ a e, downN F a (eqToHom e (X (k + 1))) ≡{SIdx.ofNat k}≡ X i from this ..
     rintro (_|a) eq
     · cases show k+1=i from eq; exact .rfl
     · cases show k=i+a from Nat.succ.inj eq
@@ -255,15 +313,29 @@ theorem Tower.embed_self (X : Tower F) :
 instance : Inhabited (Tower F) := ⟨Tower.embed 0 ⟨()⟩⟩
 #rocq_ignore solver.tower_inhabited "Implicit in Lean's Inhabited (Tower F) instance"
 
+variable [SIdxFinite SI]
+
+/-- A `Nat`-indexed sequence that is Cauchy at the step indices `SIdx.ofNat a`, as a chain:
+for finite step indices, every step index is of this form. -/
+def natChain [OFE α] (c : Nat → α) (h : ∀ {a b}, a ≤ b → c b ≡{SIdx.ofNat a}≡ c a) :
+    Chain α where
+  chain n := c (SIdx.toNat n)
+  cauchy {n _} hn := by
+    have := h (SIdx.toNat_mono hn); rwa [SIdx.ofNat_toNat n] at this
+
+theorem natChain_conv [COFE α] {c : Nat → α} {h} {a b : Nat} (hab : a ≤ b) :
+    compl (natChain c h) ≡{SIdx.ofNat a}≡ c b := by
+  have := conv_compl' (c := natChain c h) (SIdx.ofNat_mono hab)
+  dsimp only [natChain] at this; rwa [SIdx.toNat_ofNat] at this
+
 @[rocq_alias solver.unfold_chain]
-def unfoldChain (X : Tower F) : Chain (F (Tower F) (Tower F)) where
-  chain n := map (Tower.proj _) (Tower.embed _) (X (n+1))
-  cauchy {n i} h := by
+def unfoldChain (X : Tower F) : Chain (F (Tower F) (Tower F)) :=
+  natChain (fun n => map (Tower.proj _) (Tower.embed _) (X (n+1))) fun {n i} h => by
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h; clear h
     induction k with
     | zero => exact .rfl
     | succ k ih =>
-      exact (((map ..).ne.1 X.up).le (Nat.le_add_right ..)).symm.trans <|
+      exact (((map ..).ne.1 X.up).le (SIdx.ofNat_mono (Nat.le_add_right ..))).symm.trans <|
         (map_comp _ _ _ _ _).dist.symm.trans <|
         (map_ne.ne (·.down.dist) (fun Y => (Tower.embed_up Y).dist) _).trans ih
 
@@ -278,13 +350,14 @@ def Tower.isoAux : OFE.Iso (F (Tower F) (Tower F)) (Tower F) where
   inv.f X := compl (unfoldChain X)
   inv.ne.1 n _ _ h := by
     refine conv_compl.trans <| .trans ?_ conv_compl.symm
-    exact (map ..).ne.1 (h (n+1))
+    exact (map ..).ne.1 (h (SIdx.toNat n + 1))
   hom_inv {X} := OFE.eq_dist_2 fun n => by
+    obtain ⟨n, rfl⟩ : ∃ a, SIdx.ofNat a = n := ⟨_, SIdx.ofNat_toNat n⟩
     intro k
     refine ((down ..).ne.1 (.trans ?_ (X.downN n).dist)).trans X.down.dist
-    refine ((map ..).ne.1 (conv_compl.trans
-      ((unfoldChain ..).cauchy (show n ≤ k+n+1 by omega)).symm)).trans ?_
-    refine (((map ..).comp _).ne.1 (X.up.le (Nat.le_add_left ..)).symm).trans ?_
+    refine ((map ..).ne.1 (natChain_conv (show n ≤ k+n+1 by omega))).trans ?_
+    refine (((map ..).comp _).ne.1
+      (X.up.le (SIdx.ofNat_mono (Nat.le_add_left ..))).symm).trans ?_
     refine ((map_comp _ _ _ _ _).trans
       (congrArg (fun a => (map ..) a) (map_comp _ _ _ _ _))).symm.dist.trans ?_
     refine .trans (y := map (upN F n) (downN F n) (X (k+n+1))) ?_ ?_
@@ -299,7 +372,7 @@ def Tower.isoAux : OFE.Iso (F (Tower F) (Tower F)) (Tower F) where
         exact this.dist
     · have e : k+n+1 = k+1+n := by omega
       suffices ∀ x y, eqToHom e x = y → ∀ m, map (upN F n) (downN F n) x ≡{m}≡ downN F n y by
-        refine this _ _ ?_ n
+        refine this _ _ ?_ (SIdx.ofNat n)
         clear this; revert e; generalize k+1+n = a; rintro rfl; rfl
       rintro x _ rfl m
       induction n with
@@ -309,12 +382,13 @@ def Tower.isoAux : OFE.Iso (F (Tower F) (Tower F)) (Tower F) where
           (ih (Nat.succ.inj e) _).trans (congrArg (fun a => (downN ..) a) ?_).dist
         exact (down_eqToHom _).symm
   inv_hom := OFE.eq_dist_2 fun n => by
-    refine (conv_compl' n.le_succ).trans ?_
-    dsimp [unfoldChain]; rw [down]
+    obtain ⟨n, rfl⟩ : ∃ a, SIdx.ofNat a = n := ⟨_, SIdx.ofNat_toNat n⟩
+    refine (natChain_conv n.le_succ).trans ?_
+    dsimp only; rw [down]
     refine ((map_comp _ _ _ _ _).trans
       (congrArg (fun a => (map ..) a) (map_comp _ _ _ _ _))).dist.symm.trans ?_
     refine (map_ne.ne (fun Y => ?_) (fun Y => ?_) _).trans (map_id _).dist
-    · exact ((Tower.embed _).ne.1 Y.up).trans (Y.embed_self.le (by omega))
+    · exact ((Tower.embed _).ne.1 Y.up).trans (Y.embed_self.le SIdx.le_succ_diag_r)
     · exact ((Tower.embed _).ne.1 Y.down.dist).trans Y.embed_self
 
 opaque Tower.iso : OFE.Iso (F (Tower F) (Tower F)) (Tower F) := Tower.isoAux
@@ -328,6 +402,9 @@ variable (F) in
 def Fix : Type u := Tower F
 
 instance : Inhabited (Fix F) := inferInstanceAs (Inhabited (Tower F))
+
+variable [SIdxFinite SI]
+
 instance : COFE (Fix F) := inferInstanceAs (COFE (Tower F))
 
 def Fix.iso : OFE.Iso (F (Fix F) (Fix F)) (Fix F) := Tower.iso

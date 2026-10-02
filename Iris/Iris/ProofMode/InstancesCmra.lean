@@ -10,6 +10,8 @@ public import Iris.ProofMode.Classes
 
 @[expose] public section
 
+variable {SI : Type _} [Iris.SIdx SI]
+
 namespace Iris.ProofMode
 open Iris
 

@@ -10,7 +10,8 @@ public import Iris.BI.Plainly
 public import Iris.BI.InternalEq
 
 @[expose] public section
-local stepindex Nat
+
+variable {SI : Type _} [Iris.SIdx SI]
 
 /-!
 # Generic CMRA validity in a BI logic
@@ -108,6 +109,7 @@ instance internalCmraValid_plain (a : A) :
 @[rocq_alias internal_cmra_valid_timeless]
 instance internalCmraValid_timeless [CMRA.Discrete A] (a : A) :
     Timeless (PROP := PROP) iprop(✓ a) := by
+  haveI := Sbi.sidxFinite PROP
   unfold internalCmraValid; infer_instance
 
 end CmraValid
@@ -117,7 +119,7 @@ section CmraIncluded
 variable [Sbi PROP] [CMRA A]
 
 @[rocq_alias internal_included]
-def internalCmraIncluded (a b : A) : PROP := siPure (∃ c, iprop(b ≡ (a • c)))
+def internalCmraIncluded (a b : A) : PROP := siPure (∃ c, SiProp.internalEq b (a • c))
 
 macro_rules
   | `(iprop($a ≼ $b)) => ``(internalCmraIncluded $a $b)
@@ -129,14 +131,16 @@ delab_rule internalCmraIncluded
 instance internalCmraIncluded_ne :
     NonExpansive₂ (internalCmraIncluded (PROP := PROP) (A := A)) where
   ne n _ _ hx _ _ hy := by
-    refine siPure_ne.ne ?_
-    apply (exists_ne (fun a => NonExpansive₂.ne hy (op_commN.trans ((op_ne.ne hx).trans op_commN))))
+    haveI := Sbi.sidxFinite PROP
+    exact siPure_ne.ne <| exists_ne (PROP := SiProp SI) fun _ => SiProp.instNonExpansive₂InternalEq.ne hy
+      (op_commN.trans ((op_ne.ne hx).trans op_commN))
 
 #rocq_ignore internal_included_proper "Derivable from internalCmraIncluded_ne with NonExpansive.eqv"
 
 @[rocq_alias internal_included_intro]
 theorem internalCmraIncluded_intro {P : PROP} {a b : A} (h : a ≼ b) :
     P ⊢ a ≼ b := by
+  haveI := Sbi.sidxFinite PROP
   obtain ⟨c, hc⟩ := h
   calc (P : PROP)
     _ ⊢ True := true_intro
@@ -144,8 +148,8 @@ theorem internalCmraIncluded_intro {P : PROP} {a b : A} (h : a ≼ b) :
     _ ⊢ a ≼ b := siPure_mono (BI.exists_intro_trans c (internalEq.of_equiv hc))
 
 /-- The `SiProp` underlying the internal `≼` holds at `n` exactly when `a ≼{n} b`. -/
-private theorem included_holds {a b : A} {n : Nat} :
-    ((∃ c, iprop(b ≡ (a • c))) : SiProp).holds n ↔ a ≼{n} b := SiProp.exists_holds
+private theorem included_holds {a b : A} {n : SI} :
+    ((∃ c, SiProp.internalEq b (a • c)) : SiProp SI).holds n ↔ a ≼{n} b := SiProp.exists_holds
 
 /-- Two internal inclusions agree when they agree at every step index. -/
 theorem internalCmraIncluded_iff [CMRA B] {a b : A} {a' b' : B}
@@ -160,7 +164,7 @@ theorem internalCmraIncluded_pure {a b : A} {φ : Prop} (h : ∀ n, a ≼{n} b �
    .trans siPure_pure.mpr (siPure_mono fun n hφ => included_holds.mpr ((h n).mpr hφ))⟩
 
 @[rocq_alias si_pure_internal_included]
-theorem siPure_internalCmraIncluded {a b : A} :
+theorem siPure_internalCmraIncluded [SIdxFinite SI] {a b : A} :
     <si_pure> a ≼ b ⊣⊢@{PROP} a ≼ b :=
   persistently_iff.symm.trans persistently_siPure
 
@@ -182,10 +186,11 @@ theorem intuitionistically_internalCmraIncluded [BIAffine PROP] {a b : A} :
 @[rocq_alias internal_included_discrete]
 theorem internalCmraIncluded_discrete {a b : A} [CMRA.Discrete A] :
     a ≼ b ⊣⊢@{PROP} ⌜a ≼ b⌝ := by
+  haveI := Sbi.sidxFinite PROP
   haveI : ∀ x : A, DiscreteE x := fun x => ⟨OFE.Discrete.discrete⟩
   refine ⟨?_, pure_elim' internalCmraIncluded_intro⟩
-  calc internalCmraIncluded a b
-    _ ⊢ <si_pure> (∃ c, b ≡ (a • c)) := siPure_internalCmraIncluded.mp
+  calc (internalCmraIncluded a b : PROP)
+    _ ⊢ <si_pure> (∃ c, SiProp.internalEq b (a • c)) := siPure_internalCmraIncluded.mp
     _ ⊢ <si_pure> (∃ c, ⌜b = a • c⌝) := siPure_mono <| exists_mono fun _ => discrete_eq_mp
     _ ⊢ <si_pure> ⌜∃ c, b = a • c⌝ := siPure_mono pure_exists.mp
     _ ⊢ ⌜∃ c, b = a • c⌝ := siPure_pure.mp
@@ -198,6 +203,7 @@ theorem internalCmraIncluded_refl {a : A} [IsTotal A] : ⊢@{PROP} a ≼ a :=
 @[rocq_alias internal_included_trans]
 theorem internalCmraIncluded_trans {a b c : A} :
     ⊢@{PROP} a ≼ b -∗ b ≼ c -∗ a ≼ c := by
+  haveI := Sbi.sidxFinite PROP
   refine BI.entails_wand (siPure_exist.mp.trans ?_)
   refine BI.exists_elim (fun a' => ?_)
   refine BI.wand_intro ((BI.sep_mono_right siPure_exist.mp).trans (BI.sep_exists_left.mp.trans ?_))
@@ -213,14 +219,17 @@ theorem internalCmraIncluded_trans {a b c : A} :
 theorem internalCmraIncluded_map {B : Type _} [CMRA B] (g : A → B) [NonExpansive g]
     (hg : ∀ x y : A, g (x • y) = g x • g y) {a b : A} :
     a ≼ b ⊢@{PROP} g a ≼ g b :=
+  haveI := Sbi.sidxFinite PROP
   siPure_mono <| BI.exists_elim fun c => BI.exists_intro_trans (g c) <| by
     rw [← hg]; exact internalEq.of_internalEquiv_ne g
 
 @[rocq_alias internal_included_timeless]
 instance internalCmraIncluded_timeless {a b : A} [CMRA.Discrete A] :
     Timeless (PROP := PROP) iprop(a ≼ b) := by
+  haveI := Sbi.sidxFinite PROP
   haveI : ∀ x : A, DiscreteE x := fun x => ⟨OFE.Discrete.discrete⟩
   unfold internalCmraIncluded
+  change Timeless iprop(<si_pure> ∃ c, (iprop(b ≡ (a • c)) : SiProp SI))
   infer_instance
 
 @[rocq_alias internal_included_plain]

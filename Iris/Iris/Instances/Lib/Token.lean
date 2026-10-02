@@ -9,7 +9,8 @@ public import Iris.ProofMode
 public import Iris.Instances.IProp.Instance
 
 @[expose] public section
-local stepindex Nat
+universe usi
+variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
