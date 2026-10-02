@@ -5,7 +5,8 @@ Authors: Markus de Medeiros
 -/
 module
 
-public meta import Lean
+public meta import Lean.Elab.Command
+public meta import Lean.Elab.Tactic.Basic
 public import Iris.Init
 
 /-!
