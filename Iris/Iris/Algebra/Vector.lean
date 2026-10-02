@@ -73,12 +73,24 @@ theorem length_compl_vecToListHom (c : Chain (Vector α n)) :
     (compl (c.map vecToListHom)).length = n :=
   (length_dist (n := 0) conv_compl).trans Vector.length_toList
 
+theorem length_lbcompl_vecToListHom {m} (hm : SIdx.Limit m) (c : BChain (Vector α n) m) :
+    (IsCOFE.lbcompl hm (c.map vecToListHom)).length = n :=
+  (length_dist (IsCOFE.conv_lbcompl hm _ hm.limit_lt_0)).trans Vector.length_toList
+
 @[rocq_alias vector.list_cofe]
 instance : IsCOFE (Vector α n) where
   compl c := .ofList (compl (c.map vecToListHom)) (length_compl_vecToListHom c)
   conv_compl {k c} := vec_dist_toList.mpr <| by
     rw [Vector.toList_ofList]
     exact conv_compl
+  lbcompl hm c := .ofList (IsCOFE.lbcompl hm (c.map vecToListHom))
+    (length_lbcompl_vecToListHom hm c)
+  conv_lbcompl hm c _ hlt := vec_dist_toList.mpr <| by
+    rw [Vector.toList_ofList]
+    exact IsCOFE.conv_lbcompl hm _ hlt
+  lbcompl_ne hm c1 c2 _ hc := vec_dist_toList.mpr <| by
+    simp only [Vector.toList_ofList]
+    exact IsCOFE.lbcompl_ne hm _ _ fun p hp => vec_dist_toList.mp (hc p hp)
 
 end cofe
 

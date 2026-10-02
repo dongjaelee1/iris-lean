@@ -26,7 +26,8 @@ variable [ι : IrisGS_gen hlc Expr GF]
 local instance : OFE (List Expr) := OFE.ofDiscrete _
 local instance list_nonexpansive (Ψ : List Expr → IProp GF) : NonExpansive Ψ :=
   ⟨fun _ _ _ hxy => hxy ▸ .rfl⟩
-local instance : OFE Val := OFE.ofDiscrete _
+-- `Val` is a section variable, so this is a catch-all instance; keep it below structural ones.
+local instance (priority := low) : OFE Val := OFE.ofDiscrete _
 
 namespace twptp
 

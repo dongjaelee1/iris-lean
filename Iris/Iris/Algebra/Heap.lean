@@ -18,6 +18,7 @@ public import Iris.Std.PartialMap
 meta import Iris.Std.RocqPorting
 
 @[expose] public section
+local stepindex Nat
 
 open Iris Std
 
@@ -232,6 +233,9 @@ instance Heap.instCOFE [LawfulPartialMap M K] [COFE V] : COFE (M V) where
     rcases H : get? (c.chain 0) k
     · simp [← PartialMap.chain_get, Chain.chain_none_const (c := PartialMap.chain k c) (n := 0) (H▸rfl)]
     · exact IsCOFE.conv_compl
+  lbcompl := (·.elim)
+  conv_lbcompl := (·.elim)
+  lbcompl_ne := (·.elim)
 
 #rocq_ignore gmap_compl "Included in COFE instance"
 
@@ -288,7 +292,8 @@ instance instDiscreteEGet? [LawfulPartialMap M K] [OFE V] {m : M V} [DiscreteE m
     · revert h
       cases get? m i <;> simp_all [OFE.Dist, Option.Forall₂]
     · refine (congrArg (get? · i)
-        (DiscreteE.discrete (y := insert m i v) fun k => ?_)).trans (get?_insert_eq rfl)
+        (DiscreteE.discrete (y := insert m i v) ?_)).trans (get?_insert_eq rfl)
+      intro k
       by_cases hk : i = k
       · subst hk
         rw [get?_insert_eq rfl]

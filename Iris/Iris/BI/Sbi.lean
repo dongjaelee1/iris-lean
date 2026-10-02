@@ -12,6 +12,7 @@ public import Iris.BI.Extensions
 public import Iris.BI.SIProp
 
 @[expose] public section
+local stepindex Nat
 
 
 /-!

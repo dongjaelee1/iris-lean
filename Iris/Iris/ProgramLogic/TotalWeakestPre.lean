@@ -33,9 +33,11 @@ abbrev Stuckness.MaybeReducibleNoObs : Stuckness → Expr × State → Prop
 
 namespace twp
 
-local instance : OFE CoPset := OFE.ofDiscrete _
-local instance : OFE Expr := OFE.ofDiscrete _
-local instance : OFE Val := OFE.ofDiscrete _
+-- `Expr` and `Val` are section variables, so these act as catch-all instances; keep them below
+-- the structural ones (products, functions).
+local instance (priority := low) : OFE CoPset := OFE.ofDiscrete _
+local instance (priority := low) : OFE Expr := OFE.ofDiscrete _
+local instance (priority := low) : OFE Val := OFE.ofDiscrete _
 
 namespace Internal
 

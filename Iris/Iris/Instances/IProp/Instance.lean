@@ -13,6 +13,7 @@ public import Iris.Instances.UPred
 public import Iris.ProofMode
 
 @[expose] public section
+local stepindex Nat
 namespace Iris
 
 open COFE Iris.Std CMRA

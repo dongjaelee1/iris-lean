@@ -15,6 +15,7 @@ public import Iris.Std.HeapInstances
 public import Iris.Instances.IProp
 
 @[expose] public section
+local stepindex Nat
 
 /-! ## World satisfaction
 This file defines the world satisfaction (wsat) predicate for Iris.
@@ -92,7 +93,7 @@ def wsat : IProp GF := iprop(
 instance (i : Pos) : Contractive (ownI (W := W) i) where
   distLater_dist h := by
     unfold ownI
-    refine NonExpansive.ne ?_
+    refine NonExpansive.ne (f := iOwn (WsatGS.invariant_name GF)) ?_
     refine NonExpansive.ne ?_
     refine NonExpansive.ne ?_
     exact Contractive.distLater_dist h

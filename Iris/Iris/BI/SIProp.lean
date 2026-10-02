@@ -12,6 +12,7 @@ public import Iris.BI.DerivedLaws
 public import Iris.Algebra.CMRA
 
 @[expose] public section
+local stepindex Nat
 
 /-!
 # Step-Indexed Propositions (siProp)
@@ -135,6 +136,9 @@ instance : IsCOFE SiProp where
     closed {n₁ _} h hle := (c.cauchy hle .refl).mp (c n₁ |>.closed h hle)
   }
   conv_compl {_ c} _ hle := c.cauchy hle .refl |>.symm
+  lbcompl := (·.elim)
+  conv_lbcompl := (·.elim)
+  lbcompl_ne := (·.elim)
 
 #rocq_ignore siProp_compl "Included in IsCOFE instance."
 

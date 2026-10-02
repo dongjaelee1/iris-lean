@@ -16,6 +16,7 @@ public import Iris.Algebra.LeibnizSet
 namespace Iris
 
 @[expose] public section
+local stepindex Nat
 
 open Iris Iris.Std PartialMap
 

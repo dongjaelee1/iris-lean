@@ -22,6 +22,7 @@ This file provides introduction rules (BI entailments) for (some) CMRA operation
 -/
 
 @[expose] public section
+local stepindex Nat
 
 namespace Iris
 

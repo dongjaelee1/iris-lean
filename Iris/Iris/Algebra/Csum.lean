@@ -10,6 +10,7 @@ public import Iris.Algebra.Updates
 public import Iris.Algebra.LocalUpdates
 
 @[expose] public section
+local stepindex Nat
 
 namespace Iris
 
@@ -51,7 +52,7 @@ instance [OFE α] [OFE β] : OFE (Csum α β) where
   Dist := Csum.Dist
   dist_eqv := dist_eqv
   eq_dist' {x y} := by
-    cases x <;> cases y <;> simp [Csum.Dist, eq_dist]
+    cases x <;> cases y <;> simp [Csum.Dist, eq_dist (SI:=_)]
   dist_lt {n x y m} hn hlt := by
     cases x <;> cases y <;> first | exact OFE.Dist.lt hn hlt | exact hn.elim | trivial
 
@@ -157,6 +158,9 @@ instance [OFE α] [OFE β] [IsCOFE α] [IsCOFE β] : IsCOFE (Csum α β) where
       change IsCOFE.compl (chainR c b) ≡{n}≡ b'
       refine OFE.Dist.trans COFE.conv_compl ?_
       simp [chainR, en]
+  lbcompl := (·.elim)
+  conv_lbcompl := (·.elim)
+  lbcompl_ne := (·.elim)
 
 #rocq_ignore csum_compl "Included in IsCOFE instance"
 

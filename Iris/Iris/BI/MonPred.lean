@@ -22,6 +22,7 @@ public import Iris.BI.BigOp.BigSepMSet
 public import Iris.BI.BigOp.BigSepSet
 
 @[expose] public section
+local stepindex Nat
 
 namespace Iris.BI
 open Iris Iris.Std OFE
@@ -144,10 +145,14 @@ instance : IsCOFE (MonPred I PROP) where
     let cf := c.map ((⟨Subtype.val, inferInstance⟩ : _ -n> (I.car → PROP)).comp MonPred.toSig)
     { monPred_at := fun i => COFE.compl cf i
       monPred_mono := fun {i j} h =>
-        (LimitPreserving.entails (applyHom i) (applyHom j)).compl cf (fun n => (c n).monPred_mono h) }
+        (LimitPreserving.entails (A := I.car → PROP) (applyHom i) (applyHom j)).compl cf
+          (fun n => (c n).monPred_mono h) }
   conv_compl {n c} :=
     IsCOFE.conv_compl (n := n)
       (c := c.map ((⟨Subtype.val, inferInstance⟩ : _ -n> (I.car → PROP)).comp MonPred.toSig))
+  lbcompl := (·.elim)
+  conv_lbcompl := (·.elim)
+  lbcompl_ne := (·.elim)
 
 end OFE
 

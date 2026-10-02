@@ -14,7 +14,12 @@ noncomputable section
 
 open Iris
 
-instance ordinalSIdx : SIdx Ordinal where
+namespace Iris.Transfinite
+
+/-- Ordinals as step indices. `SIdx` has an `outParam`, so at most one `SIdx` instance should be
+visible at a time: this one is `scoped` (open `Iris.Transfinite` to use it) and has high priority,
+so that it wins over a globally visible `SIdx Nat` where it is opened. -/
+scoped instance (priority := high) ordinalSIdx : SIdx Ordinal where
   toLT := inferInstance
   toLE := inferInstance
   toZero := inferInstance
@@ -38,6 +43,10 @@ instance ordinalSIdx : SIdx Ordinal where
       · exact Order.succ_le_of_lt hm
       · intro he
         exact h ⟨m, he.symm⟩
+
+end Iris.Transfinite
+
+open scoped Iris.Transfinite
 
 @[reducible]
 def ordinalToTypeSIdx (κ : Ordinal) (hκ : Order.IsSuccLimit κ) : SIdx κ.ToType :=
@@ -85,3 +94,13 @@ theorem limit_iff_isSuccLimit {o : Ordinal} : SIdx.Limit o ↔ Order.IsSuccLimit
     · intro _ hm
       exact h.succ_lt hm
     · exact h.pos.ne'
+
+section Test
+local stepindex Ordinal
+variable [I : OFE α]
+
+/-- info: OFE.Dist : Ordinal.{u_1} → α → α → Prop -/
+#guard_msgs in
+#check I.Dist (α := α)
+
+end Test

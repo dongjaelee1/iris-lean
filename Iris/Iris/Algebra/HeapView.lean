@@ -32,6 +32,7 @@ It provides authoritative and fragmental ownership over heap elements with fract
 -/
 
 @[expose] public section
+local stepindex Nat
 
 open Iris
 
@@ -166,6 +167,7 @@ instance : NonExpansive (Frag k dq : _ → HeapView K V H) where
     · rw [Std.PartialMap.singleton, get?_insert_eq h, get?_singleton_eq h]
       exact dist_prod_ext rfl Hx
     · rw [Std.PartialMap.singleton, get?_insert_ne h, get?_empty, get?_singleton_ne h]
+      rfl
 
 #rocq_ignore gmap_view_frag_proper "OFE is Leibniz; use `congrArg`"
 

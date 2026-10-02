@@ -15,6 +15,7 @@ public import Iris.Std.CoPset
 import Iris.Instances.Lib.WSat
 
 @[expose] public section
+local stepindex Nat
 
 /-! ## Invariants -/
 

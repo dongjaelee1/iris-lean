@@ -18,6 +18,7 @@ This version follows Iris Rocq in fixing the underlying type of fractions to be 
 -/
 
 @[expose] public section
+local stepindex Nat
 
 namespace Rat
 
