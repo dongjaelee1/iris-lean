@@ -1865,6 +1865,20 @@ instance oFunctorConstOF [COFE B] : OFunctor (constOF B) where
 instance OFunctor.constOF_contractive [COFE B] : OFunctorContractive (constOF B) where
   map_contractive.1 := by simp [OFunctor.map]
 
+/-- The constant functor on `B`, lifted to the universe `w` (`constOF` is restricted to `Type`).
+This is used for ghost state of `IProp` over step-index types in higher universes. -/
+abbrev constOFU.{w, w'} (B : Type w') : OFunctorPre := fun _ _ _ _ => ULift.{w} B
+
+instance oFunctorConstOFU [COFE B] : OFunctor (constOFU.{w} B) where
+  ofe := inferInstance
+  map _ _ := ⟨id, id_ne⟩
+  map_ne := by intros; constructor; simp
+  map_id := by simp
+  map_comp := by simp
+
+instance OFunctor.constOFU_contractive [COFE B] : OFunctorContractive (constOFU.{w} B) where
+  map_contractive.1 := by simp [OFunctor.map]
+
 end constOF
 
 section IdOF
@@ -1980,7 +1994,7 @@ theorem LimitPreserving.impl [COFE α] (P1 P2 : α → Prop)
       Hc m hm (HP1 ((IsCOFE.conv_lbcompl hn c hm).le SIdx.le_0_l) HP1c)
 
 @[rocq_alias limit_preserving_sidx_finite]
-theorem LimitPreserving.of_sidx_finite [COFE α] {P : α → Prop} :
+theorem LimitPreserving.of_sidx_finite [SIdxFinite SI] [COFE α] {P : α → Prop} :
     (∀ c : Chain α, (∀ n, P (c n)) → P (COFE.compl c)) ↔ LimitPreserving P := by
   constructor <;> intro h
   · exact { compl := h, lbcompl hn _ _ := absurd hn (SIdx.limit_finite _) }
@@ -1994,7 +2008,7 @@ theorem LimitPreserving.impl' [COFE α] (P1 P2 : α → Prop)
   LimitPreserving.impl P1 P2 (fun h => (HP1 h).mp) Hcompl
 
 @[rocq_alias limit_preserving_equiv]
-theorem LimitPreserving.equiv [COFE α] [COFE β] (f g : α -n> β) :
+theorem LimitPreserving.equiv [SIdxFinite SI] [COFE α] [COFE β] (f g : α -n> β) :
     LimitPreserving (fun x => f x = g x) := by
   apply of_sidx_finite.mp
   intro c Hfg
@@ -2534,7 +2548,7 @@ instance [OFE α] [OFE β] : OFE (Iso α β) where
 #rocq_ignore ofe_iso_equiv "Local Equiv instance; folded into Lean's OFE (Iso α β) instance."
 
 @[rocq_alias ofe_iso_cofe]
-instance ofeIsoCofe [COFE α] [COFE β] : IsCOFE (Iso α β) := by
+instance ofeIsoCofe [SIdxFinite SI] [COFE α] [COFE β] : IsCOFE (Iso α β) := by
   refine isoCofeSubtype'
     (P := fun I : (α -n> β) × (β -n> α) => (∀ y, I.1 (I.2 y) = y) ∧ (∀ x, I.2 (I.1 x) = x))
     (fun I HI => ⟨I.1, I.2, fun {x} => HI.1 x, fun {x} => HI.2 x⟩)

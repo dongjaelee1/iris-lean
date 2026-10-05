@@ -74,7 +74,7 @@ def modality_laterN (n : Nat) [BI PROP] : Modality PROP PROP where
     (intuitionisticallyIf_mono (h.into_laterN)).trans (laterN_intuitionisticallyIf n)
   emp := laterN_intro n
   mono := (laterN_mono n ·)
-  sep := (laterN_sep n).2
+  sep := laterN_sep_2 n
 
 @[rocq_alias modality_embed, rocq_alias modality_embed_mixin]
 def modality_embed [BI PROP1] [BI PROP2] [BiEmbed PROP1 PROP2] : Modality PROP1 PROP2 where

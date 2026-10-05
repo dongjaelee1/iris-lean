@@ -31,29 +31,33 @@ invariant map, which makes `IProp` self-referential), slots 1–2 carry the inva
 mask bookkeeping, and slot 3 carries later credits. Additional user resources can be
 added at higher indices together with a matching `GpreS` instance.
 
+The ghost state of slots 1–3 is in `Type`. These slots use `ULiftOF` and `ElemG.ofEqLift`, so
+that they are correct in each build (the resources of `IProp` are not in `Type` for all
+step-index types).
+
 `pure_soundness` converts a proof of `⊢ ⌜P⌝` in the Iris logic into the plain Lean
 proposition `P`. The `step_fupdN_soundness_no_lc'` wrapper accounts for the fancy
 update steps required to allocate invariants.
 -/
 section proof
 
-noncomputable def GF : BundledGFunctors := fun n =>
+noncomputable def GF : BundledGFunctors.{0} := fun n =>
   match n with
   | 0  => ⟨InvMapF, by infer_instance⟩
-  | 1  => ⟨constOF CoPsetDisjL, by infer_instance⟩
-  | 2  => ⟨constOF (DisjointLeibnizSet PosSet), by infer_instance⟩
-  | 3  => ⟨AuthURF (constOF Credit), by infer_instance⟩
-  | _  => ⟨constOF Unit, by infer_instance⟩
+  | 1  => ⟨ULiftOF (constOF CoPsetDisjL), by infer_instance⟩
+  | 2  => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet)), by infer_instance⟩
+  | 3  => ⟨ULiftOF (AuthURF (constOF Credit)), by infer_instance⟩
+  | _  => ⟨constOFU Unit, by infer_instance⟩
 
-instance : WsatGpreS GF where
-  inv := { τ := 0, transp := by unfold GF; rfl }
-  enabled := { τ := 1, transp := by unfold GF; rfl }
-  disabled := { τ := 2, transp := by unfold GF; rfl }
+noncomputable instance : WsatGpreS GF where
+  inv := ElemG.ofEq 0 (by unfold GF; rfl)
+  enabled := ElemG.ofEqLift 1 (by unfold GF; rfl)
+  disabled := ElemG.ofEqLift 2 (by unfold GF; rfl)
 
-instance : LcGpreS GF where
-  lc_elem := { τ := 3, transp := by unfold GF; rfl }
+noncomputable instance : LcGpreS GF where
+  lc_elem := ElemG.ofEqLift 3 (by unfold GF; rfl)
 
-instance : InvGpreS GF where
+noncomputable instance : InvGpreS GF where
   toWsatGpreS := inferInstance
   toLcGpreS := inferInstance
 

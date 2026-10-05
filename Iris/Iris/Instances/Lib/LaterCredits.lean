@@ -13,7 +13,7 @@ public import Iris.ProofMode
 public import Iris.BI.Algebra
 public import Iris.Instances.IProp
 
-@[expose] public section
+@[expose] public noncomputable section
 universe usi
 
 /-! ## Later credits -/

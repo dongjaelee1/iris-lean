@@ -23,12 +23,8 @@ The SBI interface describes BIs with a step-indexed structure. An SBI has an ope
 step-index, and `siEmpValid : PROP → SiProp` that expresses that a proposition is valid
 (under assumption `emp`) at a given step-index.
 
-The interface and the lemmas about an arbitrary `Sbi PROP` are generic in the step-index type
-`SI`; the `SiProp` reasoning they need is done directly in the model, without the
-`BI (SiProp)` instance (which needs `SIdxFinite SI`). Only the `Sbi (SiProp)` instances
-and the `Timeless` instances for `SiProp` propositions need `SIdxFinite SI`. Note however
-that an `Sbi` instance can only exist when `SI` has no limit indices (`Sbi.not_limit`), because
-of the `BI` law `later_sExists_false`.
+The interface, its `SiProp` instances and the lemmas about an arbitrary `Sbi PROP` do not
+need finite step-indices. Some proofs do the `SiProp` reasoning directly in the model.
 -/
 
 namespace Iris
@@ -312,7 +308,6 @@ theorem persistently_siPure [Sbi PROP] {Pi : SiProp} :
     <pers> <si_pure> Pi ⊣⊢@{PROP} <si_pure> Pi :=
   persistently_iff
 
-/-- `Timeless` is only stated for a `BI`, so a `Timeless` `SiProp` needs `SIdxFinite SI`. -/
 @[rocq_alias si_pure_timeless]
 instance siPure_timeless [Sbi PROP] (Pi : SiProp) [Timeless Pi] :
     Timeless (PROP := PROP) iprop(<si_pure> Pi) where
@@ -520,7 +515,6 @@ theorem siEmpValid_only0 [Sbi PROP] {P : PROP} :
       _ ⊢ <si_emp_valid> (<only0> P) :=
           siEmpValid_mono <| imp_mono_left siPure_later_false.mpr
 
-/-- `Timeless` is only stated for a `BI`, so a `Timeless` `SiProp` needs `SIdxFinite SI`. -/
 @[rocq_alias si_emp_valid_timeless]
 instance siEmpValid_timeless [Sbi PROP] (P : PROP) [Timeless P] :
     Timeless iprop(<si_emp_valid> P) where
@@ -599,48 +593,6 @@ theorem laterN_soundness [Sbi PROP] {P : PROP} {n : Nat} (h : emp ⊢ ▷^[n] P)
   match n with
   | .zero => h
   | .succ _ => laterN_soundness (later_soundness h)
-
-/-! ## An SBI has no limit step indices
-
-The `BI` law `later_sExists_false` transported along `<si_pure>` gives
-`▷ (∃ x, Φ x) ⊢ ▷ False ∨ ∃ x, ▷ Φ x` in `SiProp`, which fails at every limit index. So
-the current `Sbi` (indeed `BI`) interface can only be instantiated when `SI` has no limit indices,
-even though the lemmas above are stated for any `SI`. -/
-
-/-- No limit index exists in the step-index type of an SBI. -/
-theorem Sbi.not_limit (PROP : Type _) [Sbi PROP] {l : SI} (hl : SIdx.Limit l) : False := by
-  let Φi : {k : SI // k < l} → SiProp :=
-    fun k => ⟨fun m => m ≤ k.1, fun h hle => SIdx.le_trans hle h⟩
-  have h : iprop(<si_pure> (▷ ∃ k, Φi k)) ⊢@{PROP} iprop(<si_pure> (▷ False ∨ ∃ k, ▷ Φi k)) :=
-    calc iprop(<si_pure> (▷ ∃ k, Φi k))
-      _ ⊢ ▷ ∃ k, <si_pure> Φi k := siPure_later.mp.trans (later_mono siPure_exist.mp)
-      _ ⊢ ▷ False ∨ ∃ p, ⌜∃ k, iprop(<si_pure> Φi k) = p⌝ ∧ ▷ p := later_sExists_false
-      _ ⊢ ▷ False ∨ ∃ k, ▷ <si_pure> Φi k :=
-          or_mono_right <| exists_elim fun _ => pure_elim_left fun ⟨k, hk⟩ =>
-            hk ▸ exists_intro (Ψ := fun k => iprop(▷ <si_pure> Φi k)) k
-      _ ⊢ <si_pure> (▷ False) ∨ <si_pure> (∃ k, ▷ Φi k) :=
-          or_mono siPure_later_false.mpr <|
-            (exists_mono fun _ => siPure_later.mpr).trans siPure_exist.mpr
-      _ ⊢ <si_pure> (▷ False ∨ ∃ k, ▷ Φi k) := siPure_or.mpr
-  -- At `l`, `▷ ∃ k, Φi k` holds (take `k := m` below each `m < l`), but neither disjunct does.
-  have hl' : (iprop(▷ ∃ k, Φi k) : SiProp).holds l :=
-    fun m hm => SiProp.exists_holds.mpr ⟨⟨m, hm⟩, SIdx.le_refl⟩
-  rcases siPure_entails.mp h l hl' with hF | hE
-  · exact hF 0 hl.limit_lt_0
-  · obtain ⟨k, hk⟩ := SiProp.exists_holds.mp hE
-    exact SIdx.lt_irrefl _ (SIdx.lt_le_trans (SIdx.lt_succ_self k.1) (hk _ (hl.succ_lt k.1 k.2)))
-
-/-- The step-index type of an SBI is finite (`SIdxFinite`). -/
-theorem Sbi.finite_index (PROP : Type _) [Sbi PROP] (n : SI) : n = 0 ∨ ∃ m, n = SIdx.succ m :=
-  match SIdx.case n with
-  | .inl h => .inl h
-  | .inr (.inl ⟨m, h⟩) => .inr ⟨m, h⟩
-  | .inr (.inr hl) => (Sbi.not_limit PROP hl).elim
-
-/-- An `Sbi` instance on `PROP` makes the step-index type finite. Not an instance, since `PROP`
-cannot be inferred from the goal `SIdxFinite SI`; use `haveI := Sbi.sidxFinite PROP`. -/
-abbrev Sbi.sidxFinite (PROP : Type _) [Sbi PROP] : SIdxFinite SI :=
-  ⟨Sbi.finite_index PROP⟩
 
 /-! ## Plainly modality derived from Sbi -/
 

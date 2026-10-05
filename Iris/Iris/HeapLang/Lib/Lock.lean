@@ -14,13 +14,16 @@ open BI
 
 @[expose] public section
 
+universe u
+
 @[rocq_alias heap_lang.lock]
-class Lock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
+class Lock (GF : BundledGFunctors.{u}) [IrisGS_gen hlc Exp GF] where
   newlock : Val
   acquire : Val
   release : Val
 
-  lockG : BundledGFunctors → Type
+  /-- The ghost state of the lock. It is in the universe of `IProp GF`. -/
+  lockG : BundledGFunctors.{u} → TypeSI u
   name : Type
   [lock_name_inhabited : Inhabited name]
 

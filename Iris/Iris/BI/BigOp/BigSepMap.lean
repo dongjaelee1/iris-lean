@@ -149,15 +149,15 @@ instance bigSepM_nil_timeless_inst [Timeless (emp : PROP)] {Φ : K → V → PRO
   timeless := (later_congr bigSepM_empty).1.trans (Timeless.timeless.trans (except0_mono bigSepM_empty.2))
 
 @[rocq_alias big_sepM_timeless]
-theorem bigSepM_timeless [Timeless (emp : PROP)] {Φ : K → V → PROP} {m : M V}
+theorem bigSepM_timeless [SIdxFinite SI] [Timeless (emp : PROP)] {Φ : K → V → PROP} {m : M V}
     (h : ∀ {k x}, get? m k = some x → Timeless (Φ k x)) :
     Timeless ([∗map] k ↦ x ∈ m, Φ k x) where
   timeless := bigOpM_closed (P := fun Q => ▷ Q ⊢ ◇ Q) Timeless.timeless
-    (fun hx hy => later_sep.1.trans <| (sep_mono hx hy).trans except0_sep.2)
+    (fun hx hy => later_sep_1.trans <| (sep_mono hx hy).trans except0_sep.2)
     (h · |>.timeless)
 
 @[rocq_alias big_sepM_timeless']
-instance bigSepM_timeless_inst [Timeless (emp : PROP)] {Φ : K → V → PROP} {m : M V}
+instance bigSepM_timeless_inst [SIdxFinite SI] [Timeless (emp : PROP)] {Φ : K → V → PROP} {m : M V}
     [∀ k x, Timeless (Φ k x)] :
     Timeless ([∗map] k ↦ x ∈ m, Φ k x) :=
   bigSepM_timeless fun _ => inferInstance
@@ -374,7 +374,7 @@ theorem bigSepM_persistently {Φ : K → V → PROP} {m : M V} [BIAffine PROP] :
   BiEntails.of_eq <| bigOpL_hom _ (toList m)
 
 @[rocq_alias big_sepM_later]
-theorem bigSepM_later {Φ : K → V → PROP} {m : M V} [BIAffine PROP] :
+theorem bigSepM_later [SIdxFinite SI] {Φ : K → V → PROP} {m : M V} [BIAffine PROP] :
     (▷ [∗map] k ↦ x ∈ m, Φ k x) ⊣⊢ [∗map] k ↦ x ∈ m, ▷ Φ k x :=
   BiEntails.of_eq <| bigOpL_hom _ <| toList m
 
@@ -382,10 +382,10 @@ theorem bigSepM_later {Φ : K → V → PROP} {m : M V} [BIAffine PROP] :
 theorem bigSepM_later_2 {Φ : K → V → PROP} {m : M V} :
     ([∗map] k ↦ x ∈ m, ▷ Φ k x) ⊢ iprop(▷ [∗map] k ↦ x ∈ m, Φ k x) :=
   bigOpM_gen_proper (R := fun a b => a ⊢ later b)
-    later_intro (fun h1 h2 => (sep_mono h1 h2).trans later_sep.2) (fun _ => .rfl)
+    later_intro (fun h1 h2 => (sep_mono h1 h2).trans later_sep_2) (fun _ => .rfl)
 
 @[rocq_alias big_sepM_laterN]
-theorem bigSepM_laterN {Φ : K → V → PROP} {m : M V} {n : Nat} [BIAffine PROP] :
+theorem bigSepM_laterN [SIdxFinite SI] {Φ : K → V → PROP} {m : M V} {n : Nat} [BIAffine PROP] :
     (▷^[n] [∗map] k ↦ x ∈ m, Φ k x) ⊣⊢ [∗map] k ↦ x ∈ m, ▷^[n] Φ k x :=
   match n with
   | 0 => .rfl

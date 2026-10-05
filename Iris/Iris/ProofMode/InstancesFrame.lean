@@ -197,7 +197,7 @@ instance frame_later [BI PROP] p (R R' P Q Q' : PROP)
     _ ⊢ □?p R' ∗ ▷^[1]Q                                     := sep_mono_right h3.make_laterN.mpr
     _ ⊢ ▷ □?p Nat.repeat later 0 R ∗ ▷^[1]Q                :=
         sep_mono_left <| (intuitionisticallyIf_mono h1.1).trans later_intuitionisticallyIf_2
-    _ ⊢ ▷ (□?p Nat.repeat later 0 R ∗ Nat.repeat later 0 Q) := later_sep.mpr
+    _ ⊢ ▷ (□?p Nat.repeat later 0 R ∗ Nat.repeat later 0 Q) := later_sep_2
     _ ⊢ ▷ P                                                 := later_mono h2.frame
 
 @[ipm_backtrack, rocq_alias frame_laterN]
@@ -209,7 +209,7 @@ instance frame_laterN [BI PROP] p n (R R' P Q Q' : PROP)
     _ ⊢ □?p R' ∗ ▷^[n]Q      := sep_mono_right h3.make_laterN.mpr
     _ ⊢ ▷^[n]□?p R ∗ ▷^[n]Q :=
         sep_mono_left <| (intuitionisticallyIf_mono h1.1).trans (laterN_intuitionisticallyIf n)
-    _ ⊢ ▷^[n](□?p R ∗ Q)     := (laterN_sep n).mpr
+    _ ⊢ ▷^[n](□?p R ∗ Q)     := laterN_sep_2 n
     _ ⊢ ▷^[n]P               := laterN_mono n h2.frame
 
 @[ipm_backtrack, rocq_alias frame_bupd]

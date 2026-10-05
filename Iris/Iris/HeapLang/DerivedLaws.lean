@@ -9,7 +9,7 @@ public import Iris.HeapLang.PrimitiveLaws
 
 /-! # Derived HeapLang laws -/
 
-@[expose] public section
+@[expose] public noncomputable section
 namespace Iris.HeapLang
 
 open Iris BI ProofMode ProgramLogic Iris.Std

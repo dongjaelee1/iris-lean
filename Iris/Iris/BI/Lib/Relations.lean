@@ -475,18 +475,18 @@ variable [Timeless (emp : PROP)] [OFE A] [OFE.Discrete A]
 variable [NonExpansive₂ R]
 
 @[rocq_alias bi_nsteps_timeless]
-instance bi_nsteps_timeless (n : Nat) [∀ x y, Timeless (R x y)] (x y : A) :
+instance bi_nsteps_timeless [SIdxFinite SI] (n : Nat) [∀ x y, Timeless (R x y)] (x y : A) :
     Timeless (biNsteps R n x y) := by
   induction n generalizing x y <;>
     unfold biNsteps <;> infer_instance
 
 @[rocq_alias bi_rtc_timeless]
-instance bi_rtc_timeless [∀ x y, Timeless (R x y)] (x y : A) :
+instance bi_rtc_timeless [SIdxFinite SI] [∀ x y, Timeless (R x y)] (x y : A) :
     Timeless (biRtc R x y) :=
       (equiv_iff.mpr (bi_rtc_nsteps R x y)) ▸ inferInstance
 
 @[rocq_alias bi_tc_timeless]
-instance bi_tc_timeless [∀ x y, Timeless (R x y)] (x y : A) :
+instance bi_tc_timeless [SIdxFinite SI] [∀ x y, Timeless (R x y)] (x y : A) :
     Timeless (biTc R x y) :=
       (equiv_iff.mpr (bi_tc_nsteps R x y)) ▸ inferInstance
 

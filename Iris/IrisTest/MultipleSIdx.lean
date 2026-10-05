@@ -1,6 +1,6 @@
 module
 
-public import Iris.Algebra.StepIndexFinite
+public import Iris.Algebra.StepIndexChoice
 
 /-! Tests for the `linter.iris.multipleSIdx` linter. -/
 

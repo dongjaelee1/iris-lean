@@ -7,7 +7,7 @@ module
 
 public import Iris.BI.Lib.MonoNat
 
-@[expose] public section
+@[expose] public noncomputable section
 
 universe usi
 

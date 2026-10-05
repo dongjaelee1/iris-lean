@@ -10,6 +10,7 @@ public import Iris.HeapLang.Lib.NondetBool
 
 /-! # The clairvoyant coin -/
 
+noncomputable section
 namespace Iris.HeapLang
 
 @[rocq_alias heap_lang.clairvoyant_coin.new_coin]

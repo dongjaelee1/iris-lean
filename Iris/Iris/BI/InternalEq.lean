@@ -403,7 +403,6 @@ theorem prop_ext_siEmpValid_mpr (P Q : PROP) :
 @[rocq_alias prop_ext_si_emp_valid]
 theorem prop_ext_siEmpValid_equiv (P Q : PROP) :
     SiProp.internalEq P Q ⊣⊢@{SiProp} <si_emp_valid> (P ∗-∗ Q) := by
-  haveI := Sbi.sidxFinite PROP
   letI _ : NonExpansive (fun Q : PROP => iprop(<si_pure> <si_emp_valid> (P ∗-∗ Q))) :=
     ((Sbi.siPure_ne (PROP := PROP)).comp Sbi.siEmpValid_ne).comp (NonExpansive₂.ne_right wandIff P)
   refine ⟨?_, prop_ext_siEmpValid⟩
@@ -417,7 +416,6 @@ theorem prop_ext_siEmpValid_equiv (P Q : PROP) :
 @[rocq_alias later_equivI_prop_2]
 theorem later_equivI_prop_mpr (P Q : PROP) :
     ▷ P ≡ Q ⊢ (iprop(▷ P) ≡ iprop(▷ Q) : PROP) := by
-  haveI := Sbi.sidxFinite PROP
   change iprop(▷ <si_pure> (SiProp.internalEq P Q) ⊢ <si_pure> (SiProp.internalEq iprop(▷ P) iprop(▷ Q)))
   calc iprop(▷ <si_pure> (SiProp.internalEq P Q))
     _ ⊢ <si_pure> ▷ (SiProp.internalEq P Q) := siPure_later.mpr
@@ -436,7 +434,6 @@ theorem internalEq_soundness {A : Type _} [OFE A] (x y : A) :
 @[rocq_alias only_0_internal_eq]
 theorem only0_internalEq (P Q : PROP) :
     <only0> (P ≡ Q) ⊣⊢@{PROP} iprop(<only0> P) ≡ iprop(<only0> Q) := by
-  haveI := Sbi.sidxFinite PROP
   change iprop(<only0> <si_pure> (SiProp.internalEq P Q))
     ⊣⊢@{PROP} <si_pure> (SiProp.internalEq iprop(<only0> P) iprop(<only0> Q))
   calc iprop(<only0> <si_pure> (SiProp.internalEq P Q))

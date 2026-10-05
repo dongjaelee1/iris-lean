@@ -19,7 +19,7 @@ open Language Language.Notation Relation FromMathlib.Relation.TransGen
 
 universe usi
 
-@[expose] public section
+@[expose] public noncomputable section
 
 variable {Expr State Obs Val : Type _} [Λ : Language Expr State Obs Val]
 
@@ -154,7 +154,7 @@ end
 
 /-! ### Thread-pool ghost-state invariant -/
 
-section ghost
+noncomputable section ghost
 open Iris CMRA Iris.Std
 
 variable {GF : BundledGFunctors}
@@ -244,7 +244,7 @@ end ghost
 
 /-! ### Allocation -/
 
-section alloc
+noncomputable section alloc
 open Iris CMRA Iris.Std
 
 variable {GF : BundledGFunctors}

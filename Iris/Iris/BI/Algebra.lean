@@ -242,7 +242,6 @@ theorem cmra_morphism_validI [CMRA A] [CMRA B] (f : A -C> B) (x : A) :
 theorem f_homom_includedI [CMRA A] [CMRA B] (x y : A) (f : A → B) [NonExpansive f]
     (Hf : ∀ c n, f x • f c ≡{n}≡ f (x • c)) :
     x ≼ y ⊢@{PROP} f x ≼ f y :=
-  haveI := Sbi.sidxFinite PROP
   siPure_mono <| BI.exists_elim fun c => BI.exists_intro_trans (f c) <|
     (SiProp.internalEq_entails ..).mpr fun n heq => (NonExpansive.ne heq).trans (Hf c n).symm
 
@@ -261,10 +260,9 @@ theorem id_freeI_l [CMRA A] (x y : A) [IdFree x] :
   exact wand_intro_left (wand_intro_left ((sep_mono_right sep_emp.mp).trans H))
 
 @[rocq_alias cmra_later_opI]
-theorem cmra_later_opI [CMRA A] [CMRA.IsTotal A] (x y1 y2 : A) :
+theorem cmra_later_opI [SIdxFinite SI] [CMRA A] [CMRA.IsTotal A] (x y1 y2 : A) :
     ▷ (✓ x ∧ x ≡ y1 • y2) ⊢@{PROP}
       ∃ z1 z2, x ≡ z1 • z2 ∧ ▷ (z1 ≡ y1) ∧ ▷ (z2 ≡ y2) := by
-  haveI := Sbi.sidxFinite PROP
   sbi_unfold; intro n
   rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
   · exact fun _ => ⟨x, core x, (op_core_dist x).symm,

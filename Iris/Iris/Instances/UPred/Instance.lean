@@ -392,26 +392,38 @@ instance instBIUPred : BI (UPred M) where
   later_mono H _ _ Hl m hm := H _ _ (Hl m hm)
   later_intro {P} _ _ Hp m hm := P.mono Hp (incN_refl _) (SIdx.lt_le_incl hm)
   later_sForall_2 {Ψ} _ x H m hm p hp := H _ ⟨p, rfl⟩ x (inc_refl _) SIdx.le_refl hp m hm
-  later_sExists_false n x H := by
+  later_sExists_false := by
+    intro _ Φ n x H
     rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
     · exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
     · obtain ⟨p', Hp', H'⟩ := H k (SIdx.lt_succ_self k)
       refine .inr ⟨UPred.later p', ⟨p', ?_⟩,
         fun m hm => p'.mono H' (incN_refl _) (SIdx.lt_succ_r.mp hm)⟩
       ext n x; exact and_iff_right Hp'
-  later_sep {P Q} := by
-    constructor
-    · intro n x H
-      rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
-      · exact ⟨unit, x, unit_left_id.dist.symm, fun m hm => absurd hm (SIdx.not_lt_zero m),
-          fun m hm => absurd hm (SIdx.not_lt_zero m)⟩
-      · obtain ⟨x1, x2, H1, H2, H3⟩ := H k (SIdx.lt_succ_self k)
-        let ⟨y1, y2, H1', H2', H3'⟩ := extend (validN_succ x.property) H1
-        exact ⟨y1, y2, H1'.dist,
-          fun m hm => P.mono H2 (H2'.symm.le (SIdx.lt_succ_r.mp hm)).to_incN (SIdx.lt_succ_r.mp hm),
-          fun m hm => Q.mono H3 (H3'.symm.le (SIdx.lt_succ_r.mp hm)).to_incN (SIdx.lt_succ_r.mp hm)⟩
-    · rintro _ _ ⟨x1, x2, H1, H2, H3⟩ m hm
-      exact ⟨x1, x2, H1.lt hm, H2 m hm, H3 m hm⟩
+  later_sep_1 := by
+    intro _ P Q n x H
+    rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
+    · exact ⟨unit, x, unit_left_id.dist.symm, fun m hm => absurd hm (SIdx.not_lt_zero m),
+        fun m hm => absurd hm (SIdx.not_lt_zero m)⟩
+    · obtain ⟨x1, x2, H1, H2, H3⟩ := H k (SIdx.lt_succ_self k)
+      let ⟨y1, y2, H1', H2', H3'⟩ := extend (validN_succ x.property) H1
+      exact ⟨y1, y2, H1'.dist,
+        fun m hm => P.mono H2 (H2'.symm.le (SIdx.lt_succ_r.mp hm)).to_incN (SIdx.lt_succ_r.mp hm),
+        fun m hm => Q.mono H3 (H3'.symm.le (SIdx.lt_succ_r.mp hm)).to_incN (SIdx.lt_succ_r.mp hm)⟩
+  later_sep_2 _ _ := fun ⟨x1, x2, H1, H2, H3⟩ m hm =>
+    ⟨x1, x2, H1.lt hm, H2 m hm, H3 m hm⟩
+  later_or_1 {P Q} n x H := by
+    -- The downward-closed versions of the two disjuncts below `n`.
+    let P' : SI → Prop := fun m => ∀ k (hk : k ≤ m) (hkn : k < n), P k (x.le (SIdx.lt_le_incl hkn))
+    let Q' : SI → Prop := fun m => ∀ k (hk : k ≤ m) (hkn : k < n), Q k (x.le (SIdx.lt_le_incl hkn))
+    have h : ∀ m, m < n → P' m ∨ Q' m := fun m hm => by
+      rcases H m hm with HP | HQ
+      · exact .inl fun k hk _ => P.mono HP (incN_refl _) hk
+      · exact .inr fun k hk _ => Q.mono HQ (incN_refl _) hk
+    rcases SIdx.forall_lt_or (fun hab hb k hk => hb k (SIdx.le_trans hk hab))
+        (fun hab hb k hk => hb k (SIdx.le_trans hk hab)) h with HP | HQ
+    · exact .inl fun m hm => HP m hm m SIdx.le_refl hm
+    · exact .inr fun m hm => HQ m hm m SIdx.le_refl hm
   later_persistently := ⟨fun _ _ => id, fun _ _ => id⟩
   later_false_em {P} n _ H := by
     by_cases h0 : (0 : SI) < n
@@ -729,7 +741,7 @@ theorem ownM_forall (f : A → M) :
   exact ⟨iprop(x.val ≡ f a • xf), ⟨xf, rfl⟩, Hxf⟩
 
 @[rocq_alias uPred.later_ownM, rocq_alias uPred_primitive.later_ownM]
-theorem later_ownM (a : M) : ▷ ownM a ⊢ ∃ b, ownM b ∧ ▷ (a ≡ b) := by
+theorem later_ownM [SIdxFinite SI] (a : M) : ▷ ownM a ⊢ ∃ b, ownM b ∧ ▷ (a ≡ b) := by
   intro n x H
   rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
   · exact ⟨iprop(ownM unit ∧ ▷ (a ≡ unit)), ⟨unit, rfl⟩, incN_unit,
@@ -782,13 +794,14 @@ theorem bupd_ownM_update {x y : M} (hupd : x ~~> y) : ownM x ⊢ |==> ownM y := 
 
 @[rocq_alias uPred.ownM_timeless]
 instance ownM_timeless (a : M) [OFE.DiscreteE a] : BI.Timeless (ownM a) where
+  -- The proof uses only the index `0` below `n`, so it holds for every step-index type.
   timeless n x H := by
-    rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
-    · exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
-    · obtain ⟨_, Hxy⟩ := H k (SIdx.lt_succ_self k)
-      let ⟨_a', y', Hx, Ha', _⟩ := extend (validN_succ x.property) Hxy
+    by_cases hn : n = 0
+    · subst hn; exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
+    · obtain ⟨_, Hxy⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
+      let ⟨_a', y', Hx, Ha', _⟩ := extend (validN_of_le SIdx.le_0_l x.property) Hxy
       exact .inr ⟨y', OFE.Dist.of_eq (Hx.trans
-        (congrArg (CMRA.op · _) (OFE.DiscreteE.discrete (Ha'.symm.le SIdx.le_0_l)).symm))⟩
+        (congrArg (CMRA.op · _) (OFE.DiscreteE.discrete Ha'.symm).symm))⟩
 
 @[rocq_alias uPred.ownM_persistent]
 instance ownM_persistent (a : M) [CoreId a] : Persistent (ownM a) where

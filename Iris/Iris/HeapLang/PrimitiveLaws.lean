@@ -20,7 +20,7 @@ public import Iris.Std.GenSetsInstances
 public import Iris.ProofMode
 public import Std.Data.ExtTreeMap
 
-@[expose] public section
+@[expose] public noncomputable section
 
 namespace Iris.HeapLang
 
@@ -101,42 +101,46 @@ theorem state_interp_step [HeapLangGS hlc GF] (σ : State) (ns : Nat)
     (κs : List Observation) (nt : Nat) :
     stateInterp (GF := GF) σ ns κs nt ⊢@{IProp GF} |==> stateInterp σ (ns + 1) κs nt := bupd_intro
 
-def HeapLangS : BundledGFunctors
+/-- The ghost state of HeapLang. Slot 0 holds the invariant map, which contains `IProp`. The
+other slots hold ghost state in `Type`. These slots use `ULiftOF`, so that they are correct in
+each build (the resources of `IProp` are not in `Type` for all step-index types). -/
+def HeapLangS : BundledGFunctors.{0}
   | 0 => ⟨InvMapF, by infer_instance⟩
-  | 1 => ⟨constOF CoPsetDisjL, by infer_instance⟩
-  | 2 => ⟨constOF (DisjointLeibnizSet PosSet), by infer_instance⟩
-  | 3 => ⟨Auth.AuthURF (constOF Credit), by infer_instance⟩
-  | 4 => ⟨constOF (HeapView Loc (Agree (DiscreteO (Option Val))) HeapF), by infer_instance⟩
-  | 5 => ⟨constOF (HeapView Loc (Agree (DiscreteO GName)) HeapF), by infer_instance⟩
-  | 6 => ⟨constOF MetaUR, by infer_instance⟩
-  | 7 => ⟨constOF (HeapView ProphId (Agree (DiscreteO (List (Val × Val)))) ProphMapF),
+  | 1 => ⟨ULiftOF (constOF CoPsetDisjL), by infer_instance⟩
+  | 2 => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet)), by infer_instance⟩
+  | 3 => ⟨ULiftOF (Auth.AuthURF (constOF Credit)), by infer_instance⟩
+  | 4 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO (Option Val))) HeapF)),
           by infer_instance⟩
-  | 8 => ⟨constOF (Auth (InvHeapMapUR (Option Val) HeapF)) , by infer_instance⟩
-  | _ => ⟨constOF Unit, by infer_instance⟩
+  | 5 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO GName)) HeapF)), by infer_instance⟩
+  | 6 => ⟨ULiftOF (constOF MetaUR), by infer_instance⟩
+  | 7 => ⟨ULiftOF (constOF (HeapView ProphId (Agree (DiscreteO (List (Val × Val)))) ProphMapF)),
+          by infer_instance⟩
+  | 8 => ⟨ULiftOF (constOF (Auth (InvHeapMapUR (Option Val) HeapF))), by infer_instance⟩
+  | _ => ⟨constOFU Unit, by infer_instance⟩
 
 instance instHeapLangGS_HeapLangS : HeapLangGpreS HasLC.hasLC HeapLangS where
   toWsatGpreS := by
     constructor
-    · exists 0
-    · exists 1
-    · exists 2
+    · exact ElemG.ofEq 0 rfl
+    · exact ElemG.ofEqLift 1 rfl
+    · exact ElemG.ofEqLift 2 rfl
   toLcGpreS := by
     constructor
-    · exists 3
+    · exact ElemG.ofEqLift 3 rfl
   heap_pre := by
     constructor
     · constructor
-      exists 4
+      exact ElemG.ofEqLift 4 rfl
     · constructor
-      exists 5
-    · exists 6
+      exact ElemG.ofEqLift 5 rfl
+    · exact ElemG.ofEqLift 6 rfl
   proph_pre := by
     constructor
     · constructor
-      exists 7
+      exact ElemG.ofEqLift 7 rfl
   inv_heap_pre := by
     constructor
-    exists 8
+    exact ElemG.ofEqLift 8 rfl
 
 end HeapLangGS
 

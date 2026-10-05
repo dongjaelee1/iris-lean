@@ -445,9 +445,8 @@ instance wand_persistent [Plain P] [Persistent Q] [Absorbing Q] :
     _ ⊢ <pers> (P -∗ Q)   := persistently_mono (wand_mono_left plain)
 
 @[rocq_alias limit_preserving_Plain]
-theorem limitPreserving_plain {A} [COFE A] (Φ : A → PROP) [Φne : OFE.NonExpansive Φ] :
+theorem limitPreserving_plain [SIdxFinite SI] {A} [COFE A] (Φ : A → PROP) [Φne : OFE.NonExpansive Φ] :
   LimitPreserving (fun x => Plain (Φ x)) := by
-    haveI := Sbi.sidxFinite PROP
     letI _ : OFE.NonExpansive fun x => iprop(■ Φ x) := .comp inferInstance Φne
     refine ⟨fun c h => ⟨?_⟩, fun hn _ _ => absurd hn (SIdx.limit_finite _)⟩
     refine (LimitPreserving.entails _ (fun x => iprop(■ (Φ x)))).compl _ ?_
@@ -806,7 +805,6 @@ instance bigSepMS_plain {MS A} [LawfulFiniteMultiSet MS A] (Φ : A → PROP) (X 
 
 @[rocq_alias plainly_timeless]
 instance plainly_timeless (P : PROP) [Timeless P] : Timeless iprop(■ P) :=
-  haveI := Sbi.sidxFinite PROP
   inferInstanceAs (Timeless iprop(<si_pure> <si_emp_valid> P))
 
 @[rocq_alias plainly_internal_eq]
@@ -924,14 +922,12 @@ theorem except0_plainly_1 (P : PROP) : ◇ ■ P ⊢ ■ ◇ P :=
 
 @[rocq_alias except_0_plainly]
 theorem except0_plainly {P : PROP} : ◇ ■ P ⊣⊢ ■ ◇ P :=
-  haveI := Sbi.sidxFinite PROP
   calc iprop(◇ <si_pure> <si_emp_valid> P)
     _ ⊣⊢@{PROP} <si_pure> (◇ <si_emp_valid> P)   := siPure_except0.symm
     _ ⊣⊢        <si_pure> (<si_emp_valid> (◇ P)) := .ofMono siPure_mono siEmpValid_except0.symm
 
 @[rocq_alias only_0_plainly]
 theorem only0_plainly {P : PROP} : <only0> ■ P ⊣⊢ ■ <only0> P :=
-  haveI := Sbi.sidxFinite PROP
   calc iprop(<only0> <si_pure> <si_emp_valid> P)
     _ ⊣⊢@{PROP} <si_pure> (<only0> <si_emp_valid> P)   := siPure_only0.symm
     _ ⊣⊢        <si_pure> (<si_emp_valid> (<only0> P)) := .ofMono siPure_mono siEmpValid_only0.symm

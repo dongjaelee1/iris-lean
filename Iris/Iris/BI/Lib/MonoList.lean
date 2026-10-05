@@ -20,7 +20,7 @@ Wraps the `MonoList` RA, providing three assertions:
 - a persistent assertion `γ ↪◯ML[i] a` witnessing that index `i` holds `a`.
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 namespace Iris
 

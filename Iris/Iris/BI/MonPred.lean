@@ -499,13 +499,15 @@ instance : BI (MonPred I PROP) where
         i ⟨r, rfl⟩).trans ?_
     refine (forall_elim i).trans ?_
     exact (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans (pure_imp_elim hΦ)
-  later_sExists_false := fun {Φ} => entails_at.mpr fun i => by
+  later_sExists_false := @fun _ Φ => entails_at.mpr fun i => by
     refine later_sExists_false.trans (or_mono_right ?_)
     refine exists_elim fun p => pure_elim_left fun ⟨q, hΦ, hq⟩ => ?_
     subst hq
     exact (and_intro (pure_intro hΦ) BIBase.Entails.rfl).trans
       (MonPred.sExists_at_intro (q := iprop(⌜Φ q⌝ ∧ ▷ q)) i ⟨q, rfl⟩)
-  later_sep := ⟨entails_at.mpr fun i => later_sep.mp, entails_at.mpr fun i => later_sep.mpr⟩
+  later_sep_1 := entails_at.mpr fun i => later_sep_1
+  later_sep_2 := entails_at.mpr fun i => later_sep_2
+  later_or_1 := entails_at.mpr fun i => later_or_1
   later_persistently :=
     ⟨entails_at.mpr fun i => later_persistently.mp,
      entails_at.mpr fun i => later_persistently.mpr⟩
@@ -1301,7 +1303,7 @@ instance monPred_subjectively_persistent (P : MonPred I PROP) [Persistent P] :
     (exists_mono fun _ => Persistent.persistent).trans persistently_exists_mpr
 
 @[rocq_alias monPred_subjectively_timeless]
-instance monPred_subjectively_timeless (P : MonPred I PROP) [Timeless P] :
+instance monPred_subjectively_timeless [SIdxFinite SI] (P : MonPred I PROP) [Timeless P] :
     Timeless iprop(<subj> P) where
   timeless := entails_at.mpr fun _ => Timeless.timeless (P := iprop(∃ j, P.monPred_at j))
 
@@ -1583,7 +1585,6 @@ theorem monPred_siEmpValid_unfold :
 
 @[rocq_alias monPred_sbi]
 instance instSbiMonPred : Sbi (MonPred I PROP) :=
-  haveI := Sbi.sidxFinite PROP
   { siPure_ne := ⟨fun _ _ _ h => dist_at.mpr fun _ => Sbi.siPure_ne.ne h⟩
     siEmpValid_ne := ⟨fun _ _ _ h => Sbi.siEmpValid_ne.ne (forall_ne fun i => dist_at.mp h i)⟩
     siPure_mono h := entails_at.mpr fun _ => siPure_mono h
@@ -1726,7 +1727,6 @@ instance monPred_subjectively_plain (P : MonPred I PROP) [Plain P] :
 theorem monPred_sbi_emp_valid_exist {bot : I.car} [BiIndexBottom I bot] [SbiEmpValidExist PROP] :
     SbiEmpValidExist (MonPred I PROP) where
   siEmpValid_sExists_1 Ψ := by
-    haveI := Sbi.sidxFinite PROP
     refine (siEmpValid_mono (forall_elim bot)).trans ?_
     refine (siEmpValid_sExists_1
       (fun p => ∃ q : MonPred I PROP, Ψ q ∧ q.monPred_at bot = p)).trans ?_

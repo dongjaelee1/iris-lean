@@ -687,7 +687,7 @@ theorem step_fupdN_wand {Eo Ei : CoPset} {n : Nat} {P Q : PROP} :
     calc iprop((P -∗ Q) ∗ |={Eo,Ei}=> ▷ |={Ei,Eo}=> _)
       _ ⊢ |={Eo,Ei}=> (P -∗ Q) ∗ ▷ |={Ei,Eo}=> _  := (fupd_frame_left ..)
       _ ⊢ |={Eo,Ei}=> (▷ (P -∗ Q)) ∗ ▷ |={Ei,Eo}=> _  := mono (sep_mono (later_intro) .rfl)
-      _ ⊢ |={Eo,Ei}=> ▷ ((P -∗ Q) ∗ |={Ei,Eo}=> _) := mono (later_sep.2)
+      _ ⊢ |={Eo,Ei}=> ▷ ((P -∗ Q) ∗ |={Ei,Eo}=> _) := mono later_sep_2
       _ ⊢ |={Eo,Ei}=> ▷ |={Ei,Eo}=> ((P -∗ Q) ∗ _) := mono (later_mono (fupd_frame_left ..))
       _ ⊢ |={Eo,Ei}=> ▷ |={Ei,Eo}=> _ := step_fupd_mono IH
 
@@ -710,7 +710,7 @@ theorem step_fupd_mask_mono {Eo₁ Eo₂ Ei₁ Ei₂ : CoPset} {P : PROP}
   refine frame_right.trans ?_
   refine mono ?_
   refine (sep_mono_left later_intro).trans ?_
-  refine later_sep.2.trans ?_
+  refine later_sep_2.trans ?_
   refine later_mono ?_
   refine frame_right.trans ?_
   refine .trans (mono ?_) (trans (E2 := Ei₁))
@@ -779,7 +779,7 @@ theorem step_fupd_frame_left {Eo Ei : CoPset} {R Q : PROP} :
   refine fupd_frame_left.trans <| mono ?_
   calc
     _ ⊢ ▷ R ∗ ▷ |={Ei,Eo}=> Q := sep_mono_left later_intro
-    _ ⊢ ▷ (R ∗ |={Ei,Eo}=> Q)  := later_sep.mpr
+    _ ⊢ ▷ (R ∗ |={Ei,Eo}=> Q)  := later_sep_2
     _ ⊢ ▷ |={Ei,Eo}=> R ∗ Q    := later_mono fupd_frame_left
 
 @[rocq_alias step_fupdN_add]
@@ -903,7 +903,6 @@ theorem sForall_eq_forall {Φ : α → PROP} :
 -/
 theorem fupd_siPure_forall_2 {E : CoPset} {A : Sort _} {Φi : A → SiProp} :
     (∀ x, |={E}=> <si_pure> Φi x) ⊢@{PROP} |={E}=> ∀ x, <si_pure> Φi x :=
-  haveI := Sbi.sidxFinite PROP
   calc
   _ ⊢ ∀ q, ⌜∃ x, q = Φi x⌝ → |={E}=> <si_pure> q :=
       forall_intro fun _ => imp_intro_swap <| pure_elim_left fun ⟨x, hx⟩ => hx ▸ forall_elim x

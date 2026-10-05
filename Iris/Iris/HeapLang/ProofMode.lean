@@ -163,25 +163,28 @@ public structure WpGoal where
   {bi : Q(BI $prop)}
   {ehyps : Q($prop)}
   hyps : Hyps bi ehyps
-  {GF : Q(BundledGFunctors.{0, 0, 0})}
+  /-- The universe of `GF`. `IProp GF` is in `TypeSI w`. -/
+  {w : Level}
+  {GF : Q(BundledGFunctors.{w})}
   {hlc : Q(HasLC)}
   ι : Q(IrisGS_gen $hlc Exp $GF)
   s : Q(Stuckness)
   E : Q(CoPset)
   e : Q(Exp)
   Φ : Q(Val → IProp $GF)
-  -- TODO: make the tactics work for universes other than 0
-  hu : QuotedLevelDefEq u 0
+  hu : QuotedLevelDefEq u (levelSI% w)
   hprop : $prop =Q IProp $GF
   hbi : $bi =Q UPred.instBIUPred
 
 public meta def ProofModeM.runTacticWp {α} (tacName : Name) (k : MVarId → WpGoal → ProofModeM α)
   : TacticM α := do
   ProofModeM.runTactic tacName fun mvar {u, prop, bi, hyps, goal, ..} => do
-    let .defEq _ ← isLevelDefEqQ u 0
-      | throwIPMError "The goal {goal} must be an `IProp` at universe level 0"
-    let ~q(IProp $GF) := prop
+    let .app (.const ``IProp [w]) GF := (← instantiateMVars prop).consumeMData
       | throwIPMError "The goal {goal} must be an `IProp`"
+    have GF : Q(BundledGFunctors.{w}) := GF
+    let .defEq _ ← isLevelDefEqQ u (levelSI% w)
+      | throwIPMError "The goal {goal} must be an `IProp` at the universe level of `TypeSI {w}`"
+    have _ : $prop =Q IProp $GF := ⟨⟩
     let ~q(UPred.instBIUPred) := bi
       | throwIPMError "Expected the BI implementation of `IProp` to be `UPred.instBIUPred`"
 
@@ -202,7 +205,7 @@ public theorem tac_wp_value_nofupd [ι : IrisGS_gen hlc Exp GF] {Δ} {s : Stuckn
   H.trans <| fupd_intro.trans (wp_value_fupd ⟨rfl⟩).2
 
 public meta def iWpValueHead {u}
-  {GF : Q(BundledGFunctors.{0, 0, 0})}
+  {w : Level} {GF : Q(BundledGFunctors.{w})}
   {hlc : Q(HasLC)}
   {prop : Q(Type u)}
   {bi : Q(BI $prop)}
@@ -214,7 +217,7 @@ public meta def iWpValueHead {u}
   (e : Q(Exp))
   (Φ : Q(Val → $prop))
 
-  (_hu : QuotedLevelDefEq u 0 := ⟨⟩)
+  (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩)
   (_hprop : $prop =Q IProp $GF := ⟨⟩)
   (_hbi : $bi =Q UPred.instBIUPred := ⟨⟩)
   (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def))
@@ -271,7 +274,7 @@ elab "wp_expr_simp" : tactic =>
     mvar.assign q(tac_wp_expr_simp $pf $pfeq)
 
 public meta def iWpFinish {u}
-  {GF : Q(BundledGFunctors.{0, 0, 0})}
+  {w : Level} {GF : Q(BundledGFunctors.{w})}
   {hlc : Q(HasLC)}
   {prop : Q(Type u)}
   {bi : Q(BI $prop)}
@@ -283,7 +286,7 @@ public meta def iWpFinish {u}
   (e : Q(Exp))
   (Φ : Q(Val → $prop))
 
-  (_hu : QuotedLevelDefEq u 0 := ⟨⟩)
+  (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩)
   (_hprop : $prop =Q IProp $GF := ⟨⟩)
   (_hbi : $bi =Q UPred.instBIUPred := ⟨⟩)
   (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def))
@@ -306,7 +309,7 @@ public theorem tac_wp_bind [ι : IrisGS_gen hlc Exp GF] {Δ} {s : Stuckness} {E 
   H.trans (wp_bind (ProgramLogic.fill K))
 
 public meta def iWpBindCore {u}
-  {GF : Q(BundledGFunctors.{0, 0, 0})}
+  {w : Level} {GF : Q(BundledGFunctors.{w})}
   {hlc : Q(HasLC)}
   {prop : Q(Type u)}
   {bi : Q(BI $prop)}
@@ -320,7 +323,7 @@ public meta def iWpBindCore {u}
   (e' : Q(Exp))
   (k : (A : Q($prop)) → ProofModeM Q($ehyps ⊢ $A))
 
-  (_hu : QuotedLevelDefEq u 0 := ⟨⟩)
+  (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩)
   (_hprop : $prop =Q IProp $GF := ⟨⟩)
   (_hbi : $bi =Q UPred.instBIUPred := ⟨⟩)
   (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def))
@@ -372,7 +375,7 @@ public theorem tac_wp_pure [ι : IrisGS_gen hlc Exp GF] {Δ Δ'} {s : Stuckness}
   iintro $ !> -; itrivial
 
 public meta def iWpPure {u}
-    {GF : Q(BundledGFunctors.{0, 0, 0})}
+    {w : Level} {GF : Q(BundledGFunctors.{w})}
     {hlc : Q(HasLC)}
     {prop : Q(Type u)}
     {bi : Q(BI $prop)}
@@ -387,7 +390,7 @@ public meta def iWpPure {u}
     (findPureExec : (e₁ : Q(Exp)) →
       ProofModeM ((φ : Q(Prop)) × (n : Q(Nat)) × (e₂ : Q(Exp)) ×
         Q(ProgramLogic.Language.PureExec $φ $n $e₁ $e₂)))
-    (_hu : QuotedLevelDefEq u 0 := ⟨⟩)
+    (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩)
     (_hprop : $prop =Q IProp $GF := ⟨⟩)
     (_hbi : $bi =Q UPred.instBIUPred := ⟨⟩)
     (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def))
@@ -477,7 +480,7 @@ inductive WpApplyKind where
   | apply
   | smartApply
 
-structure WpApplyState {u} {GF : Q(BundledGFunctors.{0, 0, 0})}
+structure WpApplyState {u} {w : Level} {GF : Q(BundledGFunctors.{w})}
     {hlc : Q(HasLC)} {prop : Q(Type u)} {bi : Q(BI $prop)} {ehyps : Q($prop)}
     {s : Q(Stuckness)} {E : Q(CoPset)} {e : Q(Exp)} {Φ : Q(Val → $prop)}
     (κ : Q(Wp $prop Exp Val Stuckness)) where
@@ -487,18 +490,18 @@ structure WpApplyState {u} {GF : Q(BundledGFunctors.{0, 0, 0})}
   prefixPf : Q(($ehypsC ⊢ @Wp.wp $prop Exp Val Stuckness $κ $s $E $eC $Φ) →
     $ehyps ⊢ @Wp.wp $prop Exp Val Stuckness $κ $s $E $e $Φ)
 
-meta partial def iWpApplyCore {u} {GF : Q(BundledGFunctors.{0, 0, 0})} {hlc : Q(HasLC)}
+meta partial def iWpApplyCore {u} {w : Level} {GF : Q(BundledGFunctors.{w})} {hlc : Q(HasLC)}
     {prop : Q(Type u)} {bi : Q(BI $prop)} {ehyps : Q($prop)}
     (hyps : Hyps bi ehyps) (ι : Q(IrisGS_gen $hlc Exp $GF)) (s : Q(Stuckness)) (E : Q(CoPset))
     (e : Q(Exp)) (Φ : Q(Val → $prop)) (pmt : PMTerm) (wpApplyKind : WpApplyKind)
-    (_hu : QuotedLevelDefEq u 0 := ⟨⟩) (_hprop : $prop =Q IProp $GF := ⟨⟩)
+    (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩) (_hprop : $prop =Q IProp $GF := ⟨⟩)
     (_hbi : $bi =Q UPred.instBIUPred := ⟨⟩)
     (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def)) (_hwp : $κ =Q wp.def := ⟨⟩) :
     ProofModeM Q($ehyps ⊢ Wp.wp $s $E $e $Φ) := do
   let ⟨_, hypsP, p, A, posePf⟩ ← iHave hyps q(Wp.wp $s $E $e $Φ) pmt true
   let lemIVar ← mkFreshIVarId (isTrue p)
   let ⟨_, hyps0, addPf⟩ := Hyps.add bi .anonymous lemIVar p A hypsP
-  let mut st : @WpApplyState u GF hlc prop bi ehyps s E e Φ κ :=
+  let mut st : @WpApplyState u w GF hlc prop bi ehyps s E e Φ κ :=
     { hypsC := hyps0, eC := e,
       prefixPf := q(fun pf => $posePf ($(addPf).mp.trans pf)) }
   let failed ← addMessageContext m!"cannot apply {A}"
@@ -767,11 +770,11 @@ public theorem tac_wp_allocN [ι : HeapLangGS hlc GF] {Δ Δ' : IProp GF}
 context `K` and run `iWpFinish` over the continuation context `hyps`. Returns the continuation
 proof typed against `fill K (Exp.ofVal r)`, so the caller's `assign` matches the tac lemma's
 `hcont`. -/
-meta def finishHeapOp {u} {GF : Q(BundledGFunctors.{0, 0, 0})} {hlc : Q(HasLC)}
+meta def finishHeapOp {u} {w : Level} {GF : Q(BundledGFunctors.{w})} {hlc : Q(HasLC)}
     {prop : Q(Type u)} {bi : Q(BI $prop)} {ehyps : Q($prop)}
     (hyps : Hyps bi ehyps) (hgs : Q(HeapLangGS $hlc $GF))
     (s : Q(Stuckness)) (E : Q(CoPset)) (K : Q(List ECtxItem)) (r : Q(Val)) (Φ : Q(Val → $prop))
-    (_hu : QuotedLevelDefEq u 0 := ⟨⟩) (_hprop : $prop =Q IProp $GF := ⟨⟩)
+    (_hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩) (_hprop : $prop =Q IProp $GF := ⟨⟩)
     (κ : Q(Wp $prop Exp Val Stuckness) := q(wp.def)) (_hwp : $κ =Q wp.def := ⟨⟩) :
     ProofModeM Q($ehyps ⊢ Wp.wp (self := $κ) $s $E (ProgramLogic.fill $K (Exp.ofVal $r)) $Φ) := do
   let ⟨inner, .up _⟩ ← HeapLang.fillQ K q(Exp.ofVal $r)
@@ -781,9 +784,9 @@ meta def finishHeapOp {u} {GF : Q(BundledGFunctors.{0, 0, 0})} {hlc : Q(HasLC)}
 in the (later-stripped) context `eΔ'`, together with the pruned context `eΔ''`/`hyps''` and
 the splitting proof `pfSplit`, whose type is already recast to the `pointsTo` shape that the
 `tac_wp_*` lemmas expect. -/
-structure PointsToLookup {u : Level} {GF : Q(BundledGFunctors.{0, 0, 0})}
+structure PointsToLookup {u : Level} {w : Level} {GF : Q(BundledGFunctors.{w})}
     {hlc : Q(HasLC)} (hgs : Q(HeapLangGS $hlc $GF)) {prop : Q(Type u)} (bi : Q(BI $prop))
-    (eΔ' : Q($prop)) (l : Q(Loc)) (dq : Q(DFrac)) (p : Q(Bool)) (hu : QuotedLevelDefEq u 0)
+    (eΔ' : Q($prop)) (l : Q(Loc)) (dq : Q(DFrac)) (p : Q(Bool)) (hu : QuotedLevelDefEq u (levelSI% w))
     (hprop : $prop =Q IProp $GF) where
   /-- The value stored at `l`. -/
   v : Q(Val)
@@ -799,13 +802,13 @@ structure PointsToLookup {u : Level} {GF : Q(BundledGFunctors.{0, 0, 0})}
 
 /-- Locate a hypothesis `l ↦{dq} some v` and remove it from the spatial context.
 Throws if no matching hypothesis exists. -/
-meta def lookupPointsTo {u} {GF : Q(BundledGFunctors.{0, 0, 0})} {hlc : Q(HasLC)}
+meta def lookupPointsTo {u} {w : Level} {GF : Q(BundledGFunctors.{w})} {hlc : Q(HasLC)}
     {prop : Q(Type u)} {bi : Q(BI $prop)} {eΔ' : Q($prop)}
     (hgs : Q(HeapLangGS $hlc $GF))
     (hyps' : Hyps bi eΔ') (l : Q(Loc)) (dq : Q(DFrac)) (p : Q(Bool))
-    (hu : QuotedLevelDefEq u 0 := ⟨⟩)
+    (hu : QuotedLevelDefEq u (levelSI% w) := ⟨⟩)
     (hprop : $prop =Q IProp $GF := ⟨⟩) :
-    ProofModeM (@PointsToLookup u GF hlc hgs prop bi eΔ' l dq p hu hprop) := do
+    ProofModeM (@PointsToLookup u w GF hlc hgs prop bi eΔ' l dq p hu hprop) := do
   let some ⟨⟨v, name, vid⟩, eΔ'', hyps'', _, _, _, _, pf⟩ ←
       hyps'.removeG false fun name vid p' ty => do
         have ty : Q(IProp $GF) := ty

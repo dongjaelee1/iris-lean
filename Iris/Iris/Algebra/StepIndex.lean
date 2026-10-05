@@ -493,6 +493,23 @@ theorem rec_lim {P : I → Sort v} (s : P 0) (f : ∀ n, P n → P (succᵢ n))
       exact absurd (EQ ▸ Hn) (limit_S m)
     | inr Hlim => rfl
 
+/-- Bounded disjunctions of downward-closed predicates split (classically). This is Transfinite
+Iris's `can_split_bounded_or`, which holds for every type of step-indices since Lean is classical
+(cf. `Classical_FiniteBoundedExistential`). -/
+theorem forall_lt_or {P Q : I → Prop} {n : I}
+    (hP : ∀ {a b}, a ≤ b → P b → P a) (hQ : ∀ {a b}, a ≤ b → Q b → Q a)
+    (h : ∀ m, m < n → P m ∨ Q m) : (∀ m, m < n → P m) ∨ (∀ m, m < n → Q m) := by
+  refine Classical.or_iff_not_imp_left.mpr fun hnP m hm => ?_
+  obtain ⟨a, ha⟩ := Classical.not_forall.mp hnP
+  obtain ⟨ha, hPa⟩ := Classical.not_imp.mp ha
+  rcases le_total (n := a) (m := m) with hle | hle
+  · rcases h m hm with hPm | hQm
+    · exact absurd (hP hle hPm) hPa
+    · exact hQm
+  · rcases h a ha with hPa' | hQa
+    · exact absurd hPa' hPa
+    · exact hQ hle hQa
+
 #rocq_ignore SIdx.rec_lim_ext
   "Proof irrelevance already handled automatically by Lean for the theorems \
   rec_zero, rec_succ and rec_lim"

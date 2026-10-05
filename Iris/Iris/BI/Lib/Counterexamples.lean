@@ -574,7 +574,7 @@ theorem lc_fupd_elim_later_keep {E : CoPset} {P : PROP} [inst1 : Plain P] [inst2
 
 omit instBFupd in
 @[rocq_alias later_credits_plain.laterN_False]
-theorem laterN_False [BILoeb PROP] : ⊢@{PROP} ∃ n, ▷^[n] False := by
+theorem laterN_False [SIdxFinite SI] [BILoeb PROP] : ⊢@{PROP} ∃ n, ▷^[n] False := by
   iloeb as IH
   icases IH with ⟨%n, Hn⟩
   iexists n + 1
@@ -583,7 +583,7 @@ theorem laterN_False [BILoeb PROP] : ⊢@{PROP} ∃ n, ▷^[n] False := by
 
 include lc_fupd_elim_later lc_soundness fupd_keep_si_pure' in
 @[rocq_alias later_credits_plain.contradiction]
-theorem contradiction [BILoeb PROP] : False := by
+theorem contradiction [SIdxFinite SI] [BILoeb PROP] : False := by
   apply pure_soundness (PROP := PROP)
   apply lc_soundness _ ⊤
   iintro Hlc

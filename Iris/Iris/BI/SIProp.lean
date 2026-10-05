@@ -21,10 +21,10 @@ The type `SiProp` defines "plain" step-indexed propositions over the step-index 
 on which we define the usual connectives of higher-order logic and prove that these satisfy the
 axioms of BI.
 
-Everything here is generic in the step-index type except the `BI` instance and the instances of
-classes that presuppose it: the `BI` law `later_sExists_false` fails at limit indices, so the
-`BI` instance requires `SIdxFinite SI`. Later is the transfinite one: `▷ P` holds at `n` iff
-`P` holds at every `m < n` (for `Nat`: `True` at `0` and `P n` at `n + 1`).
+Everything here works for every step-index type. The `BI` law `later_sExists_false` fails at
+limit indices, so it takes the hypothesis `SIdxFinite SI`, as in the `BI` class. Later is the
+transfinite one: `▷ P` holds at `n` iff `P` holds at every `m < n` (for `Nat`: `True` at `0` and
+`P n` at `n + 1`).
 -/
 
 namespace Iris
@@ -183,30 +183,11 @@ instance siPropPreorder : Std.IsPreorder (SiProp) where
   le_refl _ _ := id
   le_trans _ _ _ h₁ h₂ n h := h₂ n (h₁ n h)
 
-/-! Transitivity of (bi-)entailment in `SiProp`, for `calc` when there is no `BI` instance
-(i.e. without `SIdxFinite SI`). They have low priority so that `calc` in a BI whose carrier is
-not known yet still finds the `BI` instances (`BI.entails_trans'`, ...) first. -/
-
-instance (priority := low) instTransEntails : Trans (α := SiProp) Entails Entails Entails where
-  trans h₁ h₂ n h := h₂ n (h₁ n h)
-
-instance (priority := low) instTransBiEntails :
-    Trans (α := SiProp) BiEntails BiEntails BiEntails where
-  trans h₁ h₂ := ⟨fun n h => h₂.mp n (h₁.mp n h), fun n h => h₁.mpr n (h₂.mpr n h)⟩
-
-instance (priority := low) instTransBiEntailsEntails :
-    Trans (α := SiProp) BiEntails Entails Entails where
-  trans h₁ h₂ n h := h₂ n (h₁.mp n h)
-
-instance (priority := low) instTransEntailsBiEntails :
-    Trans (α := SiProp) Entails BiEntails Entails where
-  trans h₁ h₂ n h := h₂.mp n (h₁ n h)
-
 /-! ## BI instance -/
 
-/-- `SiProp` is a BI when `SI` has no limit indices. `later_sExists_false` is the only law that
-needs this: at a limit index `n`, `▷ ∃ x, Φ x` holds as soon as there is a witness below each
-`m < n`, whereas `▷ False` fails and `∃ x, ▷ Φ x` needs a single witness for all `m < n`. -/
+/-- `SiProp` is a BI for every step-index type. Only the law `later_sExists_false` uses its
+`SIdxFinite SI` hypothesis: at a limit index `n`, `▷ ∃ x, Φ x` holds when there is a witness below
+each `m < n`, but `▷ False` fails and `∃ x, ▷ Φ x` needs one witness for all `m < n`. -/
 @[rocq_alias siPropI]
 instance instBI : BI (SiProp) where
   entails_refl := siPropPreorder.le_refl _
@@ -276,13 +257,16 @@ instance instBI : BI (SiProp) where
   later_mono h _ hlP m hm := h m (hlP m hm)
   later_intro {P} _ hP _ hm := P.closed hP (SIdx.lt_le_incl hm)
   later_sForall_2 n h m hm P hΦ := h _ ⟨P, rfl⟩ n SIdx.le_refl hΦ m hm
-  later_sExists_false {Φ} n h := by
+  later_sExists_false := by
+    intro _ Φ n h
     rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
     · exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
     · obtain ⟨P, hΦP, hPk⟩ := h k (SIdx.lt_succ_self k)
       exact .inr ⟨_, ⟨P, rfl⟩, hΦP, fun _ hm => P.closed hPk (SIdx.lt_succ_r.mp hm)⟩
-  later_sep.mp _ h := ⟨fun m hm => (h m hm).1, fun m hm => (h m hm).2⟩
-  later_sep.mpr _ h m hm := ⟨h.1 m hm, h.2 m hm⟩
+  later_sep_1 _ h := ⟨fun m hm => (h m hm).1, fun m hm => (h m hm).2⟩
+  later_sep_2 _ h m hm := ⟨h.1 m hm, h.2 m hm⟩
+  later_or_1 {P Q} _ h :=
+    SIdx.forall_lt_or (fun hle h => P.closed h hle) (fun hle h => Q.closed h hle) h
   later_persistently := ⟨fun _ => id, fun _ => id⟩
   later_false_em {P} n hP := by
     by_cases h0 : (0 : SI) < n

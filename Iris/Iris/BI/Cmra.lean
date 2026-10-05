@@ -108,7 +108,6 @@ instance internalCmraValid_plain (a : A) :
 @[rocq_alias internal_cmra_valid_timeless]
 instance internalCmraValid_timeless [CMRA.Discrete A] (a : A) :
     Timeless (PROP := PROP) iprop(✓ a) := by
-  haveI := Sbi.sidxFinite PROP
   unfold internalCmraValid; infer_instance
 
 end CmraValid
@@ -130,7 +129,6 @@ delab_rule internalCmraIncluded
 instance internalCmraIncluded_ne :
     NonExpansive₂ (internalCmraIncluded (PROP := PROP) (A := A)) where
   ne n _ _ hx _ _ hy := by
-    haveI := Sbi.sidxFinite PROP
     exact siPure_ne.ne <| exists_ne (PROP := SiProp) fun _ => SiProp.instNonExpansive₂InternalEq.ne hy
       (op_commN.trans ((op_ne.ne hx).trans op_commN))
 
@@ -139,7 +137,6 @@ instance internalCmraIncluded_ne :
 @[rocq_alias internal_included_intro]
 theorem internalCmraIncluded_intro {P : PROP} {a b : A} (h : a ≼ b) :
     P ⊢ a ≼ b := by
-  haveI := Sbi.sidxFinite PROP
   obtain ⟨c, hc⟩ := h
   calc (P : PROP)
     _ ⊢ True := true_intro
@@ -185,7 +182,6 @@ theorem intuitionistically_internalCmraIncluded [BIAffine PROP] {a b : A} :
 @[rocq_alias internal_included_discrete]
 theorem internalCmraIncluded_discrete {a b : A} [CMRA.Discrete A] :
     a ≼ b ⊣⊢@{PROP} ⌜a ≼ b⌝ := by
-  haveI := Sbi.sidxFinite PROP
   haveI : ∀ x : A, DiscreteE x := fun x => ⟨OFE.Discrete.discrete⟩
   refine ⟨?_, pure_elim' internalCmraIncluded_intro⟩
   calc (internalCmraIncluded a b : PROP)
@@ -202,7 +198,6 @@ theorem internalCmraIncluded_refl {a : A} [IsTotal A] : ⊢@{PROP} a ≼ a :=
 @[rocq_alias internal_included_trans]
 theorem internalCmraIncluded_trans {a b c : A} :
     ⊢@{PROP} a ≼ b -∗ b ≼ c -∗ a ≼ c := by
-  haveI := Sbi.sidxFinite PROP
   refine BI.entails_wand (siPure_exist.mp.trans ?_)
   refine BI.exists_elim (fun a' => ?_)
   refine BI.wand_intro ((BI.sep_mono_right siPure_exist.mp).trans (BI.sep_exists_left.mp.trans ?_))
@@ -218,14 +213,12 @@ theorem internalCmraIncluded_trans {a b c : A} :
 theorem internalCmraIncluded_map {B : Type _} [CMRA B] (g : A → B) [NonExpansive g]
     (hg : ∀ x y : A, g (x • y) = g x • g y) {a b : A} :
     a ≼ b ⊢@{PROP} g a ≼ g b :=
-  haveI := Sbi.sidxFinite PROP
   siPure_mono <| BI.exists_elim fun c => BI.exists_intro_trans (g c) <| by
     rw [← hg]; exact internalEq.of_internalEquiv_ne g
 
 @[rocq_alias internal_included_timeless]
-instance internalCmraIncluded_timeless {a b : A} [CMRA.Discrete A] :
+instance internalCmraIncluded_timeless [SIdxFinite SI] {a b : A} [CMRA.Discrete A] :
     Timeless (PROP := PROP) iprop(a ≼ b) := by
-  haveI := Sbi.sidxFinite PROP
   haveI : ∀ x : A, DiscreteE x := fun x => ⟨OFE.Discrete.discrete⟩
   unfold internalCmraIncluded
   change Timeless iprop(<si_pure> ∃ c, (iprop(b ≡ (a • c)) : SiProp))

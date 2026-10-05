@@ -8,7 +8,7 @@ module
 public import Iris.Instances.Lib.GhostMap
 public import Iris.Std.GenSets
 
-@[expose] public section
+@[expose] public noncomputable section
 
 universe usi
 

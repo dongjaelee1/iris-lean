@@ -14,7 +14,7 @@ public import Iris.Std.GenSetsInstances
 public import Iris.Std.HeapInstances
 public import Iris.Instances.IProp
 
-@[expose] public section
+@[expose] public noncomputable section
 -- (`constOF` of a `Type`), and the universes only agree when the step-index type is in `Type`.
 
 /-! ## World satisfaction

@@ -438,7 +438,6 @@ variable {P1 P2 : Type _} [Sbi P1] [Sbi P2] [BiEmbed P1 P2] [BiEmbedSbi P1 P2]
 @[rocq_alias embed_si_pure]
 theorem embed_siPure (Pi : SiProp) :
     (embed (SiPure.siPure Pi : P1) : P2) ⊣⊢ SiPure.siPure Pi :=
-  haveI := Sbi.sidxFinite P1
   ⟨BiEmbedSbi.embed_siPure_1 Pi,
    (siPure_mono ((BiEmbedSbi.embed_siEmpValid _).trans siEmpValid_siPure).mpr).trans
      siPure_siEmpValid_elim⟩
@@ -470,7 +469,6 @@ instance embed_plain (P : P1) [Plain P] : Plain (embed P : P2) where
 @[rocq_alias embed_internal_inj]
 theorem embed_internal_inj {P3 : Type _} [Sbi P3] (P Q : P1) :
     ((embed P : P2) ≡ embed Q : P3) ⊢ P ≡ Q := by
-  haveI := Sbi.sidxFinite P1
   refine siPure_mono ?_
   calc
     _ ⊢ <si_emp_valid> (⎡P⎤ ∗-∗ ⎡Q⎤)                              := (prop_ext_siEmpValid_equiv (embed P) (embed Q)).mp
@@ -581,7 +579,6 @@ variable {QA QB QC : Type _} [Sbi QA] [Sbi QB] [Sbi QC]
 @[rocq_alias embed_embed_sbi]
 theorem embed_embed_sbi : @BiEmbedSbi QA QC _ _ (embedBiEmbed QB) _ _ :=
   letI : BiEmbed QA QC := embedBiEmbed QB
-  haveI := Sbi.sidxFinite QA
   { embed_siEmpValid := fun P =>
       (BiEmbedSbi.embed_siEmpValid (PROP1 := QB) (PROP2 := QC) (embed (A := QA) (B := QB) P)).trans
         (BiEmbedSbi.embed_siEmpValid (PROP1 := QA) (PROP2 := QB) P)

@@ -43,6 +43,8 @@ theorem ofNat_strictMono {a b : Nat} (h : a < b) : (ofNat a : SI) < ofNat b :=
   lt_le_trans (lt_succ_self _) (ofNat_mono h)
 
 
+variable [SIdxFinite SI]
+
 /-- The inverse of `ofNat` for finite step indices. -/
 def toNat : SI → Nat := rec' 0 (fun _ k => k + 1) (fun n h _ => (limit_finite n h).elim)
 
@@ -152,7 +154,7 @@ def towerChain (c : Chain (Tower F)) (k : Nat) : Chain (A F k) where
   chain i := c.1 i k
   cauchy h := c.cauchy h k
 
-instance : COFE (Tower F) where
+instance [SIdxFinite SI] : COFE (Tower F) where
   compl c := by
     refine ⟨fun k => compl ⟨fun i => c.1 i k, fun h => c.cauchy h k⟩, ?_⟩
     refine OFE.eq_dist_2 (fun n => ?_)
@@ -310,6 +312,7 @@ theorem Tower.embed_self (X : Tower F) :
 instance : Inhabited (Tower F) := ⟨Tower.embed 0 ⟨()⟩⟩
 #rocq_ignore solver.tower_inhabited "Implicit in Lean's Inhabited (Tower F) instance"
 
+variable [SIdxFinite SI]
 
 /-- A `Nat`-indexed sequence that is Cauchy at the step indices `SIdx.ofNat a`, as a chain:
 for finite step indices, every step index is of this form. -/
@@ -399,6 +402,7 @@ def Fix : Type u := Tower F
 
 instance : Inhabited (Fix F) := inferInstanceAs (Inhabited (Tower F))
 
+variable [SIdxFinite SI]
 
 instance : COFE (Fix F) := inferInstanceAs (COFE (Tower F))
 

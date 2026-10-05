@@ -7,6 +7,7 @@ module
 
 public import Iris.Algebra.CMRA
 public import Iris.Algebra.OFE
+public import Iris.Algebra.Truncation
 
 @[expose] public section
 
@@ -140,6 +141,14 @@ instance : IsCOFE (UPred M) where
     refine ⟨fun H m' Hm' Hlt => ?_, fun H m' Hm' Hlt => ?_⟩
     · exact (hc m' Hlt m' x (SIdx.le_trans Hm' Hi) _).mp (H m' Hm' Hlt)
     · exact (hc m' Hlt m' x (SIdx.le_trans Hm' Hi) _).mpr (H m' Hm' Hlt)
+
+/-- Limits of bounded chains of `UPred`s are unique (Transfinite Iris, `bcompl_unique`). The
+transfinite COFE solver requires this property. -/
+@[rocq_alias bcompl_unique]
+instance : BcomplUniqueLim (UPred M) where
+  lbcompl_unique {_} _ _ _ h _ _ _ _ :=
+    ⟨fun H m hm hlt => (h m hlt m _ SIdx.le_refl _).mp (H m hm hlt),
+     fun H m hm hlt => (h m hlt m _ SIdx.le_refl _).mpr (H m hm hlt)⟩
 
 #rocq_ignore uPred_compl "Inlined in the `IsCOFE` construction"
 

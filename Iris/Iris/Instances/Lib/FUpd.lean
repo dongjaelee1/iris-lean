@@ -17,7 +17,7 @@ public import Iris.Instances.Lib.LaterCredits
 public import Iris.BI.Plainly
 public import Iris.Std
 
-@[expose] public section
+@[expose] public noncomputable section
 
 namespace Iris
 
@@ -656,14 +656,16 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
       | throwError m!"inext: {h} is not a spatial later credit hypothesis"
     let some #[GF] := Expr.appM? prop ``IProp
       | throwError "inext: the goal must be an `IProp`"
+    -- The universe of `GF`. The constants below take it as their only universe parameter.
+    let us := prop.getAppFn.constLevels!
     let ⟨e', hyps', _, _, _, _, pfEq⟩ := hyps.remove false ivar
-    let .some instInvGS ← trySynthInstance (mkApp (.const ``InvGS []) GF)
+    let .some instInvGS ← trySynthInstance (mkApp (.const ``InvGS us) GF)
       | throwError "inext: requires an InvGS (HasLC) context"
 
     let φ ← mkFreshExprMVarQ q(Prop)
     let E ← mkFreshExprMVarQ q(CoPset)
     let Q' ← mkFreshExprMVarQ q($prop)
-    let elimTy := mkAppN (.const ``ElimFUpdGoal []) #[GF, instInvGS, φ, E, goal, Q']
+    let elimTy := mkAppN (.const ``ElimFUpdGoal us) #[GF, instInvGS, φ, E, goal, Q']
     let .some ⟨inst, _⟩ ← ProofMode.trySynthInstance elimTy
     | throwError "inext: ElimModal type class synthesis failed with {goal}"
     unless ← isDefEq Q' goal do
@@ -689,7 +691,7 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
     | some 0 =>
       let ⟨eQ, newHyps', pfModAction⟩ ← iModAction hyps' modality
       let pf ← addBIGoal newHyps' goal
-      mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_full [])
+      mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_full us)
         #[GF, instInvGS, φ, n, c, stuck, E,
           e, e', eQ, goal, pfEq, inst, hφ, hcancel, pfModAction, pf]
     -- Update the later credits hypothesis and introduce it into the context
@@ -698,7 +700,7 @@ elab "inext " t:(colGt term:max)? " credit: " h:ident : tactic => do
       let ⟨eAdd, newHyps, pfNewHyps⟩ := Hyps.add _ name ivar q(false) newTy hyps'
       let ⟨eQ, newHyps', pfModAction⟩ ← iModAction newHyps modality
       let pf ← addBIGoal newHyps' goal
-      mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_split [])
+      mvar.assign <| mkAppN (.const ``tac_lc_add_laterN_split us)
         #[GF, instInvGS, φ, n, c, newC, stuck, E,
           e, e', eAdd, eQ, goal, pfEq, inst, hφ, hcancel, pfNewHyps, pfModAction, pf]
 

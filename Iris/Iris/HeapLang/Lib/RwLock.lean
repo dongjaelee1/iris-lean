@@ -17,9 +17,11 @@ open BI OFE
 @[expose] public section
 
 
+universe u
+
 /-- A general interface for a reader-writer lock. -/
 @[rocq_alias heap_lang.rwlock]
-structure RwLock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
+structure RwLock (GF : BundledGFunctors.{u}) [IrisGS_gen hlc Exp GF] where
   -- Operations
   newlock : Val
   acquireReader : Val
@@ -27,7 +29,8 @@ structure RwLock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where
   acquireWriter : Val
   releaseWriter : Val
   -- Ghost state
-  rwlockG : BundledGFunctors → Type
+  /-- The ghost state of the lock. It is in the universe of `IProp GF`. -/
+  rwlockG : BundledGFunctors.{u} → TypeSI u
   name : Type
   -- Predicates
   isRwLock : rwlockG GF → name → Val → (Qp → IProp GF) → IProp GF
