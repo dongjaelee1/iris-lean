@@ -13,8 +13,6 @@ namespace Iris.HeapLang
 open BI
 
 @[expose] public section
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 @[rocq_alias heap_lang.lock]
 class Lock (GF : BundledGFunctors) [IrisGS_gen hlc Exp GF] where

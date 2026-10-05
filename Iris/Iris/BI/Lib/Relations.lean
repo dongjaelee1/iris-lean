@@ -9,8 +9,6 @@ public import Iris.BI.Lib.Fixpoint
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 /-!  # Logical Relation Closures -/
 
 namespace Iris
@@ -327,7 +325,7 @@ instance bi_tc_affine [∀ x y, Affine (R x y)] (x y : A) :
 @[rocq_alias bi_tc_absorbing]
 instance bi_tc_absorbing [∀ x y, Absorbing (R x y)] (x y : A) :
     Absorbing (biTc R x y) :=
-    @least_fixpoint_absorbing PROP A _ _ _ _ (biTcPre R y) inferInstance
+    @least_fixpoint_absorbing PROP A _ _ (biTcPre R y) inferInstance
       (fun _ _ _ => by unfold biTcPre; infer_instance) x
 
 @[rocq_alias bi_tc_persistent]

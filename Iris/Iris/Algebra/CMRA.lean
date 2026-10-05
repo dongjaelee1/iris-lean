@@ -13,10 +13,9 @@ public import Iris.Algebra.Monoid
 namespace Iris
 open OFE
 
-variable {SI : Type _} [SIdx SI]
 
 @[rocq_alias cmra]
-class CMRA {SI : outParam (Type _)} [SIdx SI] (α : Type _) extends OFE α where
+class CMRA (α : Type _) extends OFE α where
   pcore : α → Option α
   op : α → α → α
   ValidN : SI → α → Prop
@@ -87,29 +86,29 @@ prefix:50 "✓ " => Valid
 notation:50 "✓{" n "} " x:51 => ValidN n x
 
 @[rocq_alias CoreId]
-class CoreId {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α] (x : α) where
+class CoreId {α : Type _} [CMRA α] (x : α) where
   core_id : pcore x = some x
 export CoreId (core_id)
 
 @[rocq_alias Exclusive]
-class Exclusive {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α] (x : α) where
+class Exclusive {α : Type _} [CMRA α] (x : α) where
   exclusive0_l y : ¬✓{0} x • y
 export Exclusive (exclusive0_l)
 
 @[rocq_alias Cancelable]
-class Cancelable {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α] (x : α) where
+class Cancelable {α : Type _} [CMRA α] (x : α) where
   cancelableN : ✓{n} x • y → x • y ≡{n}≡ x • z → y ≡{n}≡ z
 export Cancelable (cancelableN)
 #rocq_ignore Cancelable_proper "Derived from nonexpansivity"
 
 @[rocq_alias IdFree]
-class IdFree {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α] (x : α) where
+class IdFree {α : Type _} [CMRA α] (x : α) where
   id_free0_r y : ✓{0} x → ¬x • y ≡{0}≡ x
 export IdFree (id_free0_r)
 #rocq_ignore IdFree_proper "Derived from nonexpansivity"
 
 @[rocq_alias CmraTotal]
-class IsTotal {SI : outParam (Type _)} [SIdx SI] (α : Type _) [CMRA α] where
+class IsTotal (α : Type _) [CMRA α] where
   total (x : α) : ∃ cx, pcore x = some cx
 export IsTotal (total)
 
@@ -119,7 +118,7 @@ export IsTotal (total)
 def core (x : α) := (pcore x).getD x
 
 @[rocq_alias CmraDiscrete]
-class Discrete {SI : outParam (Type _)} [SIdx SI] (α : Type _) [CMRA α] extends OFE.Discrete α where
+class Discrete (α : Type _) [CMRA α] extends OFE.Discrete α where
   discrete_valid {x : α} : ✓{0} x → ✓ x
 export Discrete (discrete_valid)
 #rocq_ignore RAMixin "Bundled record of RA laws; Lean passes them as arguments to `CMRA.ofDiscrete`."
@@ -128,7 +127,7 @@ export Discrete (discrete_valid)
 end CMRA
 
 @[rocq_alias ucmra]
-class UCMRA {SI : outParam (Type _)} [SIdx SI] (α : Type _) extends CMRA α where
+class UCMRA (α : Type _) extends CMRA α where
   unit : α
   unit_valid : ✓ unit
   unit_left_id : unit • x = x
@@ -139,7 +138,7 @@ class UCMRA {SI : outParam (Type _)} [SIdx SI] (α : Type _) extends CMRA α whe
 #rocq_ignore ucmra_cmraR "Folded into Lean's UCMRA extends CMRA."
 #rocq_ignore ucmra_ofeO "Folded into Lean's UCMRA → OFE."
 
-class IsUnit {SI : outParam (Type _)} [SIdx SI] {α : Type _} [CMRA α] (ε : α) : Prop where
+class IsUnit {α : Type _} [CMRA α] (ε : α) : Prop where
   unit_valid : ✓ ε
   unit_left_id : ε • x = x
   pcore_unit : CMRA.pcore ε = some ε
@@ -2443,7 +2442,7 @@ have to guess it. Use it to build `CMRA.Discrete` instances for `CMRA.ofDiscrete
 theorem ofDiscrete_discrete [OFE α] [OFE.Discrete α] (pcore : α → Option α)
   (op : α → α → α) (Valid : α → Prop)
   h₁ h₂ h₃ h₄ h₅ h₆ :
-    @CMRA.Discrete _ _ α (ofDiscrete pcore op Valid h₁ h₂ h₃ h₄ h₅ h₆) :=
+    @CMRA.Discrete α (ofDiscrete pcore op Valid h₁ h₂ h₃ h₄ h₅ h₆) :=
   letI := ofDiscrete pcore op Valid h₁ h₂ h₃ h₄ h₅ h₆
   { discrete_valid := id }
 

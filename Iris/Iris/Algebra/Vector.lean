@@ -10,7 +10,6 @@ public import Iris.Std.Vector
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

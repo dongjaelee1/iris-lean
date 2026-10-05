@@ -18,7 +18,6 @@ open Iris.ProgramLogic.PrimStep
 open Language Language.Notation Relation FromMathlib.Relation.TransGen
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 @[expose] public section
 

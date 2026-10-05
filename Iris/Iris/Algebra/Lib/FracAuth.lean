@@ -20,7 +20,6 @@ fraction) and `◯F{q} a` (fragment with fraction). Splitting works differently 
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris OFE CMRA UCMRA Auth Option
 

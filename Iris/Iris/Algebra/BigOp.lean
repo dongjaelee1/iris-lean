@@ -18,7 +18,6 @@ public import Iris.Std.Equivalence
 
 namespace Iris.Algebra
 
-variable {SI : Type _} [SIdx SI]
 
 /-! # Big Operators
 

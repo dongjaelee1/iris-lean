@@ -11,9 +11,6 @@ public import Iris.ProofMode.Tactics.HaveCore
 namespace Iris.ProofMode
 
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI Iris.Std
 
 theorem rewrite_tac [Sbi PROP] {P P' Q : PROP} {A : Type _} [OFE A] {a b : A} {p}
@@ -105,7 +102,7 @@ end rule
 
 end IRewrite
 
-private def iRewriteCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+private def iRewriteCore {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (rule : IRewrite.Rule)
     (target : Q($prop))
     (occs : Occurrences := Occurrences.all) :
@@ -159,7 +156,7 @@ private def iRewriteCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)
     have : $target =Q $Ψ $b := ⟨⟩
     return ⟨_, q(rewrite_tac_symm $Ψ $pf')⟩
 
-def iRewriteGoal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+def iRewriteGoal {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (rule : IRewrite.Rule) (goal : Q($prop))
     (occs : Occurrences := Occurrences.all) :
     ProofModeM Q($e ⊢ $goal) := do
@@ -167,7 +164,7 @@ def iRewriteGoal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : 
   let pf' ← addBIGoal hyps q($goal')
   return q(rewrite_tac_goal $pf $pf')
 
-def iRewriteHyp {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+def iRewriteHyp {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (rule : IRewrite.Rule)
     (ivar : IVarId)
     (occs : Occurrences := Occurrences.all) :

@@ -23,14 +23,14 @@ Note: This linter can be disabled with `set_option linter.iris.multipleSIdx fals
 #guard_msgs in
 theorem twoExplicit {A B : Type} [SIdx A] (_ : SIdx B) : True := trivial
 
--- One local instance next to the global `SIdx Nat` is fine.
+-- One local instance next to the global `SIdx SI` is fine.
 #guard_msgs in
 theorem one {A : Type} [SIdx A] : True := trivial
 
 def Nat' := Nat
 
 /--
-warning: global `SIdx` instance `natSIdx'` is declared while `natSIdx` is active. `SIdx` has an outParam, so with two instances visible instance search picks one of them; make one of them `scoped`.
+warning: global `SIdx` instance `natSIdx'` is declared while `instSIdxSI` is active. `SIdx` has an outParam, so with two instances visible instance search picks one of them; make one of them `scoped`.
 
 Note: This linter can be disabled with `set_option linter.iris.multipleSIdx false`
 -/

@@ -10,8 +10,6 @@ public import Iris.ProofMode
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace IrisTest
 open Iris BI ProofMode Std
 

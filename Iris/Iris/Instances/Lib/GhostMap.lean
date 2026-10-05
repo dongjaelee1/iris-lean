@@ -12,7 +12,6 @@ public import Iris.ProofMode
 
 @[expose] public section
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 

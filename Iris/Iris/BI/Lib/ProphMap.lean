@@ -11,7 +11,6 @@ public import Iris.Std.GenSets
 @[expose] public section
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
@@ -36,7 +35,7 @@ class prophMapPreS (P V : Type _) (GF : BundledGFunctors) (H : outParam <| Type 
 attribute [reducible, instance] prophMapPreS.inG
 
 @[rocq_alias proph_mapGS]
-class prophMapGS {SI : outParam (Type usi)} [SIdx SI]
+class prophMapGS
     (P V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
     (H : outParam <| Type _ → Type _) [LawfulFiniteMap H P]
     extends prophMapPreS P V GF H where

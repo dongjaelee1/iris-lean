@@ -16,8 +16,6 @@ public import Iris.Std.TC
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace Iris.BI
 open Iris.Std BI
 

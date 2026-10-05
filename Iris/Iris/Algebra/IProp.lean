@@ -15,7 +15,6 @@ public import Init.Data.Vector
 @[expose] public section
 
 universe s v
-variable {SI : Type s} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -65,7 +64,7 @@ section IProp
 /- The universe levels of `GF` are spelled out: left to inference, the instance problems that
 arise when unifying `IProp GF` with the solution of the domain equation carry undetermined level
 metavariables, and elaborating `IProp.fold`/`unfold` took ~5s each instead of ~0.1s. -/
-variable [SIdxFinite SI] (GF : BundledGFunctors.{s, max s v, max s v, v})
+variable (GF : BundledGFunctors)
 
 @[rocq_alias iProp_solution.iPrePropO, rocq_alias iProp_solution.iProp_result]
 def IPre : Type _ := OFunctor.Fix (UPredOF (IResF GF))

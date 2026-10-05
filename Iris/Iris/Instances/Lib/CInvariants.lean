@@ -18,8 +18,6 @@ public import Iris.Std.CoPset
 public import Iris.Std.List
 
 @[expose] public section
--- `SI : Type` because of `WsatGS` (see `WSat.lean`).
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 

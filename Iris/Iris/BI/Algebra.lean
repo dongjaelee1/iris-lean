@@ -23,7 +23,6 @@ This file provides introduction rules (BI entailments) for (some) CMRA operation
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -398,46 +397,46 @@ open BI CMRA View ViewRel IsViewRel
 variable [Sbi PROP] [OFE A] [UCMRA B] {R : ViewRel A B} [IsViewRel R]
 
 @[rocq_alias view_both_dfrac_validI_1]
-theorem view_both_dfrac_validI_1 (relI : SiProp SI) (dq : DFrac) (a : A) (b : B)
+theorem view_both_dfrac_validI_1 (relI : SiProp) (dq : DFrac) (a : A) (b : B)
     (H : ∀ n, R n a b → relI.holds n) :
     ✓ ((●V{dq} a : View R) • ◯V b) ⊢@{PROP} ⌜✓ dq⌝ ∧ <si_pure> relI := by
   sbi_unfold; intro _
   exact fun hn => ⟨(auth_op_frag_validN_iff.mp hn).1, H _ (auth_op_frag_validN_iff.mp hn).2⟩
 
 @[rocq_alias view_both_dfrac_validI_2]
-theorem view_both_dfrac_validI_2 (relI : SiProp SI) (dq : DFrac) (a : A) (b : B)
+theorem view_both_dfrac_validI_2 (relI : SiProp) (dq : DFrac) (a : A) (b : B)
     (H : ∀ n, relI.holds n → R n a b) :
     ⌜✓ dq⌝ ∧ <si_pure> relI ⊢@{PROP} ✓ ((●V{dq} a : View R) • ◯V b) := by
   sbi_unfold; intro _; exact fun hn => auth_op_frag_validN_iff.mpr ⟨hn.1, H _ hn.2⟩
 
 @[rocq_alias view_both_dfrac_validI]
-theorem view_both_dfrac_validI (relI : SiProp SI) (dq : DFrac) (a : A) (b : B)
+theorem view_both_dfrac_validI (relI : SiProp) (dq : DFrac) (a : A) (b : B)
     (H : ∀ n, R n a b ↔ relI.holds n) :
     ✓ ((●V{dq} a : View R) • ◯V b) ⊣⊢@{PROP} ⌜✓ dq⌝ ∧ <si_pure> relI :=
   ⟨view_both_dfrac_validI_1 relI dq a b (fun n => (H n).mp),
    view_both_dfrac_validI_2 relI dq a b (fun n => (H n).mpr)⟩
 
 @[rocq_alias view_both_validI_1]
-theorem view_both_validI_1 (relI : SiProp SI) (a : A) (b : B)
+theorem view_both_validI_1 (relI : SiProp) (a : A) (b : B)
     (H : ∀ n, R n a b → relI.holds n) :
     ✓ ((●V a : View R) • ◯V b) ⊢@{PROP} <si_pure> relI :=
   siPure_mono fun n hn => H n (auth_one_op_frag_validN_iff.mp hn)
 
 @[rocq_alias view_both_validI_2]
-theorem view_both_validI_2 (relI : SiProp SI) (a : A) (b : B)
+theorem view_both_validI_2 (relI : SiProp) (a : A) (b : B)
     (H : ∀ n, relI.holds n → R n a b) :
     <si_pure> relI ⊢@{PROP} ✓ ((●V a : View R) • ◯V b) :=
   siPure_mono fun n hn => auth_one_op_frag_validN_iff.mpr (H n hn)
 
 @[rocq_alias view_both_validI]
-theorem view_both_validI (relI : SiProp SI) (a : A) (b : B)
+theorem view_both_validI (relI : SiProp) (a : A) (b : B)
     (H : ∀ n, R n a b ↔ relI.holds n) :
     ✓ ((●V a : View R) • ◯V b) ⊣⊢@{PROP} <si_pure> relI :=
   ⟨view_both_validI_1 relI a b (fun n => (H n).mp),
    view_both_validI_2 relI a b (fun n => (H n).mpr)⟩
 
 @[rocq_alias view_auth_dfrac_validI]
-theorem view_auth_dfrac_validI (relI : SiProp SI) (dq : DFrac) (a : A)
+theorem view_auth_dfrac_validI (relI : SiProp) (dq : DFrac) (a : A)
     (H : ∀ n, relI.holds n ↔ R n a UCMRA.unit) :
     ✓ (●V{dq} a : View R) ⊣⊢@{PROP} ⌜✓ dq⌝ ∧ <si_pure> relI := by
   sbi_unfold; intro _
@@ -445,14 +444,14 @@ theorem view_auth_dfrac_validI (relI : SiProp SI) (dq : DFrac) (a : A)
     fun hn => auth_validN_iff.mpr ⟨hn.1, (H _).mp hn.2⟩⟩
 
 @[rocq_alias view_auth_validI]
-theorem view_auth_validI (relI : SiProp SI) (a : A)
+theorem view_auth_validI (relI : SiProp) (a : A)
     (H : ∀ n, relI.holds n ↔ R n a UCMRA.unit) :
     ✓ (●V a : View R) ⊣⊢@{PROP} <si_pure> relI :=
   ⟨siPure_mono fun n hn => (H n).mpr ((auth_one_validN_iff n a).mp hn),
    siPure_mono fun n hn => (auth_one_validN_iff n a).mpr ((H n).mp hn)⟩
 
 @[rocq_alias view_frag_validI]
-theorem view_frag_validI (relI : SiProp SI) (b : B)
+theorem view_frag_validI (relI : SiProp) (b : B)
     (H : ∀ n, relI.holds n ↔ ∃ a, R n a b) :
     ✓ (◯V b : View R) ⊣⊢@{PROP} <si_pure> relI :=
   ⟨siPure_mono fun n hn => (H n).mpr (frag_validN_iff.mp hn),

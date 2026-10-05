@@ -8,9 +8,6 @@ module
 public import Iris.ProgramLogic.Lifting
 public import Iris.ProgramLogic.EctxiLanguage
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
-
 #rocq_ignore ectx_lifting.reducible_not_val_inhabitant "Rocq-specific `auto` resolve hint; not needed."
 
 namespace Iris.ProgramLogic

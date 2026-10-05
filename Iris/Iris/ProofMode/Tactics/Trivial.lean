@@ -17,8 +17,7 @@ open BI Lean Elab Tactic Meta Qq Iris.Std
 /--
 Try to solve the provided goal using `itrivial`.
 -/
-def iTrivial {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
-    (hyps : Hyps bi e)
+def iTrivial {prop : Q(Type u)} {bi : Q(BI $prop)} {e} (hyps : Hyps bi e)
   (goal : Q($prop)) : ProofModeM (Option Q($e ⊢ $goal)) := do
   let m ← mkBIGoal hyps goal
   try

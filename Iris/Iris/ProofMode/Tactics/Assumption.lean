@@ -10,9 +10,6 @@ public import Iris.ProofMode.Tactics.Basic
 
 namespace Iris.ProofMode
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI Iris.Std
 
 @[rocq_alias tac_assumption]

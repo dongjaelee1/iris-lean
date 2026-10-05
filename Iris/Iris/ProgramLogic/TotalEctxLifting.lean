@@ -14,9 +14,6 @@ open Iris BI Language.Notation EctxLanguage EctxLanguage.Notation
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
-
 /-! ## Total lifting rules for evaluation-context languages -/
 namespace twp
 

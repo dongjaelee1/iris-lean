@@ -11,7 +11,6 @@ public import Iris.Std.Equivalence
 
 @[expose] public section
 universe s
-variable {SI : Type s} [Iris.SIdx SI]
 
 namespace Iris.Instances.Classical
 open Iris.BI Iris.Instances.Data Iris.Std

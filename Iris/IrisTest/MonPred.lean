@@ -11,8 +11,6 @@ public import Iris.ProofMode.MonPred
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace IrisTest.MonPredAsEmpValid
 open Iris BI ProofMode MonPred
 
@@ -25,8 +23,6 @@ variable {I : BiIndex} {PROP : Type _} [bi : BI PROP]
   the goal becomes `∀ i, ⌜φ⌝ ∧ ⌜ψ⌝`, with no residual `monPred_at` left over.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -49,8 +45,6 @@ example (φ ψ : Prop) (hφ : φ) (hψ : ψ) : ⊢@{MonPred I PROP} ⌜φ⌝ ∧
   the goal becomes `∀ i, 𝓟 ∨ ⌜φ⌝`, i.e. the embedding is discharged as well.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -74,8 +68,6 @@ example (𝓟 : PROP) (φ : Prop) (hφ : φ) : ⊢@{MonPred I PROP} ⎡𝓟⎤ �
   so the goal is `∀ i, □ 𝓟 ∨ emp` and not `∀ i, (□ ⎡𝓟⎤ ∨ emp).monPred_at i`.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -93,8 +85,6 @@ example (𝓟 : PROP) : ⊢@{MonPred I PROP} □ ⎡𝓟⎤ ∨ emp := by
 
 /- Without `istart PROP`, the same statement stays in `MonPred I PROP`. -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -114,8 +104,6 @@ example (φ : Prop) (hφ : φ) : ⊢@{MonPred I PROP} ⌜φ⌝ ∧ ⌜φ⌝ := b
   which turns `P ⊢ Q` into `P -∗ Q`.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -138,8 +126,6 @@ example (𝓟 𝓠 : PROP) : ⎡𝓟⎤ ∗ ⎡𝓠⎤ ⊢@{MonPred I PROP} ⎡�
   `makeMonPredAt_sep` on the left and `makeMonPredAt_embed` on the right.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -156,8 +142,6 @@ example (𝓟 𝓠 : PROP) : ⎡𝓟⎤ ∗ ⎡𝓠⎤ ⊢@{MonPred I PROP} ⎡�
 
 /- Tests `asEmpValid_monPred_at_wand` with `makeMonPredAt_forall` and `makeMonPredAt_exists`. -/
 /-- trace:
-SI : Type u_3
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_2
 bi : BI PROP
@@ -179,8 +163,6 @@ example {α : Type _} (Φ : α → PROP) (a : α) :
 
 /- Tests `asEmpValid_monPred_at_wand` with `makeMonPredAt_in`. -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -201,8 +183,6 @@ example (j : I.car) :
   under `□` and `∀`.
 -/
 /-- trace:
-SI : Type u_3
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_2
 bi : BI PROP
@@ -265,8 +245,6 @@ def testMonPred (𝓟 : PROP) : MonPred I PROP where
 
 /- Tests `makeMonPredAt_default` as the fallback option of `MakeMonPredAt`. -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -294,8 +272,6 @@ instance makeMonPredAt_testMonPred (d : MakeMonPredAt.Kind) (i : I.car) (𝓟 : 
 
 /- Tests `makeMonPredAt_testMonPred`, which has a higher priority than `makeMonPredAt_default`. -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -370,8 +346,6 @@ variable (P : MonPred I PROP) in
 
 /- Introducing `<obj>` using `imodintro`. -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP
@@ -395,8 +369,6 @@ example (𝓟 : PROP) : ⊢@{MonPred I PROP} ⎡𝓟⎤ -∗ <obj> ⎡𝓟⎤ :=
 
 /- Tests `ispecialize` using `intoForall_monPred_at` which has a higher priority than `intoForall_monPred_at_index`. -/
 /-- trace:
-SI : Type u_3
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_2
 bi : BI PROP
@@ -421,8 +393,6 @@ example {α} (Φ : α → PROP) (a : α) (i : I.car) :
   `intoForall_monPred_at` fails to apply and results in backtracking.
 -/
 /-- trace:
-SI : Type u_2
-inst✝ : SIdx SI
 I : BiIndex
 PROP : Type u_1
 bi : BI PROP

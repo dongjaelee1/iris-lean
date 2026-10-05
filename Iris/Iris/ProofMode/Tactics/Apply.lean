@@ -11,9 +11,6 @@ public import Iris.ProofMode.Tactics.HaveCore
 namespace Iris.ProofMode
 
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI
 
 @[rocq_alias tac_apply]
@@ -31,8 +28,8 @@ theorem apply_assumption [BI PROP] {p : Bool} {P A Q : PROP}
     P ∗ □?p A ⊢ Q :=
   (sep_mono_right inst.from_assumption).trans sep_elim_right
 
-private partial def iApplyCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} {e} (hyps : Hyps bi e) (p : Q(Bool)) (A : Q($prop)) (goal : Q($prop)) :
+private partial def iApplyCore {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
+    (hyps : Hyps bi e) (p : Q(Bool)) (A : Q($prop)) (goal : Q($prop)) :
     ProofModeM Q($e ∗ □?$p $A ⊢ $goal) := do
   let B ← mkFreshExprMVarQ q($prop)
   -- if `A := ?B -∗ goal`, add `B` as a new subgoal and conclude `goal`
@@ -49,7 +46,7 @@ private partial def iApplyCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(T
 
 
 /-- Apply a hypothesis `A` to the `goal` by eliminating the wands recursively. -/
-def iApply {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
+def iApply {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
     (hyps : Hyps bi e) (p : Q(Bool)) (A : Q($prop)) (goal : Q($prop)) :
     ProofModeM Q($e ∗ □?$p $A ⊢ $goal) := do
   -- if `□?p A` directly matches goal, behave like `iexact`

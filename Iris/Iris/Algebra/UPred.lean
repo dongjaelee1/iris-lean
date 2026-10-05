@@ -10,7 +10,6 @@ public import Iris.Algebra.OFE
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open CMRA

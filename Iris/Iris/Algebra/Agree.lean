@@ -11,7 +11,6 @@ public import Iris.Algebra.IsOp
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -393,16 +392,19 @@ theorem dist_mk {n} {x y : Raw α} : mk x ≡{n}≡ mk y ↔ Raw.dist n x y := .
 @[simp] theorem validN_mk {n} {x : Raw α} : validN n (mk x) ↔ x.validN n := .rfl
 @[simp] theorem valid_mk {x : Raw α} : valid (mk x) ↔ x.valid := .rfl
 
+omit [OFE α] in
 @[rocq_alias agree_comm]
 theorem op_comm {x y : Agree α} : op x y = op y x :=
   ind₂ (fun _ _ => sound Raw.op_comm_sameElems) x y
 
 theorem op_commN {x y : Agree α} : op x y ≡{n}≡ op y x := op_comm.dist
 
+omit [OFE α] in
 @[rocq_alias agree_assoc]
 theorem op_assoc {x y z : Agree α} : op x (op y z) = op (op x y) z :=
   ind₃ (fun _ _ _ => sound Raw.op_assoc_sameElems) x y z
 
+omit [OFE α] in
 theorem op_idemp {x : Agree α} : op x x = x :=
   x.ind fun _ => sound Raw.idemp_sameElems
 
@@ -542,6 +544,7 @@ instance instNonExpansive_toAgree : OFE.NonExpansive (@toAgree α) where
 theorem Agree.toAgree_injN {a b : α} : toAgree a ≡{n}≡ toAgree b → a ≡{n}≡ b :=
   Raw.toAgree_injN
 
+omit [OFE α] in
 @[rocq_alias to_agree_inj]
 theorem Agree.toAgree_inj {a b : α} : toAgree a = toAgree b → a = b := fun heq => by
   simpa [Raw.toAgree] using (Agree.exact heq).1 a (by simp [Raw.toAgree])

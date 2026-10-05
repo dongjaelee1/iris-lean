@@ -17,7 +17,6 @@ convenience definitions and lemmas.
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

@@ -17,7 +17,6 @@ namespace Iris
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris Iris.Std PartialMap
 

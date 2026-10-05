@@ -10,8 +10,6 @@ public import Iris.BI.BI
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace Iris.BI
 
 /-- Require that a separation logic with the carrier type `PROP` is an affine separation logic. -/

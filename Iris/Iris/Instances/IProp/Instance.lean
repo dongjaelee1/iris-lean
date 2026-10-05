@@ -13,7 +13,6 @@ public import Iris.Instances.UPred
 public import Iris.ProofMode
 
 @[expose] public section
-variable {SI : Type s} [Iris.SIdx SI]
 namespace Iris
 
 open COFE Iris.Std CMRA
@@ -98,7 +97,6 @@ instance ElemG.unbundle.ne {E : ElemG GF F} [COFE T] :
     OFE.NonExpansive (E.unbundle (T := T)) where
   ne {_ _ _} H := OFE.transpAp_eqv_mp (E.transpMap T) (E.transpClass T) H
 
-variable [SIdxFinite SI]
 
 omit I in
 theorem ElemG.bundle_discreteE {GF : BundledGFunctors} [RFunctorContractive F] (E : ElemG GF F)
@@ -161,7 +159,7 @@ open Iris COFE Iris.UPred
 
 /-! Everything from here on is about `IProp`, which needs finite step indices (the solution of
 the recursive domain equation; see `COFESolver`). -/
-variable [SIdxFinite SI] {FF : BundledGFunctors}
+variable {FF : BundledGFunctors}
 
 /-- Isorecursive unfolding for each projection of FF. -/
 @[rocq_alias inG_unfold]
@@ -251,7 +249,6 @@ section iSingleton
 
 open IProp OFE Iris.UPred GenMap
 
-variable [SIdxFinite SI]
 
 @[rocq_alias iRes_singleton]
 def iSingleton {GF : BundledGFunctors} (F : OFunctorPre) [RFunctorContractive F] [E : ElemG GF F] (γ : GName) (v : F.ap (IProp GF)) : IResUR GF :=
@@ -536,7 +533,7 @@ theorem later_internalEq_iSingleton {a : F.ap (IProp GF)} {r : IResUR GF} :
 end iSingleton
 
 @[rocq_alias own]
-def iOwn [SIdxFinite SI] {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
+def iOwn {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
     (γ : GName) (v : F.ap (IProp GF)) : IProp GF :=
   UPred.ownM <| iSingleton F γ v
 
@@ -548,7 +545,7 @@ section iOwn
 
 open IProp OFE Iris.UPred BI GenMap ProofMode
 
-variable [SIdxFinite SI] {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
+variable {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
 
 @[rocq_alias own_ne]
 instance iOwn_ne : NonExpansive (iOwn τ : F.ap (IProp GF) → IProp GF) where
@@ -886,7 +883,7 @@ section big_op_instances
 open IProp OFE Iris.UPred BI GenMap ProofMode Algebra Iris.Std
 open scoped Iris.Std.PartialMap
 
-variable [SIdxFinite SI] {GF : BundledGFunctors} {F : OFunctorPre} [URFunctorContractive F] [E : ElemG GF F]
+variable {GF : BundledGFunctors} {F : OFunctorPre} [URFunctorContractive F] [E : ElemG GF F]
 
 @[rocq_alias own_cmra_sep_homomorphism]
 instance iOwn_cmra_sep_homomorphism (γ : GName) :
@@ -966,12 +963,12 @@ section own_forall
 open IProp OFE BI
 
 @[rocq_alias iRes_project]
-def iResProject [SIdxFinite SI] {GF : BundledGFunctors} (F : OFunctorPre) [RFunctorContractive F]
+def iResProject {GF : BundledGFunctors} (F : OFunctorPre) [RFunctorContractive F]
     [E : ElemG GF F] (γ : GName) (x : IResUR GF) :
     Option (F.ap (IProp GF)) :=
   ((x E.τ).car γ).map fun v => E.unbundle (foldi v)
 
-variable [SIdxFinite SI] {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
+variable {GF : BundledGFunctors} {F : OFunctorPre} [RFunctorContractive F] [E : ElemG GF F]
 
 @[rocq_alias iRes_project_op]
 theorem iResProject_op (x y : IResUR GF) :

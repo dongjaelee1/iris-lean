@@ -15,7 +15,7 @@ public import Iris.Algebra.OFE
 America and Rutten's construction of a solution `F X ≅ X` for a locally contractive functor `F`.
 
 The file is generic over the step-index type `SI`, but, like the Rocq version (which fixes
-`SI := nat`), the solution requires finite step indices (`[SIdxFinite SI]`). The tower `A F k` is
+`SI := nat`), the solution requires finite step indices (`SIdxFinite SI`). The tower `A F k` is
 indexed by `Nat` levels `k`, and level `k` only agrees with the solution up to step index
 `SIdx.ofNat k` (`up_down`, `Tower.embed_self`). So the chain defining `unfold` and the proof of the
 isomorphism send a step index `n` to level `SIdx.toNat n`, which is only correct when
@@ -28,7 +28,6 @@ completion of the tower (`up_down`, `Tower.up`, `Tower.embed_self`, ...) hold fo
 
 namespace Iris.SIdx
 
-variable {SI : Type _} [SIdx SI]
 
 /-- The `k`-th successor of `0`, i.e. the embedding of `Nat` into the step indices. -/
 def ofNat : Nat → SI
@@ -41,9 +40,8 @@ theorem ofNat_mono {a b : Nat} (h : a ≤ b) : (ofNat a : SI) ≤ ofNat b := by
   | step _ ih => exact le_trans ih le_succ_diag_r
 
 theorem ofNat_strictMono {a b : Nat} (h : a < b) : (ofNat a : SI) < ofNat b :=
-  lt_le_trans (lt_succ_self _) (ofNat_mono (SI := SI) h)
+  lt_le_trans (lt_succ_self _) (ofNat_mono h)
 
-variable [SIdxFinite SI]
 
 /-- The inverse of `ofNat` for finite step indices. -/
 def toNat : SI → Nat := rec' 0 (fun _ k => k + 1) (fun n h _ => (limit_finite n h).elim)
@@ -72,7 +70,6 @@ end SIdx
 namespace COFE.OFunctor
 open OFE
 
-variable {SI : Type _} [SIdx SI]
 
 variable {F : ∀ α β [COFE α] [COFE β], Type u} [OFunctorContractive F]
 variable [∀ α [COFE α], IsCOFE (F α α)]
@@ -155,7 +152,7 @@ def towerChain (c : Chain (Tower F)) (k : Nat) : Chain (A F k) where
   chain i := c.1 i k
   cauchy h := c.cauchy h k
 
-instance [SIdxFinite SI] : COFE (Tower F) where
+instance : COFE (Tower F) where
   compl c := by
     refine ⟨fun k => compl ⟨fun i => c.1 i k, fun h => c.cauchy h k⟩, ?_⟩
     refine OFE.eq_dist_2 (fun n => ?_)
@@ -313,7 +310,6 @@ theorem Tower.embed_self (X : Tower F) :
 instance : Inhabited (Tower F) := ⟨Tower.embed 0 ⟨()⟩⟩
 #rocq_ignore solver.tower_inhabited "Implicit in Lean's Inhabited (Tower F) instance"
 
-variable [SIdxFinite SI]
 
 /-- A `Nat`-indexed sequence that is Cauchy at the step indices `SIdx.ofNat a`, as a chain:
 for finite step indices, every step index is of this form. -/
@@ -403,7 +399,6 @@ def Fix : Type u := Tower F
 
 instance : Inhabited (Fix F) := inferInstanceAs (Inhabited (Tower F))
 
-variable [SIdxFinite SI]
 
 instance : COFE (Fix F) := inferInstanceAs (COFE (Tower F))
 

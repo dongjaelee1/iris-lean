@@ -10,7 +10,6 @@ public import Iris.Instances.IProp.Instance
 
 @[expose] public section
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 

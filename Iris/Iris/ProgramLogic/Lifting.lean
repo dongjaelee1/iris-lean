@@ -8,9 +8,6 @@ module
 public import Iris.ProofMode
 public import Iris.ProgramLogic.WeakestPre
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
-
 public section
 
 namespace Iris.ProgramLogic

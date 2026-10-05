@@ -11,7 +11,6 @@ public import Iris.Algebra.LocalUpdates
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 
@@ -53,7 +52,7 @@ instance [OFE α] [OFE β] : OFE (Csum α β) where
   Dist := Csum.Dist
   dist_eqv := dist_eqv
   eq_dist' {x y} := by
-    cases x <;> cases y <;> simp [Csum.Dist, eq_dist (SI:=_)]
+    cases x <;> cases y <;> simp [Csum.Dist, eq_dist]
   dist_lt {n x y m} hn hlt := by
     cases x <;> cases y <;> first | exact OFE.Dist.lt hn hlt | exact hn.elim | trivial
 

@@ -15,7 +15,6 @@ import Batteries.Data.List.Perm
 
 public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 

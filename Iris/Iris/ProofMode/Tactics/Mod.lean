@@ -13,9 +13,6 @@ public import Iris.ProofMode.Tactics.Basic
 namespace Iris.ProofMode
 
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI
 
 @[rocq_alias tac_modal_elim]
@@ -41,7 +38,7 @@ Parameters:
 
 Returns a proof of `P ∗ □?p A ⊢ Q`
 -/
-def iModCore {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} (_bi : Q(BI $prop))
+def iModCore {prop : Q(Type u)} (_bi : Q(BI $prop))
     (P Q : Q($prop)) (p : Q(Bool)) (A : Q($prop))
     (k : (p' : Q(Bool)) → (A' Q' : Q($prop)) → ProofModeM Q($P ∗ □?$p' $A' ⊢ $Q')) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $Q)) := do

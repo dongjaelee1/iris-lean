@@ -18,7 +18,6 @@ public import Iris.Std.Positives
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open BI
@@ -338,7 +337,7 @@ instance plainly_absorbing (P : PROP) : Absorbing iprop(■ P) where
   absorbing := absorbingly_elim_plainly.1
 
 @[rocq_alias plainly_si_pure]
-theorem plainly_siPure {Pi : SiProp SI} :
+theorem plainly_siPure {Pi : SiProp} :
     iprop(■ (<si_pure> Pi : PROP) ⊣⊢ <si_pure> Pi) :=
   ⟨siPure_mono siEmpValid_siPure.mp, siPure_mono siEmpValid_siPure.mpr⟩
 
@@ -656,11 +655,11 @@ instance from_option_plain {A : Type _} (P : PROP) (Ψ : A → PROP) (x? : Optio
   match x? with | (x : A) => hΨ x | .none => hP
 
 @[rocq_alias si_pure_plain]
-instance siPure_plain (P : SiProp SI) : Plain (PROP := PROP) (siPure P) where
+instance siPure_plain (P : SiProp) : Plain (PROP := PROP) (siPure P) where
   plain := plainly_siPure.2
 
 @[rocq_alias si_emp_valid_plain]
-instance siEmpValid_plain [SIdxFinite SI] (P : PROP) : Plain (siEmpValid P) where
+instance siEmpValid_plain (P : PROP) : Plain (siEmpValid P) where
   plain := .rfl
 
 @[rocq_alias big_sepL_nil_plain]

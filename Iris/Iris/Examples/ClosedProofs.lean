@@ -17,8 +17,6 @@ public import Iris.Std.HeapInstances
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris.Examples.ClosedProofs
 open Iris.BI COFE HeapView Auth Std.LawfulSet
@@ -61,8 +59,8 @@ instance : InvGpreS GF where
 
 /- The statement does not mention the step index, so it is bound explicitly; a client obtains
 the closed fact by instantiating it with any finite step-index type. -/
-example {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI] : True := by
-  apply pure_soundness (PROP := IProp (GF (SI := SI)))
+example : True := by
+  apply pure_soundness (PROP := IProp (GF))
   iapply step_fupdN_soundness_close (hlc := .hasNoLC) (m := 0) (n := 1)
   iintro %_ _
   simp only [Nat.repeat]

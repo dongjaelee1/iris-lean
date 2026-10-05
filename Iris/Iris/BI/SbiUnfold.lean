@@ -9,7 +9,6 @@ public import Iris.BI.Cmra
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 /-!
 # `sbi_unfold`
@@ -75,7 +74,7 @@ inductive SbiUnfoldClosure where
 embedding of the down closure of `Pi`, and that `Pi` is downwards closed whenever
 `clo` demands it. -/
 @[rocq_alias SbiUnfold]
-class SbiUnfold {SI : outParam (Type _)} [SIdx SI] {PROP : Type _} [Sbi PROP]
+class SbiUnfold {PROP : Type _} [Sbi PROP]
     (clo : SbiUnfoldClosure) (P : PROP) (Pi : outParam (SI → Prop)) where
   closed {n₁ n₂} : clo = .downClosed → Pi n₁ → n₂ ≤ n₁ → Pi n₂
   as_siPure : P ⊣⊢ iprop(<si_pure> downClose Pi)
@@ -95,7 +94,7 @@ theorem downClose_of_closed (h : ∀ {n₁ n₂}, Pi n₁ → n₂ ≤ n₁ → 
 
 @[rocq_alias SbiUnfold_closed]
 theorem of_closed (hPi : ∀ {n₁ n₂}, Pi n₁ → n₂ ≤ n₁ → Pi n₂)
-    (h : P ⊣⊢ iprop(<si_pure> (⟨Pi, hPi⟩ : SiProp SI))) : SbiUnfold clo P Pi where
+    (h : P ⊣⊢ iprop(<si_pure> (⟨Pi, hPi⟩ : SiProp))) : SbiUnfold clo P Pi where
   closed _ := hPi
   as_siPure := h.trans <| siPure_mono_bi <| biEntails_of_iff fun _ => (downClose_of_closed hPi).symm
 
@@ -114,12 +113,12 @@ theorem weaken [h : SbiUnfold .downClosed P Pi] : SbiUnfold clo P Pi where
 
 end SbiUnfold
 
-/-- This instance can be applied to any `P : SiProp SI` so it has a low priority to
-make sure it's only used if no other instance can be used. It needs `Sbi (SiProp SI)`,
-hence `[SIdxFinite SI]`. -/
+/-- This instance can be applied to any `P : SiProp` so it has a low priority to
+make sure it's only used if no other instance can be used. It needs `Sbi (SiProp)`,
+hence `SIdxFinite SI`. -/
 @[rocq_alias sbi_unfold_siprop]
-instance (priority := low) sbiUnfold_siProp [SIdxFinite SI] (clo : SbiUnfoldClosure)
-    (P : SiProp SI) :
+instance (priority := low) sbiUnfold_siProp (clo : SbiUnfoldClosure)
+    (P : SiProp) :
     SbiUnfold clo P P.holds :=
   .of_closed P.closed .rfl
 
@@ -138,7 +137,7 @@ theorem entails_iff [hP : SbiUnfold .downClosed P Pi] [hQ : SbiUnfold .notClosed
       refine ⟨fun h => ?_, fun h => ?_⟩
       · exact hP.as_siPure.mpr.trans (h.trans hQ.as_siPure.mp)
       · exact hP.as_siPure.mp.trans (h.trans hQ.as_siPure.mpr)
-    _ ↔ (downClose Pi ⊢@{SiProp SI} downClose Qi) := siPure_entails
+    _ ↔ (downClose Pi ⊢@{SiProp} downClose Qi) := siPure_entails
     _ ↔ ∀ n, Pi n → Qi n := by
       refine ⟨fun h n hp => ?_, fun h _ hp m hm => ?_⟩
       · exact h n (fun _ hm => hP.closed rfl hp hm) n SIdx.le_refl
@@ -162,7 +161,7 @@ theorem empValid_iff [hQ : SbiUnfold .notClosed Q Qi] : (⊢ Q) ↔ ∀ n, Qi n 
       refine ⟨fun h => ?_, fun h => ?_⟩
       · exact h.trans hQ.as_siPure.mp
       · exact h.trans hQ.as_siPure.mpr
-    _ ↔ (⊢@{SiProp SI} downClose Qi) := siPure_emp_valid
+    _ ↔ (⊢@{SiProp} downClose Qi) := siPure_emp_valid
     _ ↔ ∀ n, Qi n := by
       refine ⟨fun h n => ?_, fun h _ _ m _ => ?_⟩
       · exact h n trivial n SIdx.le_refl
@@ -194,16 +193,16 @@ instance sbiUnfold_included [CMRA A] {a b : A} :
   .of_closed (fun h hm => incN_of_incN_le hm h) <|
     siPure_mono_bi <| biEntails_of_iff fun _ => exists_holds
 
-/-- Translating the contents of `<si_pure>` uses the instances for `SiProp SI` itself, so it
-needs `Sbi (SiProp SI)`, hence `[SIdxFinite SI]`; see `sbiUnfold_siPure_holds` otherwise. -/
+/-- Translating the contents of `<si_pure>` uses the instances for `SiProp` itself, so it
+needs `Sbi (SiProp)`, hence `SIdxFinite SI`; see `sbiUnfold_siPure_holds` otherwise. -/
 @[rocq_alias sbi_unfold_si_pure]
-instance sbiUnfold_siPure [SIdxFinite SI] {Psi : SiProp SI} [h : SbiUnfold clo Psi Pi] :
+instance sbiUnfold_siPure {Psi : SiProp} [h : SbiUnfold clo Psi Pi] :
     SbiUnfold clo (iprop(<si_pure> Psi) : PROP) Pi where
   closed := h.closed
   as_siPure := siPure_mono_bi h.as_siPure
 
-/-- Without `[SIdxFinite SI]`, a `<si_pure> Psi` is a leaf, interpreted by `Psi.holds`. -/
-instance (priority := low) sbiUnfold_siPure_holds {Psi : SiProp SI} :
+/-- Without `SIdxFinite SI`, a `<si_pure> Psi` is a leaf, interpreted by `Psi.holds`. -/
+instance (priority := low) sbiUnfold_siPure_holds {Psi : SiProp} :
     SbiUnfold clo (iprop(<si_pure> Psi) : PROP) Psi.holds :=
   .of_closed Psi.closed .rfl
 

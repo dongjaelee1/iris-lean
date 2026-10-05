@@ -16,22 +16,21 @@ public import Iris.Algebra.LocalUpdates
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris
 
 /-- A step-indexed relation between authoritative elements and fragments. The step-index type is
 determined by the ambient `SIdx` instance. -/
-abbrev ViewRel {SI : Type _} [SIdx SI] (A B : Type _) := SI → A → B → Prop
+abbrev ViewRel (A B : Type _) := SI → A → B → Prop
 
 @[rocq_alias view_rel]
-class IsViewRel {SI : Type _} [SIdx SI] {A B : Type _} [OFE A] [UCMRA B] (R : ViewRel A B) where
+class IsViewRel {A B : Type _} [OFE A] [UCMRA B] (R : ViewRel A B) where
   mono : R n1 a1 b1 → a1 ≡{n2}≡ a2 → b2 ≼{n2} b1 → n2 ≤ n1 → R n2 a2 b2
   rel_validN n a b : R n a b → ✓{n} b
   rel_unit n : ∃ a, R n a UCMRA.unit
 
 @[rocq_alias ViewRelDiscrete]
-class IsViewRelDiscrete {SI : Type _} [SIdx SI] {A B : Type _} [OFE A] [UCMRA B] (R : ViewRel A B)
+class IsViewRelDiscrete {A B : Type _} [OFE A] [UCMRA B] (R : ViewRel A B)
     extends IsViewRel R where
   discrete n a b : R 0 a b → R n a b
 

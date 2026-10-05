@@ -19,9 +19,6 @@ open Language.Notation
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
-
 variable {hlc : HasLC} {Expr State Obs Val : Type _}
 variable [Language Expr State Obs Val]
 variable {GF : BundledGFunctors} [iG : IrisGS_gen hlc Expr GF]
@@ -234,7 +231,7 @@ theorem wp_strong_adequacy_gen [InvGpreS GF] (s : Stuckness) (es : List Expr) (�
   imod Hφ $$ [] [] [] Hσ Hes' Ht2' with %_ <;> ipureintro <;> grind
 
 @[rocq_alias wp_strong_adequacy]
-abbrev wp_strong_adequacy := @wp_strong_adequacy_gen SI _ _ .hasLC
+abbrev wp_strong_adequacy := @wp_strong_adequacy_gen .hasLC
 
 @[rocq_alias adequate]
 structure adequate (s : Stuckness) (e1 : Expr) (σ1 : State) (φ : Val → State → Prop) : Prop where
@@ -337,7 +334,7 @@ theorem wp_adequacy_gen [InvGpreS GF] (s : Stuckness) (e : Expr) (σ : State) (�
     ipureintro; grind
 
 @[rocq_alias wp_adequacy]
-abbrev wp_adequacy := @wp_adequacy_gen SI _ _ .hasLC
+abbrev wp_adequacy := @wp_adequacy_gen .hasLC
 
 omit iG in
 @[rocq_alias wp_invariance_gen]
@@ -375,7 +372,7 @@ theorem wp_invariance_gen [InvGpreS GF] (s : Stuckness) (e1 : Expr) (σ1 σ2 : S
   iframe Hcont
 
 @[rocq_alias wp_invariance]
-abbrev wp_invariance := @wp_invariance_gen SI _ _ .hasLC
+abbrev wp_invariance := @wp_invariance_gen .hasLC
 
 end
 end Iris.ProgramLogic

@@ -14,7 +14,6 @@ public import Iris.ProgramLogic.WeakestPre
 
 namespace Iris.HeapLang
 
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 variable {hlc} {GF : BundledGFunctors} [ι : IrisGS_gen hlc HeapLang.Exp GF]
 set_option linter.unusedVariables false
 set_option pp.mvars false
@@ -24,9 +23,6 @@ namespace wp_value_head
 variable (v : Val)
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -40,9 +36,6 @@ example : ⊢@{IProp GF} WP (v : Exp) {{ v, True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -56,9 +49,6 @@ example : ⊢@{IProp GF} WP (v : Exp) {{ v, |={⊤}=> True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -77,9 +67,6 @@ end wp_value_head
 namespace wp_bind
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -97,9 +84,6 @@ example : ⊢@{IProp GF}  WP hl(((#0 + #1) + #2) + #3) {{ v, True }} := by
   wp_bind (#2 + _)
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -112,9 +96,6 @@ example : ⊢@{IProp GF}  WP hl(((#0 + #1) + #2) + #3) {{ v, True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -127,9 +108,6 @@ example : ⊢@{IProp GF}  WP hl(((#0 + #1) + #2) + #3) {{ v, True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -142,9 +120,6 @@ example : ⊢@{IProp GF}  WP hl(#2 + (#1 + #2)) {{ v, True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -157,9 +132,6 @@ example : ⊢@{IProp GF}  WP hl(#2 + (#1 + #2)) {{ v, True }} := by
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -176,9 +148,6 @@ end wp_bind
 section wp_pure
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -192,9 +161,6 @@ example : ⊢@{IProp GF}  WP hl(if #false then #1 else #0) {{ v, ⌜v = hl_val(#
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -208,9 +174,6 @@ example : ⊢@{IProp GF}  WP hl(if #true then #1 else #0) {{ v, ⌜v = hl_val(#1
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -229,9 +192,6 @@ example : ⊢@{IProp GF}  WP hl(snd(v((#1,#2)))) {{ v, ⌜v = hl_val(#2)⌝ }} :
   itrivial
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -244,9 +204,6 @@ example : ⊢@{IProp GF} WP hl(if #true then if #false then #1 else #2 else #3) 
   trace_state
 
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -265,9 +222,6 @@ section wp_pures
 
 -- a step whose side condition survives is not taken (`compareSafe` is stuck here)
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -282,9 +236,6 @@ example (v1 v2 : Val) : ⊢@{IProp GF} WP hl(&v1 = &v2) {{ v, True }} := by
 
 -- steps before the guarded one still fire
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -300,18 +251,12 @@ example (v1 v2 : Val) :
 
 -- `wp_pure` itself stays permissive and hands the side condition back
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
 v1 v2 : Val
 ⊢ v1.compareSafe v2 = true
 
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -326,9 +271,6 @@ example (v1 v2 : Val) : ⊢@{IProp GF} WP hl(&v1 = &v2) {{ v, True }} := by
 
 -- with no step to take, `wp_pures` still strips the weakest precondition off a value
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -342,9 +284,6 @@ example : ⊢@{IProp GF} WP hl(v(#1)) {{ v, ⌜v = hl_val(#1)⌝ }} := by
 
 -- ... and succeeds without doing anything when the expression is stuck
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -365,18 +304,12 @@ example : ⊢@{IProp GF} True := by
 
 -- the guard counts only the goals the step produced, not those already open
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
 ⊢ ⏎
   ⊢ |={⊤}=> True
 
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF
@@ -401,9 +334,6 @@ section wp_lam
 def addOne : Val := hl_val% λ x, x + #1
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -424,9 +354,6 @@ example : ⊢@{IProp GF} WP hl((λ x, x + #1) #1) {{ v, ⌜v = hl_val(#2)⌝ }} 
   wp_lam
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -460,9 +387,6 @@ def notARec : Val := hl_val% #3
 
 -- unfolding the head to find the redex does not lose the surrounding evaluation context
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -479,9 +403,6 @@ example (l : Loc) : ⊢@{IProp GF} WP hl(&readIt #l + #1) {{ v, True }} := by
 
 -- the recursive call reads as the definition rather than as its expansion
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -498,9 +419,6 @@ example (v : Val) : ⊢@{IProp GF} WP hl(&loopIt &v) {{ v, True }} := by
 
 -- an argument that happens to be the same closure is left as written, not folded too
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -516,9 +434,6 @@ example : ⊢@{IProp GF} WP hl(&callIt v(rec f x := x #())) {{ v, True }} := by
 
 -- `wp_pures` never unfolds a head, so it terminates on a recursive definition
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -549,9 +464,6 @@ example : ⊢@{IProp GF} WP hl(#1; #2) {{ v, ⌜v = hl_val(#2)⌝ }} := by
   wp_let
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -567,9 +479,6 @@ example : ⊢@{IProp GF} WP hl(let x := #1; x + #1) {{ v, ⌜v = hl_val(#2)⌝ }
 
 -- the evaluation context stays in the goal instead of moving into the postcondition
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -589,9 +498,6 @@ end wp_let
 section wp_seq
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -612,9 +518,6 @@ example : ⊢@{IProp GF} WP hl(let x := #1; x) {{ v, ⌜v = hl_val(#1)⌝ }} := 
 
 -- the evaluation context stays in the goal instead of moving into the postcondition
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -639,9 +542,6 @@ example : ⊢@{IProp GF} WP hl(#1 + #1) {{ v, ⌜v = hl_val(#2)⌝ }} := by
   wp_closure
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -660,9 +560,6 @@ end wp_closure
 section wp_if
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -691,9 +588,6 @@ example : ⊢@{IProp GF} WP hl(if #false then #1 else #2) {{ v, ⌜v = hl_val(#2
   wp_if_true
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -712,9 +606,6 @@ end wp_if_true
 section wp_if_false
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -738,9 +629,6 @@ end wp_if_false
 section wp_proj
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -760,9 +648,6 @@ example : ⊢@{IProp GF} WP hl((#1, #2)) {{ v, ⌜v = hl_val((#1, #2))⌝ }} := 
   wp_proj
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -786,9 +671,6 @@ example : ⊢@{IProp GF} WP hl(injr(#1 + #1)) {{ v, ⌜v = hl_val(injr(#2))⌝ }
   wp_inj
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -803,9 +685,6 @@ example : ⊢@{IProp GF} WP hl(injr(#1)) {{ v, ⌜v = hl_val(injr(#1))⌝ }} := 
   trace_state
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -824,9 +703,6 @@ end wp_inj
 section wp_pair
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -855,9 +731,6 @@ example : ⊢@{IProp GF} WP hl(#1 + #2) {{ v, ⌜v = hl_val(#3)⌝ }} := by
   wp_unop
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -876,9 +749,6 @@ end wp_unop
 section wp_binop
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -902,9 +772,6 @@ end wp_binop
 section wp_op
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -924,9 +791,6 @@ example : ⊢@{IProp GF} WP hl(if #true then #1 else #2) {{ v, ⌜v = hl_val(#1)
   wp_op
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -952,9 +816,6 @@ example : ⊢@{IProp GF}
   wp_case
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -975,9 +836,6 @@ end wp_case
 section wp_match
 
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝
@@ -995,9 +853,6 @@ example : ⊢@{IProp GF}
 
 -- the evaluation context stays in the goal instead of moving into the postcondition
 /-- trace:
-SI : Type
-inst✝² : SIdx SI
-inst✝¹ : SIdxFinite SI
 hlc : HasLC
 GF✝ : BundledGFunctors
 ι : IrisGS_gen hlc Exp GF✝

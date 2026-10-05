@@ -10,8 +10,6 @@ public import Iris.Algebra.Excl
 
 public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 /-!
 # Exclusive Authoritative CMRA
 

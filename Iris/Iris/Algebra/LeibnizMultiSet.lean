@@ -13,7 +13,6 @@ public import Iris.Std.GenMultiSets
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 /-! ## The multiset union CMRA -/
 

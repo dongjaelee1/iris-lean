@@ -20,7 +20,6 @@ the List type itself. However, there is an embedding of Lists in to this data st
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

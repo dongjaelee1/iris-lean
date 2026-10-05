@@ -14,7 +14,6 @@ namespace Iris
 
 open OFE COFE
 
-variable {SI : Type _} [SIdx SI]
 
 namespace Completion.Raw
 
@@ -144,7 +143,7 @@ noncomputable def diagonal (c : Chain (Completion α)) : Completion α :=
   Classical.choose (exists_limit c)
 
 @[rocq_alias chain_cofe]
-noncomputable instance instIsCOFE [SIdxFinite SI] : IsCOFE (Completion α) where
+noncomputable instance instIsCOFE : IsCOFE (Completion α) where
   compl := diagonal
   conv_compl {n c} := Classical.choose_spec (exists_limit c) n
   lbcompl := (·.elim)

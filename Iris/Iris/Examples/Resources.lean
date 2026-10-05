@@ -14,7 +14,6 @@ public import Iris.Algebra.Agree
 @[expose] public section
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris.Examples
 open Iris.BI COFE
@@ -42,7 +41,6 @@ abbrev γ : GType := 1
 @[simp]
 def MyAg (S : String) : (Option (Agree (DiscreteO String))) := some (toAgree ⟨S⟩)
 
-omit [Iris.SIdxFinite SI] in
 theorem MyR_always_invalid (S₁ S₂ : String) (Hne : S₁ ≠ S₂) (n : SI) : ¬✓{n} MyAg S₁ • MyAg S₂ := by
   simp only [CMRA.ValidN, CMRA.op, MyAg, optionValidN, optionOp]
   exact (Hne <| DiscreteO.dist_inj <| Agree.toAgree_op_validN_iff_dist.mp ·)

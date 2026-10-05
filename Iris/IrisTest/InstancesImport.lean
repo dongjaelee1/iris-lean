@@ -11,8 +11,6 @@ import IrisTest.Instances
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace IrisTest
 open Lean Iris Qq BI ProofMode
 

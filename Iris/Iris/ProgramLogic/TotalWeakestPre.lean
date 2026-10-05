@@ -15,8 +15,6 @@ open ProgramLogic Language Language.Notation Iris.Std OFE BI
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-!
 # Total weakest preconditions

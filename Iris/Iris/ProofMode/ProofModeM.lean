@@ -80,7 +80,7 @@ instance : Inhabited (ProofModeM α) where
   default := throw default
 
 /-- Create a new BI goal without registering it in the proof mode state. -/
-def mkBIGoal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+def mkBIGoal {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (goal : Q($prop)) (name : Name := .anonymous) :
     ProofModeM Q($e ⊢ $goal) := do
   let m : Q($e ⊢ $goal) ← mkFreshExprSyntheticOpaqueMVar <|
@@ -89,7 +89,7 @@ def mkBIGoal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI
   pure m
 
 /-- Create a new BI goal with the given hypotheses and goal, and add it to the proof mode state. -/
-def addBIGoal {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+def addBIGoal {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (goal : Q($prop)) (name : Name := .anonymous) :
     ProofModeM Q($e ⊢ $goal) := do
   let m ← mkBIGoal hyps goal name
@@ -121,8 +121,8 @@ def withoutFVars {α : Q(Sort u)} (fvarIds : Array FVarId) (k : ProofModeM Q($α
   user of this function to check that the variables to clear can actually be
   cleared (e.g. using `Hyps.checkRemovableFVar`).
 -/
-def addBIGoalWithoutFVars {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} {e} (hyps : Hyps bi e) (goal : Q($prop)) (toClear : Array FVarId)
+def addBIGoalWithoutFVars {prop : Q(Type u)} {bi : Q(BI $prop)}
+    {e} (hyps : Hyps bi e) (goal : Q($prop)) (toClear : Array FVarId)
     (name : Name := .anonymous) : ProofModeM Q($e ⊢ $goal) := do
   withoutFVars (u:=0) toClear (addBIGoal hyps goal name)
 
@@ -147,7 +147,7 @@ def addMVarGoal (m : MVarId) (name : Name := .anonymous) : ProofModeM Unit := do
   2. a Boolean value indicating whether the `firstTactic` solves all goals,
      `false` if `firstTactic` is `none`.
 -/
-def addBIGoalRunTactics {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+def addBIGoalRunTactics {prop : Q(Type u)} {bi : Q(BI $prop)}
     {e} (hyps : Hyps bi e) (goal : Q($prop)) (name : Name := .anonymous)
     (firstTactic : Option <| TSyntax `tactic)
     (tacticSeq : TSyntax `Lean.Parser.Tactic.tacticSeq) :
@@ -197,10 +197,7 @@ def startProofMode (mvar : MVarId) (customProp : Option Expr := none)
       throwError "{tacName}: {customProp} is not a valid BI instance type"
 
   let P ← mkFreshExprMVarQ q($prop)
-  let w ← mkFreshLevelMVar
-  let si ← mkFreshExprMVarQ q(Type w)
-  let sidx ← mkFreshExprMVarQ q(SIdx $si)
-  let bi ← mkFreshExprMVarQ q(@BI $si $sidx $prop)
+  let bi ← mkFreshExprMVarQ q(BI $prop)
   let io : Q(InOut) := if customProp.isSome then q(.in) else q(.out)
   let synthResult ← ProofMode.trySynthInstanceQ q(AsEmpValid .from $goal $io $prop $bi $P)
 

@@ -11,7 +11,6 @@ public import Iris.Std.List
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

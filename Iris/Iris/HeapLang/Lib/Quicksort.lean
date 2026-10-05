@@ -14,8 +14,6 @@ open BI Iris ProgramLogic List
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Quicksort
 
@@ -300,11 +298,10 @@ theorem sortAndCheck_spec [HeapLangGS hlc GF] (l : List Int) :
 
 /- The statement does not mention the step index, so it is included explicitly; a client obtains
 the closed fact by instantiating it with any finite step-index type. -/
-include SI in
 /-- Full application of adequacy: sortAndCheck is safe in any state and only ever return true. -/
 theorem sortAndCheckAdequate (l : List Int) (σ : State) :
     adequate .NotStuck (sortAndCheck l) σ (fun v _ => v = hl_val(#true)) := by
-  apply heap_adequacy (GF := HeapLangS (SI := SI)); intro _
+  apply heap_adequacy (GF := HeapLangS); intro _
   iintro _
   iapply sortAndCheck_spec <;> itrivial
 

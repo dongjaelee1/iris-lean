@@ -13,7 +13,6 @@ import Iris.Std.TC
 
 public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 

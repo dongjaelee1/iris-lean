@@ -18,7 +18,6 @@ derived from `HeapLangGS`, so no generic `IrisGS_gen` variable is in scope. -/
 
 namespace Iris.HeapLang
 
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 variable {hlc} {GF : BundledGFunctors} [ι : HeapLangGS hlc GF]
 variable {s : Stuckness} {E : CoPset} {Φ : Val → IProp GF}
 
@@ -117,9 +116,6 @@ example {l : Loc} {v v' v'' : Val} :
 -- Rocq parity (`first [wp_seq|wp_finish]`): a store in sequencing position discards its
 -- `#()` result, so `wp_store` steps through the `;` instead of leaving a pure redex behind
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : HeapLangGS hlc GF
@@ -142,9 +138,6 @@ example {l : Loc} {v v' : Val} :
 
 -- the fast-forward is *only* for the sequencing redex: a `let` binding the result stays
 /-- trace:
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : HeapLangGS hlc GF
@@ -236,9 +229,6 @@ example {l : Loc} {v v' : Val} :
 -- Rocq parity: like `wp_store`, an `xchg` in sequencing position discards its result
 /--
 error: unsolved goals
-SI : Type
-inst✝¹ : SIdx SI
-inst✝ : SIdxFinite SI
 hlc : HasLC
 GF : BundledGFunctors
 ι : HeapLangGS hlc GF

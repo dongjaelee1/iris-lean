@@ -11,8 +11,6 @@ public import Iris.ProofMode
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace Iris
 open Iris.Std BI OFE ProofMode
 

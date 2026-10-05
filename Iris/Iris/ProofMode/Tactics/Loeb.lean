@@ -20,8 +20,8 @@ public meta section
 
 syntax (name := iloeb) "iloeb" " as " binderIdent (generalizingSelPats)? : tactic
 
-private def iLoebCore {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} {e} (hyps : Hyps bi e) (goal : Q($prop)) (targets : List SelTarget)
+private def iLoebCore {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {e}
+    (hyps : Hyps bi e) (goal : Q($prop)) (targets : List SelTarget)
     (IH : TSyntax `Lean.binderIdent) : ProofModeM Q($e ⊢ $goal) :=
   iRevertIntro hyps goal targets fun {prop _ _} hyps goal k => do
     let some _ ← ProofModeM.trySynthInstanceQ q(BI.BILoeb $prop)

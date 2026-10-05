@@ -13,7 +13,6 @@ meta import Iris.Std.RocqPorting
 
 public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris.BI
 

@@ -14,7 +14,6 @@ public import Iris.Instances.IProp
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 open Auth BI MonoNat

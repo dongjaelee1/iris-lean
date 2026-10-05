@@ -14,7 +14,6 @@ public import Iris.Std.Namespaces
 @[expose] public section
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 
@@ -61,7 +60,7 @@ attribute [reducible, instance] genHeapPreS.metaData
 attribute [instance] GhostMapG.elem
 
 @[rocq_alias gen_heapGS]
-class genHeapGS {SI : outParam (Type usi)} [SIdx SI]
+class genHeapGS
     (L V : outParam <| Type _) (GF : outParam <| BundledGFunctors)
     (H : outParam <| Type _ → Type _) [Std.LawfulFiniteMap H L]
     extends genHeapPreS L V GF H where
@@ -231,7 +230,7 @@ instance (priority := high) instFramePointsTo (p : Bool) (l : L) (v : V) (q₁ q
 instance instTimelessMetaToken (l : L) (E : CoPset) :
     BI.Timeless (PROP := IProp GF) (metaToken l E) := by
   unfold metaToken
-  refine @BI.exists_timeless _ _ _ _ _ _ ?_
+  refine @BI.exists_timeless _ _ _ _ ?_
   intro γm
   infer_instance
 
@@ -239,7 +238,7 @@ instance instTimelessMetaToken (l : L) (E : CoPset) :
 instance instTimelessMeta {A : Type _} [Pos.Countable A] (l : L) (N : Namespace) (x : A) :
     BI.Timeless (PROP := IProp GF) (metaInfo l N x) := by
   unfold metaInfo
-  refine @BI.exists_timeless _ _ _ _ _ _ ?_
+  refine @BI.exists_timeless _ _ _ _ ?_
   intro γm
   infer_instance
 
@@ -247,7 +246,7 @@ instance instTimelessMeta {A : Type _} [Pos.Countable A] (l : L) (N : Namespace)
 instance instPersistentMeta {A : Type _} [Pos.Countable A] (l : L) (N : Namespace) (x : A) :
     BI.Persistent (PROP := IProp GF) (metaInfo l N x) := by
   unfold metaInfo
-  refine @BI.exists_persistent _ _ _ _ _ _ ?_
+  refine @BI.exists_persistent _ _ _ _ ?_
   intro γm
   infer_instance
 

@@ -18,8 +18,6 @@ open BI Iris ProgramLogic
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace SpinLock
 

@@ -10,9 +10,6 @@ public import Iris.ProofMode.Tactics.Cases
 namespace Iris.ProofMode
 
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI
 
 @[rocq_alias tac_inv_elim]
@@ -61,8 +58,8 @@ private def reduceWandM (e : Expr) : ProofModeM Expr := do
   let simpContext ← Simp.mkContext {} #[simpThms] (← getSimpCongrTheorems)
   Lean.Meta.dsimp e simpContext <&> Prod.fst
 
-private def iInvCore {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    {e} (hyps : Hyps bi e) (goal : Q($prop)) (ivar : IVarId) (specPat : Option SpecPat)
+private def iInvCore {u} {prop : Q(Type u)} {bi} {e}
+    (hyps : Hyps bi e) (goal : Q($prop)) (ivar : IVarId) (specPat : Option SpecPat)
     (casesPat : iCasesPat) (closePat : Option iCasesPat) :
     ProofModeM Q($e ⊢ $goal) := do
   -- Find the hypothesis from the context

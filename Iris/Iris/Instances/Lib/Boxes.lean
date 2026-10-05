@@ -14,8 +14,6 @@ public import Iris.Std.PartialMap
 public import Iris.Std.Namespaces
 
 @[expose] public section
--- `SI : Type` because of `WsatGS` (see `WSat.lean`).
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris
 

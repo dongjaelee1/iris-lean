@@ -20,7 +20,6 @@ closure.
 namespace IrisTest
 open Iris BI OFE CMRA
 
-variable {SI : Type _} [SIdx SI]
 
 /-- The interpretation `sbi_unfold` gives to `▷` (`SiProp`'s later). Only used to state the
 expected goals below. -/
@@ -53,7 +52,7 @@ example (h : ∀ n, x ≡{n}≡ z → ∃ y, x ≡{n}≡ y ∧ y ≡{n}≡ z) :
 
 /- `test_si_pure_exist`. The `<si_pure>` leaves are transparent, so this gives
 the same goal as the version without them. -/
-example [SIdxFinite SI] (h : ∀ n, (∃ y, x ≡{n}≡ y ∧ y ≡{n}≡ z) → x ≡{n}≡ z) :
+example (h : ∀ n, (∃ y, x ≡{n}≡ y ∧ y ≡{n}≡ z) → x ≡{n}≡ z) :
     ⊢@{PROP} iprop(<si_pure> (∃ y, <si_pure> (x ≡ y) ∧ y ≡ z) → x ≡ z) := by
   sbi_unfold; exact h
 
@@ -146,8 +145,8 @@ example (a b c d : B) (h : ∀ n, (∀ m ≤ n, a ≡{m}≡ b → c ≡{m}≡ d)
   sbi_unfold; exact h
 
 /- A goal in the model itself: the low-priority `SiProp` instance applies. -/
-example [SIdxFinite SI] (Pi Qi : SiProp SI) (h : ∀ n, Pi.holds n ∧ Qi.holds n → Pi.holds n) :
-    iprop(Pi ∧ Qi) ⊢@{SiProp SI} Pi := by
+example (Pi Qi : SiProp) (h : ∀ n, Pi.holds n ∧ Qi.holds n → Pi.holds n) :
+    iprop(Pi ∧ Qi) ⊢@{SiProp} Pi := by
   sbi_unfold; exact h
 
 /- A `match` has to be case split before unfolding. -/

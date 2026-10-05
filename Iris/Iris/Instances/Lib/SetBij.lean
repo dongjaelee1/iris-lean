@@ -15,7 +15,6 @@ meta import Iris.Std.RocqPorting
 @[expose] public section
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-!
 # Propositions for reasoning about monotone partial bijections

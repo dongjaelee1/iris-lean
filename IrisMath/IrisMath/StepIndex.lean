@@ -96,10 +96,11 @@ theorem limit_iff_isSuccLimit {o : Ordinal} : SIdx.Limit o ↔ Order.IsSuccLimit
     · exact h.pos.ne'
 
 section Test
-local stepindex Ordinal
 variable [I : OFE α]
 
-/-- info: OFE.Dist : Ordinal.{u_1} → α → α → Prop -/
+/- In this build, every OFE uses the step-index type `Iris.SI` of `Iris.Algebra.StepIndexChoice`.
+To use ordinals, change that file. -/
+/-- info: OFE.Dist : SI → α → α → Prop -/
 #guard_msgs in
 #check I.Dist (α := α)
 

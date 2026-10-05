@@ -10,9 +10,6 @@ public import Iris.ProgramLogic.WeakestPre
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
-
 /-!  # Logically atomic Hoare triples -/
 
 namespace Iris
@@ -94,16 +91,16 @@ def awpRetGroup (zs : Array Ident) : DelabM (Option (TSyntax ``awpRetBinders)) :
 @[app_delab Iris.atomic_wp]
 def delabAtomicWp : Delab := do
   let e ← getExpr
-  unless e.isAppOfArity ``atomic_wp 20 do failure
-  let some nA := Tele.literalArity? (e.getArg! 11) | failure
-  let some nB := Tele.literalArity? (e.getArg! 12) | failure
-  let some nP := Tele.literalArity? (e.getArg! 13) | failure
-  let prog ← withNaryArg 14 delab
-  let E ← withNaryArg 15 delab
-  let (xs, α) ← withNaryArg 16 <| Tele.withFun nA fun xs => return (xs, ← delab)
-  let (ys, β) ← withNaryArg 17 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
+  unless e.isAppOfArity ``atomic_wp 17 do failure
+  let some nA := Tele.literalArity? (e.getArg! 8) | failure
+  let some nB := Tele.literalArity? (e.getArg! 9) | failure
+  let some nP := Tele.literalArity? (e.getArg! 10) | failure
+  let prog ← withNaryArg 11 delab
+  let E ← withNaryArg 12 delab
+  let (xs, α) ← withNaryArg 13 <| Tele.withFun nA fun xs => return (xs, ← delab)
+  let (ys, β) ← withNaryArg 14 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
     Tele.withFun nB fun ys => return (ys, ← delab)
-  let (zs, POST) ← withNaryArg 18 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
+  let (zs, POST) ← withNaryArg 15 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
     Tele.withFunUsing nB (ys.map (·.getId)) fun _ =>
       Tele.withFun nP fun zs => do
         let e ← getExpr
@@ -111,7 +108,7 @@ def delabAtomicWp : Delab := do
         | Option.some _ _ => return (zs, some (← unpackIprop (← withNaryArg 1 delab)))
         | Option.none _ => return (zs, none)
         | _ => failure
-  let v ← withNaryArg 19 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
+  let v ← withNaryArg 16 <| Tele.withFunUsing nA (xs.map (·.getId)) fun _ =>
     Tele.withFunUsing nB (ys.map (·.getId)) fun _ =>
       Tele.withFunUsing nP (zs.map (·.getId)) fun _ => delab
   `(iprop(<<{ $[$(← auAllGroup xs)]? $(← unpackIprop α) }>> $prog @ $E

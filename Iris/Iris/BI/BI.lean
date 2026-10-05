@@ -10,7 +10,6 @@ public import Iris.BI.BIBase
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open Iris.Std OFE
@@ -25,7 +24,7 @@ theorem liftRel_eq : liftRel (@Eq α) A B ↔ A = B := by
 /-- Require that a separation logic with carrier type `PROP` fulfills all necessary axioms. -/
 @[rocq_alias bi, rocq_alias BiMixin,
   rocq_alias BiPersistentlyMixin, rocq_alias BiLaterMixin]
-class BI {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) extends COFE PROP, BI.BIBase PROP where
+class BI (PROP : Type _) extends COFE PROP, BI.BIBase PROP where
   entails_refl {P : PROP} : P ⊢ P
   entails_trans {P Q R : PROP} : (P ⊢ Q) → (Q ⊢ R) → P ⊢ R
   equiv_iff {P Q : PROP} : (P = Q) ↔ P ⊣⊢ Q := by rw [(OFE.eq_dist _)]; simp

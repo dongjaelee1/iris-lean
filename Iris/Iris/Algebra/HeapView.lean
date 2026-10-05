@@ -33,7 +33,6 @@ It provides authoritative and fragmental ownership over heap elements with fract
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris
 

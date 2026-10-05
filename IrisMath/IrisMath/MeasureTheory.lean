@@ -11,7 +11,6 @@ public import Iris
 
 @[expose] public section
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI]
 
 noncomputable section
 

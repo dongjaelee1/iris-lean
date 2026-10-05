@@ -18,7 +18,6 @@ The authoritative camera has 2 types of elements:
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 open Iris
 

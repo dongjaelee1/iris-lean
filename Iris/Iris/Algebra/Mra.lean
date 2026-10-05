@@ -19,7 +19,6 @@ coincides with `R`.
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 

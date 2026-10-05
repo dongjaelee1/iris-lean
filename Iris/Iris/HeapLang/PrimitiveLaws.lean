@@ -22,8 +22,6 @@ public import Std.Data.ExtTreeMap
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 namespace Iris.HeapLang
 
 open Iris ProgramLogic Language.Notation Iris.Std FromMathlib

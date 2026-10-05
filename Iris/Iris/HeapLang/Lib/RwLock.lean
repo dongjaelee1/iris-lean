@@ -16,8 +16,6 @@ open BI OFE
 
 @[expose] public section
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-- A general interface for a reader-writer lock. -/
 @[rocq_alias heap_lang.rwlock]

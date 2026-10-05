@@ -10,7 +10,6 @@ public import Iris.BI.Lib.MonoNat
 @[expose] public section
 
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-! # Ghost state for a monotonically increasing non-negative integer -/
 

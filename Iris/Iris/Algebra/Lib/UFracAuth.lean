@@ -21,7 +21,6 @@ fragment's resource to its payload.
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open OFE CMRA UCMRA Auth Iris.Option Iris.OFE.Option UFrac

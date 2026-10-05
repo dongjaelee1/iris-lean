@@ -16,7 +16,6 @@ public import Iris.Std.CoPset
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
 
 namespace Iris
 open Iris.Std BI
@@ -203,7 +202,7 @@ delab_rule BIBase.wand
     `(iprop($(← unpackIprop Q) ={$E₁}▷=∗^[$n] $P))
 
 @[rocq_alias BiBUpd]
-class BIUpdate {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] extends BUpd PROP where
+class BIUpdate (PROP : Type _) [BI PROP] extends BUpd PROP where
   [bupd_ne : OFE.NonExpansive (BUpd.bupd (PROP := PROP))]
   intro {P : PROP} : P ⊢ |==> P
   mono {P Q : PROP} : (P ⊢ Q) → |==> P ⊢ |==> Q
@@ -213,7 +212,7 @@ class BIUpdate {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] exte
 #rocq_ignore BiBUpdMixin "Included in BIUpdate typeclass."
 
 @[rocq_alias BiFUpd]
-class BIFUpdate {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] extends FUpd PROP where
+class BIFUpdate (PROP : Type _) [BI PROP] extends FUpd PROP where
   [ne {E1 E2 : CoPset} : OFE.NonExpansive (iprop(|={E1,E2}=> · : PROP))]
   subset {E1 E2 : CoPset} : E2 ⊆ E1 → ⊢ |={E1,E2}=> |={E2,E1}=> (emp : PROP)
   except0 {E1 E2 : CoPset} {P : PROP} : (◇ |={E1,E2}=> P) ⊢ |={E1,E2}=> P
@@ -226,24 +225,24 @@ class BIFUpdate {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] ext
 #rocq_ignore BiFUpdMixin "Included in BIFUpdate typeclass."
 
 @[rocq_alias BiBUpdFUpd]
-class BIUpdateFUpdate {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] [BIUpdate PROP]
+class BIUpdateFUpdate (PROP : Type _) [BI PROP] [BIUpdate PROP]
     [BIFUpdate PROP] where
   fupd_of_bupd {P : PROP} {E : CoPset} : (|==> P) ⊢ |={E}=> P
 
 @[rocq_alias BiFUpdSbi]
-class BIFUpdateSbi {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] [BIFUpdate PROP]
+class BIFUpdateSbi (PROP : Type _) [BI PROP] [BIFUpdate PROP]
     [Sbi PROP] where
   fupd_keep_siPure {E} E' Pi (R : PROP) :
     (|={E,E'}=> <si_pure> Pi) ∧ (<si_pure> Pi ={E}=∗ R) ⊢ |={E}=> R
-  fupd_siPure_later (E : CoPset) (Pi : SiProp SI) :
+  fupd_siPure_later (E : CoPset) (Pi : SiProp) :
     (▷ |={E}=> <si_pure> Pi) ⊢@{PROP} |={E}=> ▷ ◇ <si_pure> Pi
-  fupd_siPure_sForall_2 (E : CoPset) (Ψi : SiProp SI → Prop) :
+  fupd_siPure_sForall_2 (E : CoPset) (Ψi : SiProp → Prop) :
     (∀ q, ⌜Ψi q⌝ → |={E}=> <si_pure> q) ⊢@{PROP} |={E}=> <si_pure> (sForall Ψi)
 
 @[rocq_alias BiBUpdSbi]
-class BIBUpdateSbi {SI : outParam (Type _)} [SIdx SI] (PROP : Type _) [BI PROP] [BIUpdate PROP]
+class BIBUpdateSbi (PROP : Type _) [BI PROP] [BIUpdate PROP]
     [Sbi PROP] where
-  bupd_siPure (Pi : SiProp SI) : iprop(|==> <si_pure> Pi ⊢@{PROP} <si_pure> Pi)
+  bupd_siPure (Pi : SiProp) : iprop(|==> <si_pure> Pi ⊢@{PROP} <si_pure> Pi)
 
 section BUpdLaws
 
@@ -902,7 +901,7 @@ theorem sForall_eq_forall {Φ : α → PROP} :
   Proves that the Rocq class field `fupd_si_pure_forall_2` for `BIFUpdSbi`
   follows from `BIFUpdateSbi.fupd_siPure_sForall_2`.
 -/
-theorem fupd_siPure_forall_2 {E : CoPset} {A : Sort _} {Φi : A → SiProp SI} :
+theorem fupd_siPure_forall_2 {E : CoPset} {A : Sort _} {Φi : A → SiProp} :
     (∀ x, |={E}=> <si_pure> Φi x) ⊢@{PROP} |={E}=> ∀ x, <si_pure> Φi x :=
   haveI := Sbi.sidxFinite PROP
   calc

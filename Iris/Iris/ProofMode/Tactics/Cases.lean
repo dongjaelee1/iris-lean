@@ -15,9 +15,6 @@ public import Iris.ProofMode.Tactics.Frame
 namespace Iris.ProofMode
 
 public section
-
-variable {SI : Type _} [Iris.SIdx SI]
-
 open BI Iris.Std
 
 @[rocq_alias tac_false_destruct]
@@ -105,8 +102,8 @@ theorem of_emp_sep [BI PROP] {A Q : PROP} (h : A ⊢ Q) : emp ∗ A ⊢ Q := emp
 public meta section
 open Lean Elab Tactic Meta Qq Iris.Std
 
-private def iCasesEmptyConj {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    (bi : Q(BI $prop)) {P} (_hyps : Hyps bi P) (p : Q(Bool)) (A goal : Q($prop)) :
+private def iCasesEmptyConj {prop : Q(Type u)} (bi : Q(BI $prop))
+    {P} (_hyps : Hyps bi P) (p : Q(Bool)) (A goal : Q($prop)) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) := do
   if let .defEq _ ← isDefEqQ A q(iprop(False)) then
     return q(false_elim')
@@ -117,8 +114,8 @@ private def iCasesEmptyConj {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type
   Destruct an existential hypothesis `A` by introducing its witness and
   continuing with the body `B`.
 -/
-private def iCasesExists {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
-    (pat : TSyntax `rcasesPat) (p : Q(Bool)) {P : Q($prop)} (hyps : Hyps bi P) (A goal : Q($prop))
+private def iCasesExists {prop : Q(Type u)} {bi : Q(BI $prop)} (pat : TSyntax `rcasesPat)
+    (p : Q(Bool)) {P : Q($prop)} (hyps : Hyps bi P) (A goal : Q($prop))
     (k : ∀ {P' : Q($prop)}, Hyps bi P' → (p' : Q(Bool)) → (B goal' : Q($prop)) →
       ProofModeM Q($P' ∗ □?$p' $B ⊢ $goal')) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) := do
@@ -145,7 +142,7 @@ private def iCasesExists {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)
   | .none   => return q(exists_elim_spatial' $(← mkPf q(false)))
 
 /-- Destruct a conjunction hypothesis `A` and continue with only its left or right component. -/
-private def iCasesAndLR {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} (bi : Q(BI $prop))
+private def iCasesAndLR {prop : Q(Type u)} (bi : Q(BI $prop))
     (p : Q(Bool)) (P A goal : Q($prop)) (right : Bool)
     (k : (B : Q($prop)) → ProofModeM Q($P ∗ □?$p $B ⊢ $goal)) :
     ProofModeM (Option Q($P ∗ □?$p $A ⊢ $goal)) := do
@@ -160,7 +157,7 @@ private def iCasesAndLR {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
   Destruct a conjunction hypothesis `A` into two parts and continue with the left and right
   subpatterns in sequence.
 -/
-private def iCasesSep {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+private def iCasesSep {prop : Q(Type u)} {bi : Q(BI $prop)}
     {P} (hyps : Hyps bi P) (p : Q(Bool)) (A goal : Q($prop))
     (k : ∀ {P}, Hyps bi P → (goal : Q($prop)) → ProofModeM Q($P ⊢ $goal))
     (k1 k2 : ∀ {P}, Hyps bi P → (goal B : Q($prop)) →
@@ -194,7 +191,7 @@ private def iCasesSep {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {
     return q(sep_elim_spatial (A := $A) $pf)
 
 /-- Destruct a disjunction hypothesis `A` into two cases and continue separately on each branch. -/
-private def iCasesOr {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {bi : Q(BI $prop)}
+private def iCasesOr {prop : Q(Type u)} {bi : Q(BI $prop)}
     (p : Q(Bool)) (P A goal : Q($prop))
     (k1 k2 : (p' : Q(Bool)) → (B : Q($prop)) → ProofModeM Q($P ∗ □?$p' $B ⊢ $goal)) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) := do
@@ -213,8 +210,8 @@ private def iCasesOr {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} {b
 Destruct a persistent hypothesis `A` by turning it into an explicit `□ B` and continuing with
 the persistent body.
 -/
-private def iCasesIntuitionistic {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} (p : Q(Bool)) (P A goal : Q($prop))
+private def iCasesIntuitionistic {prop : Q(Type u)} {bi : Q(BI $prop)}
+    (p : Q(Bool)) (P A goal : Q($prop))
     (k : (B : Q($prop)) → ProofModeM Q($P ∗ □ $B ⊢ $goal)) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) := do
   let B ← mkFreshExprMVarQ q($prop)
@@ -232,8 +229,8 @@ private def iCasesIntuitionistic {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q
 Destruct an affine/spatial hypothesis `A` by removing the affinely wrapper and continuing with
 the spatial body.
 -/
-private def iCasesSpatial {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} (p : Q(Bool)) (P A goal : Q($prop))
+private def iCasesSpatial {prop : Q(Type u)} {bi : Q(BI $prop)}
+    (p : Q(Bool)) (P A goal : Q($prop))
     (k : (B : Q($prop)) → ProofModeM Q($P ∗ $B ⊢ $goal)) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) := do
   let B ← mkFreshExprMVarQ q($prop)
@@ -241,7 +238,7 @@ private def iCasesSpatial {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u
   let _ ← ProofModeM.synthInstanceQ q(FromAffinely $B $A $p)
   return q(spatial_elim $(← k B))
 
-variable {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)} (bi : Q(BI $prop)) in
+variable {prop : Q(Type u)} (bi : Q(BI $prop)) in
 /--
 Recursively destruct the current hypothesis `□?p A` in the proof-mode context `hyps`
 according to the cases pattern `pat`. After the pattern has been processed, the
@@ -259,8 +256,8 @@ possibly an updated goal.
 ## Returns
 A proof of `hyps ∗ □?p A ⊢ goal`.
 -/
-partial def iCasesCore {u} {si : Q(Type w)} {sidx : Q(SIdx $si)} {prop : Q(Type u)}
-    {bi : Q(BI $prop)} {P} (hyps : Hyps bi P) (goal : Q($prop)) (pat : iCasesPat)
+partial def iCasesCore {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {P}
+    (hyps : Hyps bi P) (goal : Q($prop)) (pat : iCasesPat)
     (p : Q(Bool)) (A : Q($prop))
     (k : ∀ {P}, Hyps bi P → (goal' : Q($prop)) → ProofModeM Q($P ⊢ $goal') := addBIGoal) :
     ProofModeM (Q($P ∗ □?$p $A ⊢ $goal)) :=

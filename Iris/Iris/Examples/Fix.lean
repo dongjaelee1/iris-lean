@@ -10,7 +10,6 @@ public import Iris.Algebra.COFESolver
 
 @[expose] public section
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-!
 Every OFE is Leibniz, so the fold/unfold isomorphisms of the recursive domain equation solver's

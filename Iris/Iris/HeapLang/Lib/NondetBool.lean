@@ -9,8 +9,6 @@ public import Iris.HeapLang.ProofMode
 public import Iris.HeapLang.PrimitiveLaws
 public import Iris.Instances.Lib.Invariants
 
--- `SI : Type`: the invariant machinery (`WsatGS`) forces the step-index type into `Type`.
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 namespace Iris.HeapLang
 

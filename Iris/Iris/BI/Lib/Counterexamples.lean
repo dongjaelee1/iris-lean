@@ -10,8 +10,6 @@ public import Iris.ProofMode
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace Iris
 
 open Iris.Std BI ProofMode
@@ -557,7 +555,7 @@ variable {lc : PROP}
 variable (lc_fupd_elim_later : ∀ E P, lc ∗ ▷ P ⊢ |={E}=> P)
 variable (lc_soundness : ∀ P [Plain P] E, (lc ⊢ |={E}=> P) → ⊢ P)
 
-variable (fupd_keep_si_pure' : ∀ {E : CoPset} (E' : CoPset) (Pi : SiProp SI) (R : PROP),
+variable (fupd_keep_si_pure' : ∀ {E : CoPset} (E' : CoPset) (Pi : SiProp) (R : PROP),
   (|={E,E'}=> <si_pure> Pi) ∧ (<si_pure> Pi ={E}=∗ R) ⊢ |={E}=> R)
 
 include lc_fupd_elim_later fupd_keep_si_pure' in

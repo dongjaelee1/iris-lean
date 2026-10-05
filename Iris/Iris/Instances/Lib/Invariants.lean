@@ -15,8 +15,6 @@ public import Iris.Std.CoPset
 import Iris.Instances.Lib.WSat
 
 @[expose] public section
--- `SI : Type` because of `WsatGS` (see `WSat.lean`).
-variable {SI : Type} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-! ## Invariants -/
 

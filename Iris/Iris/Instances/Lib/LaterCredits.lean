@@ -15,7 +15,6 @@ public import Iris.Instances.IProp
 
 @[expose] public section
 universe usi
-variable {SI : Type usi} [Iris.SIdx SI] [Iris.SIdxFinite SI]
 
 /-! ## Later credits -/
 

@@ -11,8 +11,6 @@ public import Iris.Algebra.Numbers
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace Iris
 
 @[rocq_alias mono_nat]

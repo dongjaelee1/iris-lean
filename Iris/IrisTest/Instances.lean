@@ -15,8 +15,6 @@ public import Iris.ProofMode.NatCancel
 
 @[expose] public section
 
-variable {SI : Type _} [Iris.SIdx SI]
-
 namespace IrisTest
 open Lean Qq Iris BI ProofMode
 
@@ -107,35 +105,12 @@ variable [BI PROP] (P1 : PROP)
 /--
 info: solution: FromAssumption false InOut.out P1 P1, new goals: []
 ---
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
-[Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
----
 trace: [Meta.synthInstance] ✅️ IPM: FromAssumption false InOut.out P1 P1
   [Meta.synthInstance] ✅️ IPM: new goal FromAssumption false InOut.out ?_ P1 => FromAssumption false InOut.out P1 P1
     [Meta.synthInstance.tactics] []
     [Meta.synthInstance.instances] #[@fromAssumption_exact]
     [Meta.synthInstance] ✅️ apply @fromAssumption_exact to FromAssumption false InOut.out ?_ P1
       [Meta.synthInstance.tryResolve] ✅️ FromAssumption false InOut.out P1 P1 ≟ FromAssumption false InOut.out P1 P1
-      [Meta.synthInstance] ✅️ switch to normal synthInstance
-        [Meta.synthInstance] ✅️ SIdx SI
-          [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-            [Meta.synthInstance.instances] #[inst✝¹]
-          [Meta.synthInstance.apply] ✅️ apply inst✝¹ to SIdx SI
-            [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-            [Meta.synthInstance.answer] ✅️ SIdx SI
-          [Meta.synthInstance] result inst✝¹
       [Meta.synthInstance] ✅️ switch to normal synthInstance
         [Meta.synthInstance] ✅️ BI PROP
           [Meta.synthInstance] ✅️ new goal BI PROP
@@ -146,14 +121,7 @@ trace: [Meta.synthInstance] ✅️ IPM: FromAssumption false InOut.out P1 P1
           [Meta.synthInstance] result inst✝
   [Meta.synthInstance] result fromAssumption_exact false InOut.out P1
 ---
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝¹]
-  [Meta.synthInstance.apply] ✅️ apply inst✝¹ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝¹
-[Meta.synthInstance] ✅️ BI PROP
+trace: [Meta.synthInstance] ✅️ BI PROP
   [Meta.synthInstance] ✅️ new goal BI PROP
     [Meta.synthInstance.instances] #[@Sbi.toBI, inst✝]
   [Meta.synthInstance.apply] ✅️ apply inst✝ to BI PROP
@@ -183,10 +151,8 @@ theorem tactic_test_emp [BI PROP] (P : PROP) : TacticTest iprop(emp ∗ P) P := 
 
 @[ipm_tactic_instance TacticTest iprop(emp ∗ _) _]
 def tac_emp : SynthTactic := fun e => do
-  let_expr TacticTest si sidx prop bi P _ := e | return .continue
-  let [w, u] := e.getAppFn.constLevels! | return .continue
-  have si : Q(Type w) := si
-  have _sidx : Q(SIdx $si) := sidx
+  let_expr TacticTest prop bi P _ := e | return .continue
+  have u := e.getAppFn.constLevels![0]!
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   let_expr BI.sep _ _ E Q := P | return .continue
@@ -200,10 +166,8 @@ theorem tactic_test_sep [BI PROP] (P P' Q : PROP) :
 
 @[ipm_tactic_instance TacticTest iprop(_ ∗ _) _]
 def tac_sep : SynthTactic := fun e => do
-  let_expr TacticTest si sidx prop bi S _ := e | return .continue
-  let [w, u] := e.getAppFn.constLevels! | return .continue
-  have si : Q(Type w) := si
-  have _sidx : Q(SIdx $si) := sidx
+  let_expr TacticTest prop bi S _ := e | return .continue
+  have u := e.getAppFn.constLevels![0]!
   have prop : Q(Type u) := prop
   have _bi : Q(BI $prop) := bi
   let_expr BI.sep _ _ P Q := S | return .continue
@@ -229,14 +193,6 @@ info: tac_continue called with TacticTest iprop(emp ∗ P) ?_
 ---
 info: solution: TacticTest iprop(emp ∗ P) P, new goals: []
 ---
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
----
 trace: [Meta.synthInstance] ✅️ IPM: TacticTest iprop(emp ∗ P) P
   [Meta.synthInstance] ✅️ IPM: new goal TacticTest iprop(emp ∗ P) ?_ => TacticTest iprop(emp ∗ P) P
     [Meta.synthInstance.tactics] [IrisTest.tac_sep:1000, IrisTest.tac_emp:1000, IrisTest.tac_continue:10000]
@@ -257,14 +213,6 @@ info: tac_continue called with TacticTest iprop((emp ∗ P) ∗ P) ?_
 info: tac_continue called with TacticTest iprop(emp ∗ P) ?_
 ---
 info: solution: TacticTest iprop((emp ∗ P) ∗ P) iprop(P ∗ P), new goals: []
----
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
 ---
 trace: [Meta.synthInstance] ✅️ IPM: TacticTest iprop((emp ∗ P) ∗ P) iprop(P ∗ P)
   [Meta.synthInstance] ✅️ IPM: new goal TacticTest iprop((emp ∗ P) ∗ P)
@@ -296,14 +244,6 @@ info: tac_continue called with TacticTest iprop(emp ∗ ⌜a = 5⌝) ?_
 ---
 info: solution: TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P) iprop(∀ a, ⌜a = 5⌝ ∗ P), new goals: []
 ---
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
----
 trace: [Meta.synthInstance] ✅️ IPM: TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P) iprop(∀ a, ⌜a = 5⌝ ∗ P)
   [Meta.synthInstance] ✅️ IPM: new goal TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P)
         ?_ => TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P) iprop(∀ a, ⌜a = 5⌝ ∗ P)
@@ -314,14 +254,6 @@ trace: [Meta.synthInstance] ✅️ IPM: TacticTest iprop(∀ a, (emp ∗ ⌜a = 
     [Meta.synthInstance] ✅️ apply @tactic_test_all to TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P) ?_
       [Meta.synthInstance.tryResolve] ✅️ TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P)
             iprop(∀ a, ?_ a) ≟ TacticTest iprop(∀ a, (emp ∗ ⌜a = 5⌝) ∗ P) iprop(∀ a, ?_ a)
-      [Meta.synthInstance] ✅️ switch to normal synthInstance
-        [Meta.synthInstance] ✅️ SIdx SI
-          [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-            [Meta.synthInstance.instances] #[inst✝¹]
-          [Meta.synthInstance.apply] ✅️ apply inst✝¹ to SIdx SI
-            [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-            [Meta.synthInstance.answer] ✅️ SIdx SI
-          [Meta.synthInstance] result inst✝¹
       [Meta.synthInstance] ✅️ switch to normal synthInstance
         [Meta.synthInstance] ✅️ BI PROP
           [Meta.synthInstance] ✅️ new goal BI PROP
@@ -359,14 +291,6 @@ set_option pp.mvars false in
 info: tac_continue called with TacticTest iprop(True) ?_
 ---
 info: None
----
-trace: [Meta.synthInstance] ✅️ SIdx SI
-  [Meta.synthInstance] ✅️ new goal SIdx _tc.1
-    [Meta.synthInstance.instances] #[inst✝]
-  [Meta.synthInstance.apply] ✅️ apply inst✝ to SIdx SI
-    [Meta.synthInstance.tryResolve] ✅️ SIdx SI ≟ SIdx SI
-    [Meta.synthInstance.answer] ✅️ SIdx SI
-  [Meta.synthInstance] result inst✝
 ---
 trace: [Meta.synthInstance] ❌️ IPM: TacticTest iprop(True) ?_
   [Meta.synthInstance] ❌️ IPM: new goal TacticTest iprop(True) ?_ => TacticTest iprop(True) ?_
@@ -577,7 +501,7 @@ variable [BI PROP] (P Q : PROP) (φ : Prop)
 -/
 #guard_msgs (whitespace := lax) in
 set_option pp.funBinderTypes true in
-#ipm_synth (@IntoForall _ _ PROP _ iprop(⌜φ⌝ -∗ Q) (_ : Prop) _)
+#ipm_synth (@IntoForall PROP _ iprop(⌜φ⌝ -∗ Q) (_ : Prop) _)
 
 /-
   The instance `intoForall_imp` has lower priority than `intoForall_imp_pure`
@@ -589,7 +513,7 @@ set_option pp.funBinderTypes true in
 #guard_msgs (whitespace := lax) in
 set_option pp.funBinderTypes true in
 variable [BIAffine PROP] in
-#ipm_synth (@IntoForall _ _ PROP _ iprop(⌜φ⌝ → Q) (_ : Prop) _)
+#ipm_synth (@IntoForall PROP _ iprop(⌜φ⌝ → Q) (_ : Prop) _)
 
 /-
   Tests `IntoPure` synthesis using `intoPure_forall`.
@@ -712,7 +636,7 @@ set_option pp.mvars false in
   new goals: []
 -/
 #guard_msgs (whitespace := lax) in
-#ipm_synth @FromForall _ _ PROP _ iprop(|={E,E}=> ∀ x, Ψ x) (_ : Type) _
+#ipm_synth @FromForall PROP _ iprop(|={E,E}=> ∀ x, Ψ x) (_ : Type) _
 
 /- Tests `fromForall_fupd` with the side condition `E ⊆ ⊤` discharged. -/
 /-- info:
@@ -720,7 +644,7 @@ set_option pp.mvars false in
   new goals: []
 -/
 #guard_msgs (whitespace := lax) in
-#ipm_synth @FromForall _ _ PROP _ iprop(|={⊤,E}=> ∀ x, Ψ x) (_ : Type) _
+#ipm_synth @FromForall PROP _ iprop(|={⊤,E}=> ∀ x, Ψ x) (_ : Type) _
 
 /- Tests `fromForall_fupd` with the side condition `∅ ⊆ E` discharged. -/
 /-- info:
@@ -728,13 +652,13 @@ set_option pp.mvars false in
   new goals: []
 -/
 #guard_msgs (whitespace := lax) in
-#ipm_synth @FromForall _ _ PROP _ iprop(|={E,∅}=> ∀ x, Ψ x) (_ : Type) _
+#ipm_synth @FromForall PROP _ iprop(|={E,∅}=> ∀ x, Ψ x) (_ : Type) _
 
 /- Tests `fromForall_fupd` with mvar, which should not be instantiated. -/
 /-- info: None -/
 #guard_msgs (whitespace := lax) in
 set_option pp.mvars false in
-#ipm_synth @FromForall _ _ PROP _ iprop(|={E,_}=> ∀ x, Ψ x) (_ : Type) _
+#ipm_synth @FromForall PROP _ iprop(|={E,_}=> ∀ x, Ψ x) (_ : Type) _
 
 end TCSideCondition
 
