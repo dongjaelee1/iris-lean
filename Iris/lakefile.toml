@@ -13,6 +13,12 @@ name = "batteries"
 scope = "leanprover-community"
 rev = "v4.34.0"
 
+# The ordinals library of this repository (no further dependencies). The ordinal choice file of
+# `Iris/Algebra/StepIndexChoice.lean` uses it.
+[[require]]
+name = "ordinals"
+path = "../Ordinals"
+
 [[lean_lib]]
 name = "Iris"
 

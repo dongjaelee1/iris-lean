@@ -27,6 +27,13 @@ jobs:
       - name: Check Iris.lean, Init.lean and other entry-point module imports
         working-directory: Iris
         run: lake exe check-imports Iris
+      # The Ordinals package is a path dependency of Iris, so the Iris build above has already
+      # built most of it. This step builds the rest and runs its tests (a few seconds).
+      - name: Build and test the Ordinals library
+        working-directory: Ordinals
+        run: |
+          lake build --wfail
+          lake test
       - name: Dump porting data
         working-directory: Iris
         run: lake exe dumpPortingData
