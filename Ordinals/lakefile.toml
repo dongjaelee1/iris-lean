@@ -1,0 +1,15 @@
+name = "ordinals"
+version = "0.1.0"
+defaultTargets = ["Ordinals"]
+testDriver = "OrdinalsTest"
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "Ordinals"
+
+[[lean_lib]]
+name = "OrdinalsTest"
+globs = ["OrdinalsTest.+"]
