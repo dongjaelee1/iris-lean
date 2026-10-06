@@ -48,25 +48,28 @@ section CounterProof
 
 variable {GF : BundledGFunctors} [HeapLangGS hlc GF]
 
-/-- The shared counter invariant: the location holds `n`, tracked by the ghost state `A n`. -/
+/-- The shared counter invariant: the location holds `n`, tracked by the ghost state `A n`.
+
+The proofs below take the invariant apart with a `>` pattern, so they need a timeless `A n`. This
+works for every type of step-indices (an `∃` under `▷` needs finite step-indices). -/
 abbrev counterInv (A : Nat → IProp GF) (l : Loc) : IProp GF := iprop%
   ∃ n : Nat, A n ∗ l ↦ some hl_val(#n)
 
-private theorem incr_spec {A : Nat → IProp GF} (P : IProp GF) (Q : IProp GF) (l : Loc)
+private theorem incr_spec {A : Nat → IProp GF} [∀ n, Timeless (A n)] (P : IProp GF) (Q : IProp GF) (l : Loc)
     (hupd : ∀ c : Nat, iprop(A c ∗ P) ⊢ iprop(|==> (A (c + 1) ∗ Q))) :
     {{ inv N (counterInv A l) ∧ P }} hl(&incr #l) {{ RET hl_val(#()); Q }} := by
   iintro %Φ ⟨#Hinv, HP⟩ Hφ
   iloeb as IH
   wp_rec
   wp_bind !_
-  iinv Hinv with ⟨%c, HA, Hl⟩ Hclose
+  iinv Hinv with >⟨%c, HA, Hl⟩ Hclose
   wp_load
   imod Hclose $$ [HA Hl] with -
   · inext; iexists c; iframe
   imodintro
   wp_pures
   wp_bind cmpXchg(_, _, _)
-  iinv Hinv with ⟨%c', HA, Hl⟩ Hclose
+  iinv Hinv with >⟨%c', HA, Hl⟩ Hclose
   wp_cmpxchg with hsuc hfail
   · obtain rfl : c = c' := by grind
     imod hupd c $$ [$HA $HP] with ⟨HA, HQ⟩
@@ -81,12 +84,12 @@ private theorem incr_spec {A : Nat → IProp GF} (P : IProp GF) (Q : IProp GF) (
     wp_pures
     iapply IH $$ HP Hφ
 
-private theorem read_spec {A : Nat → IProp GF} (P : IProp GF) (Ψ : Nat → IProp GF) (l : Loc)
+private theorem read_spec {A : Nat → IProp GF} [∀ n, Timeless (A n)] (P : IProp GF) (Ψ : Nat → IProp GF) (l : Loc)
     (hupd : ∀ c : Nat, iprop(A c ∗ P) ⊢ iprop(|==> (A c ∗ Ψ c))) :
     {{ inv N (counterInv A l) ∧ P }} hl(&read #l) {{ c, RET hl_val(#c); Ψ c }} := by
   iintro %Φ ⟨#Hinv, HP⟩ Hφ
   wp_lam
-  iinv Hinv with ⟨%c, HA, Hl⟩ Hclose
+  iinv Hinv with >⟨%c, HA, Hl⟩ Hclose
   wp_load
   imod hupd c $$ [$HA $HP] with ⟨HA, HΨ⟩
   imod Hclose $$ [HA Hl] with -
@@ -117,6 +120,9 @@ abbrev mcounterAuth (γ : GName) (n : Nat) : IProp GF := iOwn (F := MCounterRF) 
 
 /-- A lower-bound fragment of the monotone counter. -/
 abbrev mcounterFrag (γ : GName) (n : Nat) : IProp GF := iOwn (F := MCounterRF) γ (◯ MaxNat.ofNat n)
+
+instance mcounterAuth_timeless (γ : GName) (n : Nat) : Timeless (mcounterAuth (GF := GF) γ n) :=
+  iOwn_timeless
 
 @[rocq_alias heap_lang.mcounter_inv]
 abbrev mcounterInv (γ : GName) (l : Loc) : IProp GF := counterInv (mcounterAuth γ) l
@@ -209,6 +215,9 @@ variable {GF : BundledGFunctors} [HeapLangGS hlc GF] [CCounterG GF] (N : Namespa
 
 /-- The authoritative element of the counter with contributions. -/
 abbrev ccounterAuth (γ : GName) (n : Nat) : IProp GF := iOwn (F := CCounterRF) γ (●F n)
+
+instance ccounterAuth_timeless (γ : GName) (n : Nat) : Timeless (ccounterAuth (GF := GF) γ n) :=
+  iOwn_timeless
 
 @[rocq_alias heap_lang.ccounter_inv]
 abbrev ccounterInv (γ : GName) (l : Loc) : IProp GF := counterInv (ccounterAuth γ) l

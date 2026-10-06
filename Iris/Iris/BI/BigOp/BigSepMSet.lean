@@ -130,19 +130,19 @@ instance bigSepMS_empty_affine_inst {Φ : A → PROP} :
 @[rocq_alias big_sepMS_empty_timeless]
 instance bigSepMS_empty_timeless_inst [Timeless (emp : PROP)] {Φ : A → PROP} :
     Timeless ([∗mset] x ∈ (∅ : MS), Φ x) where
-  timeless := (later_congr bigSepMS_empty).1.trans <|
-    Timeless.timeless.trans <| except0_mono bigSepMS_empty.2
+  timeless := (only0_congr bigSepMS_empty).1.trans <|
+    Timeless.timeless.trans bigSepMS_empty.2
 
 @[rocq_alias big_sepMS_timeless]
-theorem bigSepMS_timeless [SIdxFinite SI] [Timeless (emp : PROP)] {Φ : A → PROP} {X : MS}
+theorem bigSepMS_timeless [Timeless (emp : PROP)] {Φ : A → PROP} {X : MS}
     (h : ∀ {x}, x ∈ X → Timeless (Φ x)) :
     Timeless ([∗mset] x ∈ X, Φ x) where
-  timeless := bigOpMS_closed (fun Q => ▷ Q ⊢ ◇ Q) Φ X Timeless.timeless
-    (fun hx hy => later_sep_1.trans <| (sep_mono hx hy).trans except0_sep.2)
+  timeless := bigOpMS_closed (fun Q => <only0> Q ⊢ Q) Φ X Timeless.timeless
+    (fun hx hy => only0_sep.1.trans (sep_mono hx hy))
     (fun hm => (h hm).timeless)
 
 @[rocq_alias big_sepMS_timeless']
-instance bigSepMS_timeless_inst [SIdxFinite SI] [Timeless (emp : PROP)] {Φ : A → PROP} {X : MS}
+instance bigSepMS_timeless_inst [Timeless (emp : PROP)] {Φ : A → PROP} {X : MS}
     [h : ∀ x, Timeless (Φ x)] :
     Timeless ([∗mset] x ∈ X, Φ x) :=
   bigSepMS_timeless fun _ => h _

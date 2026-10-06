@@ -241,26 +241,24 @@ instance bigSepM2_affine_inst {Φ : K → A → B → PROP} {m1 : M A} {m2 : M B
   bigSepM2_affine Φ m1 m2 fun _ _ => h _ _ _
 
 @[rocq_alias big_sepM2_timeless]
-theorem bigSepM2_timeless [SIdxFinite SI] [Timeless (emp : PROP)] (Φ : K → A → B → PROP)
+theorem bigSepM2_timeless [Timeless (emp : PROP)] (Φ : K → A → B → PROP)
     (m1 : M A) (m2 : M B)
     (h : ∀ {k x1 x2}, get? m1 k = some x1 → get? m2 k = some x2 → Timeless (Φ k x1 x2)) :
     Timeless ([∗map] k ↦ x1;x2 ∈ m1;m2, Φ k x1 x2) :=
   bigSepM2_closed Timeless Φ m1 m2
-    (fun hQ => ⟨fun hP => ⟨later_mono hQ.2 |>.trans <| hP.timeless.trans <|
-      except0_mono hQ.1⟩, fun hP => ⟨later_mono hQ.1 |>.trans <|
-      hP.timeless.trans <| except0_mono hQ.2⟩⟩)
+    (fun hQ => ⟨fun hP => ⟨(only0_mono hQ.2).trans <| hP.timeless.trans hQ.1⟩,
+      fun hP => ⟨(only0_mono hQ.1).trans <| hP.timeless.trans hQ.2⟩⟩)
     inferInstance inferInstance
-    (fun _ _ hP hQ => ⟨later_sep_1.trans <| (sep_mono hP.timeless hQ.timeless).trans
-      except0_sep.2⟩) h
+    (fun _ _ hP hQ => ⟨only0_sep.1.trans <| sep_mono hP.timeless hQ.timeless⟩) h
 
 @[rocq_alias big_sepM2_empty_timeless]
 instance bigSepM2_empty_timeless_inst [Timeless (emp : PROP)] (Φ : K → A → B → PROP) :
     Timeless ([∗map] k ↦ x1;x2 ∈ (∅ : M A);(∅ : M B), Φ k x1 x2) where
-  timeless := (later_congr (bigSepM2_empty Φ)).1.trans <|
-    Timeless.timeless.trans <| except0_mono (bigSepM2_empty Φ).2
+  timeless := (only0_congr (bigSepM2_empty Φ)).1.trans <|
+    Timeless.timeless.trans (bigSepM2_empty Φ).2
 
 @[rocq_alias big_sepM2_timeless']
-instance bigSepM2_timeless_inst [SIdxFinite SI] [Timeless (emp : PROP)] {Φ : K → A → B → PROP}
+instance bigSepM2_timeless_inst [Timeless (emp : PROP)] {Φ : K → A → B → PROP}
     {m1 : M A} {m2 : M B} [h : ∀ k x1 x2, Timeless (Φ k x1 x2)] :
     Timeless ([∗map] k ↦ x1;x2 ∈ m1;m2, Φ k x1 x2) :=
   bigSepM2_timeless Φ m1 m2 fun _ _ => h _ _ _
@@ -533,7 +531,7 @@ theorem bigSepM2_lookup_acc_impl [DecidableEq K] {Φ : K → A → B → PROP}
 theorem bigSepM2_later_1 [SIdxFinite SI] [BIAffine PROP] {Φ : K → A → B → PROP} {m1 : M A} {m2 : M B} :
     (▷ [∗map] k ↦ x1;x2 ∈ m1;m2, Φ k x1 x2) ⊢ ◇ [∗map] k ↦ x1;x2 ∈ m1;m2, ▷ Φ k x1 x2 := by
   refine (later_mono bigSepM2_alt.mp).trans <| later_and.1.trans ?_
-  refine (and_mono Timeless.timeless (bigSepM_later.1.trans except0_intro)).trans ?_
+  refine (and_mono timeless_except0.1 (bigSepM_later.1.trans except0_intro)).trans ?_
   exact except0_and.2.trans <| except0_mono (bigSepM2_alt (Φ := fun k x1 x2 => iprop(▷ Φ k x1 x2))).mpr
 
 @[rocq_alias big_sepM2_later_2]

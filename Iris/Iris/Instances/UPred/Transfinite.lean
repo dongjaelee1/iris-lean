@@ -15,9 +15,8 @@ This file ports the parts of Transfinite Iris's `base_logic/upred.v`, `base_logi
 
 - soundness of the big later `⧍` for transfinite step-indices (`big_later_soundness`,
   `big_laterN_soundness`, `transfinite_soundness`),
-- timelessness of `∗` and `∃` in the model for arbitrary step-indices (`timeless_zero`,
-  `later_sep_timeless`, `later_exist_timeless`), which the generic BI laws only provide for finite
-  step-indices,
+- `▷` commutes with `∗` and `∃` of timeless propositions in the model, for every type of
+  step-indices (`later_sep_timeless`, `later_exist_timeless`),
 - the satisfiability predicate (`UPred.satisfiable`, instance `Satisfiable (UPred M)`), whose
   existential rule holds for large step-indices (`SIdxLarge`),
 - `later_or_is_classical` (`dec_halting`): commuting `▷` with `∨` at a limit index decides a
@@ -72,23 +71,10 @@ theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) :
 
 /-! ## Timelessness in the model -/
 
-/-- A timeless proposition that holds at index `0` holds (Transfinite Iris, `timeless_zero`). -/
+/-- A timeless proposition that holds at index `0` holds (Transfinite Iris, `timeless_zero`).
+This is now the definition of `Timeless`. -/
 @[rocq_alias uPred_primitive.timeless_zero]
-theorem timeless_zero (P : UPred M) [Timeless P] : iprop(▷ False → P) ⊢ P := by
-  intro n
-  induction n using instSIdxSI.lt_wf.induction with
-  | h n ih =>
-    intro x H
-    by_cases hn : n = 0
-    · subst hn
-      exact H x (inc_refl _) SIdx.le_refl fun m hm => absurd hm (SIdx.not_lt_zero m)
-    · have hlater : iprop(▷ P).holds n x := fun m hm =>
-        ih m hm (x.le (SIdx.lt_le_incl hm))
-          fun {_} y hy hk HF => H y hy (SIdx.le_trans hk (SIdx.lt_le_incl hm)) HF
-      have ht : iprop(▷ P ⊢ ◇ P) := Timeless.timeless
-      rcases ht n x hlater with HF | HP
-      · exact absurd (HF 0 (SIdx.neq_0_lt_0.mp hn)) id
-      · exact HP
+theorem timeless_zero (P : UPred M) [Timeless P] : iprop(▷ False → P) ⊢ P := Timeless.timeless
 
 /-- `P` holds at index `0` (as a proposition of the model). -/
 private theorem holds_of_zero {P : UPred M} [Timeless P] {n : SI} {x : ValidAt M n} {x0 : M}
@@ -113,12 +99,6 @@ theorem later_sep_timeless (P Q : UPred M) [Timeless P] [Timeless Q] :
     · exact holds_of_zero H2 Hy1.symm.to_incN
     · exact holds_of_zero H3 Hy2.symm.to_incN
 
-/-- In the model, `∗` of timeless propositions is timeless for arbitrary step-indices (the
-generic `sep_timeless` requires finite step-indices). -/
-instance sep_timeless' (P Q : UPred M) [Timeless P] [Timeless Q] : Timeless iprop(P ∗ Q) where
-  timeless := (later_sep_timeless P Q).1.trans <|
-    (sep_mono Timeless.timeless Timeless.timeless).trans except0_sep.2
-
 @[rocq_alias uPred_primitive.later_exist_timeless]
 theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
     iprop(▷ ∃ a, Ψ a) ⊢ iprop(▷ False ∨ ∃ a, ▷ Ψ a) := by
@@ -127,14 +107,6 @@ theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless 
   · subst hn; exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
   · obtain ⟨_, ⟨a, rfl⟩, Ha⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
     exact .inr ⟨_, ⟨a, rfl⟩, fun m _ => holds_of_zero Ha (incN_refl _)⟩
-
-/-- In the model, `∃` of timeless propositions is timeless for arbitrary step-indices (the
-generic `exists_timeless` requires finite step-indices). -/
-instance exists_timeless' {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
-    Timeless iprop(∃ a, Ψ a) where
-  timeless := (later_exist_timeless Ψ).trans <|
-    or_elim or_intro_l (exists_elim fun a =>
-      Timeless.timeless.trans (except0_mono (exists_intro a)))
 
 /-! ## Satisfiability -/
 

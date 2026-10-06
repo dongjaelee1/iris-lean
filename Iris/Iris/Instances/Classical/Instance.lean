@@ -15,7 +15,11 @@ universe s
 namespace Iris.Instances.Classical
 open Iris.BI Iris.Instances.Data Iris.Std
 
-/- Instance of `BIBase` and `BI` for classical (non-affine) separation logic. -/
+/- Instance of `BIBase` and `BI` for classical (non-affine) separation logic.
+
+The logic is not step-indexed, thus `▷ P` is `True`. This is the canonical choice for a logic
+without step-indices (Rocq, `bi_later_mixin_True`). With `▷ P := P`, the law
+`later_false_impl_sExists` is false. -/
 
 abbrev HeapProp (Val : Type _) := State Val → Prop
 
@@ -31,7 +35,7 @@ instance : BIBase (HeapProp Val) where
   sep P Q        σ := ∃ σ1 σ2, σ = σ1 ∪ σ2 ∧ σ1 || σ2 ∧ P σ1 ∧ Q σ2
   wand P Q       σ := ∀ σ', σ || σ' → P σ' → Q (σ ∪ σ')
   persistently P _ := P ∅
-  later P        σ := P σ
+  later _        _ := True
 
 instance heapPropPreorder : Std.IsPreorder (HeapProp Val) where
   le_refl := by
@@ -253,15 +257,21 @@ instance : BI (HeapProp Val) where
     · exact h_P
     · exact h_Q
 
-  later_mono := id
-  later_intro _ := id
-  later_sForall_2 _ h _ hp := h _ ⟨_, rfl⟩ hp
-  later_sExists_false _ := fun ⟨p, hp⟩ => .inr ⟨_, ⟨_, rfl⟩, hp⟩
-  later_sep_1 _ := id
-  later_sep_2 _ := id
-  later_or_1 _ := id
-  later_persistently := ⟨fun _ => id, fun _ => id⟩
-  later_false_em _ h := .inr fun _ => h
+  later_mono _ _ _ := trivial
+  later_intro _ _ := trivial
+  later_sForall_2 _ _ := trivial
+  later_false_impl_sExists _ h :=
+    let ⟨p, hΦ, hp⟩ := h trivial
+    ⟨_, ⟨p, rfl⟩, hΦ, fun _ => hp⟩
+  later_sExists_false _ _ := .inl trivial
+  later_false_impl_sep _ h :=
+    let ⟨σ1, σ2, hσ, hdisj, hP, hQ⟩ := h trivial
+    ⟨σ1, σ2, hσ, hdisj, fun _ => hP, fun _ => hQ⟩
+  later_sep_1 _ _ := ⟨∅, _, empty_union, empty_disjoint, trivial, trivial⟩
+  later_sep_2 _ _ := trivial
+  later_or_1 _ _ := .inl trivial
+  later_persistently := ⟨fun _ _ => trivial, fun _ _ => trivial⟩
+  later_false_em _ _ := .inl trivial
 
 end Classical
 

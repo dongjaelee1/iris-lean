@@ -200,14 +200,14 @@ instance bigOrL_persistent_inst {Φ : Nat → A → PROP} {l : List A} [∀ k x,
 @[rocq_alias big_orL_nil_timeless]
 instance bigOrL_nil_timeless {Φ : Nat → A → PROP} :
     Timeless ([∨list] k ↦ x ∈ ([] : List A), Φ k x) where
-  timeless := by simpa only [bigOpL, except0] using or_intro_l
+  timeless := by simpa only [bigOpL] using (only0_pure (φ := False) (PROP := PROP)).1
 
 @[rocq_alias big_orL_timeless]
 theorem bigOrL_timeless {Φ : Nat → A → PROP} {l : List A}
     (h : ∀ {k x}, l[k]? = some x → Timeless (Φ k x)) :
     Timeless ([∨list] k ↦ x ∈ l, Φ k x) where
-  timeless := bigOpL_closed (P := fun Q => ▷ Q ⊢ ◇ Q) or_intro_l
-    (later_or.1.trans <| or_mono · ·|>.trans except0_or.2) (h ·|>.timeless)
+  timeless := bigOpL_closed (P := fun Q => <only0> Q ⊢ Q) only0_pure.1
+    (only0_or.1.trans <| or_mono · ·) (h ·|>.timeless)
 
 @[rocq_alias big_orL_timeless']
 instance bigOrL_timeless_inst {Φ : Nat → A → PROP} {l : List A} [∀ k x, Timeless (Φ k x)] :

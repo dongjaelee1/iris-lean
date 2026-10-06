@@ -392,6 +392,11 @@ instance instBIUPred : BI (UPred M) where
   later_mono H _ _ Hl m hm := H _ _ (Hl m hm)
   later_intro {P} _ _ Hp m hm := P.mono Hp (incN_refl _) (SIdx.lt_le_incl hm)
   later_sForall_2 {Ψ} _ x H m hm p hp := H _ ⟨p, rfl⟩ x (inc_refl _) SIdx.le_refl hp m hm
+  later_false_impl_sExists {Φ} n x H := by
+    obtain ⟨p, hΦ, hp⟩ := H (x.le SIdx.le_0_l) (inc_refl _) SIdx.le_0_l
+      fun m hm => absurd hm (SIdx.not_lt_zero m)
+    exact ⟨_, ⟨p, rfl⟩, hΦ, fun _ hx' hn' hF =>
+      p.mono hp hx'.incN (SIdx.le_ngt.mpr (hF 0))⟩
   later_sExists_false := by
     intro _ Φ n x H
     rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
@@ -400,6 +405,15 @@ instance instBIUPred : BI (UPred M) where
       refine .inr ⟨UPred.later p', ⟨p', ?_⟩,
         fun m hm => p'.mono H' (incN_refl _) (SIdx.lt_succ_r.mp hm)⟩
       ext n x; exact and_iff_right Hp'
+  later_false_impl_sep {P Q} n x H := by
+    obtain ⟨x1, x2, H1, H2, H3⟩ := H (x.le SIdx.le_0_l) (inc_refl _) SIdx.le_0_l
+      fun m hm => absurd hm (SIdx.not_lt_zero m)
+    obtain ⟨y1, y2, Hx, Hy1, Hy2⟩ := extend (validN_of_le SIdx.le_0_l x.property) H1
+    refine ⟨y1, y2, Hx.dist, fun _ hx' _ hF => ?_, fun _ hx' _ hF => ?_⟩
+    · exact P.mono H2 (incN_trans (Hy1.symm.le (SIdx.le_ngt.mpr (hF 0))).to_incN hx'.incN)
+        (SIdx.le_ngt.mpr (hF 0))
+    · exact Q.mono H3 (incN_trans (Hy2.symm.le (SIdx.le_ngt.mpr (hF 0))).to_incN hx'.incN)
+        (SIdx.le_ngt.mpr (hF 0))
   later_sep_1 := by
     intro _ P Q n x H
     rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
@@ -482,6 +496,8 @@ instance instBIUPred : BI (UPred M) where
 #rocq_ignore uPred_primitive.later_persistently_1 "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_persistently_2 "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_exist_false "Inlined in `uPredI` construction"
+#rocq_ignore uPred_primitive.later_false_exist "Inlined in `uPredI` construction"
+#rocq_ignore uPred_primitive.later_false_sep "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_false_em "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_forall_2 "Inlined in `uPredI` construction"
 
@@ -794,14 +810,13 @@ theorem bupd_ownM_update {x y : M} (hupd : x ~~> y) : ownM x ⊢ |==> ownM y := 
 
 @[rocq_alias uPred.ownM_timeless]
 instance ownM_timeless (a : M) [OFE.DiscreteE a] : BI.Timeless (ownM a) where
-  -- The proof uses only the index `0` below `n`, so it holds for every step-index type.
+  -- The proof uses only the index `0`, so it holds for every step-index type.
   timeless n x H := by
-    by_cases hn : n = 0
-    · subst hn; exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
-    · obtain ⟨_, Hxy⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
-      let ⟨_a', y', Hx, Ha', _⟩ := extend (validN_of_le SIdx.le_0_l x.property) Hxy
-      exact .inr ⟨y', OFE.Dist.of_eq (Hx.trans
-        (congrArg (CMRA.op · _) (OFE.DiscreteE.discrete Ha'.symm).symm))⟩
+    obtain ⟨_, Hxy⟩ := H (x.le SIdx.le_0_l) (inc_refl _) SIdx.le_0_l
+      fun m hm => absurd hm (SIdx.not_lt_zero m)
+    let ⟨_a', y', Hx, Ha', _⟩ := extend (validN_of_le SIdx.le_0_l x.property) Hxy
+    exact ⟨y', OFE.Dist.of_eq (Hx.trans
+      (congrArg (CMRA.op · _) (OFE.DiscreteE.discrete Ha'.symm).symm))⟩
 
 @[rocq_alias uPred.ownM_persistent]
 instance ownM_persistent (a : M) [CoreId a] : Persistent (ownM a) where
@@ -885,9 +900,8 @@ theorem discrete_valid [CMRA A] [Discrete A] (a : A) :
 
 instance valid_timeless [CMRA A] [Discrete A] {a : A} :
     Timeless (internalCmraValid a : UPred M) where
-  timeless := by
-    refine (later_mono (discrete_valid a).mp).trans ?_
-    exact Timeless.timeless.trans (except0_mono (discrete_valid a).mpr)
+  timeless :=
+    (only0_mono (discrete_valid a).mp).trans (Timeless.timeless.trans (discrete_valid a).mpr)
 
 instance valid_plain [CMRA A] {a : A} : Plain (internalCmraValid a : UPred M) where
   plain := plainly_valid_mpr a

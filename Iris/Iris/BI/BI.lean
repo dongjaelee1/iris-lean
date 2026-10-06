@@ -77,10 +77,17 @@ class BI (PROP : Type _) extends COFE PROP, BI.BIBase PROP where
   later_intro {P : PROP} : P ⊢ ▷ P
 
   later_sForall_2 {Φ : PROP → Prop} : (∀ p, ⌜Φ p⌝ → ▷ p) ⊢ ▷ sForall Φ
+  /-- `<only0>` (that is, `▷ False → ·`) commutes with existential quantification. This law holds
+  for every type of step-indices (Rocq Iris MR !1256, `bi_mixin_later_false_impl_exist`). -/
+  later_false_impl_sExists {Φ : PROP → Prop} :
+    (▷ False → sExists Φ) ⊢ ∃ p, ⌜Φ p⌝ ∧ (▷ False → p)
   /-- Commuting `▷` with existential quantification only holds for finite step-indices
   (Transfinite Iris, `sbi_mixin_later_exist_false`). -/
   later_sExists_false [SIdxFinite SI] {Φ : PROP → Prop} :
     (▷ sExists Φ) ⊢ ▷ False ∨ ∃ p, ⌜Φ p⌝ ∧ ▷ p
+  /-- `<only0>` (that is, `▷ False → ·`) distributes over `∗`. This law holds for every type of
+  step-indices (Rocq Iris MR !1256, `bi_mixin_later_false_impl_sep`). -/
+  later_false_impl_sep {P Q : PROP} : (▷ False → P ∗ Q) ⊢ (▷ False → P) ∗ (▷ False → Q)
   /-- Splitting `▷` over `∗` only holds for finite step-indices
   (Transfinite Iris, `sbi_mixin_later_sep_1`). -/
   later_sep_1 [SIdxFinite SI] {P Q : PROP} : ▷ (P ∗ Q) ⊢ ▷ P ∗ ▷ Q
@@ -178,6 +185,7 @@ attribute [rocq_alias bi.persistently_and_sep_elim] BI.persistently_and_l
 attribute [rocq_alias bi.later_mono] BI.later_mono
 attribute [rocq_alias bi.later_intro] BI.later_intro
 
+attribute [rocq_alias bi.later_false_impl_sep] BI.later_false_impl_sep
 attribute [rocq_alias bi.later_sep_1] BI.later_sep_1
 attribute [rocq_alias bi.later_sep_2] BI.later_sep_2
 attribute [rocq_alias bi.later_persistently_1,
@@ -193,6 +201,8 @@ theorem later_sep [BI PROP] [SIdxFinite SI] {P Q : PROP} : ▷ (P ∗ Q) ⊣⊢ 
 #rocq_ignore bi_ofeO "No coercion required in Lean, use BI.toCOFE.toOFE instead"
 #rocq_ignore bi.pure_ne "No Proper type class in Lean"
 #rocq_ignore bi_rewrite_relation "Rocq-specific setoid-rewriting infrastructure"
+#rocq_ignore bi_later_mixin_sidx_finite
+  "Not needed: each BI instance proves the laws for every type of step-indices directly"
 
 section PersistentlyDiscrete
 
@@ -223,8 +233,11 @@ variable {PROP : Type _} [BIBase PROP] [COFE PROP]
   (later_mono : ∀ {P Q : PROP}, (P ⊢ Q) → ▷ P ⊢ ▷ Q)
   (later_intro : ∀ {P : PROP}, P ⊢ ▷ P)
   (later_sForall_2 : ∀ {Φ : PROP → Prop}, (∀ p, ⌜Φ p⌝ → ▷ p) ⊢ ▷ sForall Φ)
+  (later_false_impl_sExists : ∀ {Φ : PROP → Prop},
+    (▷ False → sExists Φ) ⊢ ∃ p, ⌜Φ p⌝ ∧ (▷ False → p))
   (later_sExists_false : ∀ {Φ : PROP → Prop},
     (▷ sExists Φ) ⊢ ▷ False ∨ ∃ p, ⌜Φ p⌝ ∧ ▷ p)
+  (later_false_impl_sep : ∀ {P Q : PROP}, (▷ False → P ∗ Q) ⊢ (▷ False → P) ∗ (▷ False → Q))
   (later_sep : ∀ {P Q : PROP}, ▷ (P ∗ Q) ⊣⊢ ▷ P ∗ ▷ Q)
   (later_or_1 : ∀ {P Q : PROP}, ▷ (P ∨ Q) ⊢ ▷ P ∨ ▷ Q)
   (later_persistently : ∀ {P : PROP}, ▷ <pers> P ⊣⊢ <pers> ▷ P)
@@ -272,7 +285,9 @@ def ofPersistentlyDiscrete : BI PROP where
   later_mono := later_mono
   later_intro := later_intro
   later_sForall_2 := later_sForall_2
+  later_false_impl_sExists := later_false_impl_sExists
   later_sExists_false := later_sExists_false
+  later_false_impl_sep := later_false_impl_sep
   later_sep_1 := later_sep.1
   later_sep_2 := later_sep.2
   later_or_1 := later_or_1
@@ -320,9 +335,22 @@ def ofPersistentlyDiscreteLaterTrue : BI PROP :=
     (later_sForall_2 := by
       intro _
       simp only [later_eq]; exact pure_intro trivial)
+    (later_false_impl_sExists := by
+      intro Φ
+      simp only [later_eq]
+      refine entails_trans (and_intro entails_refl (pure_intro trivial)) ?_
+      refine entails_trans (imp_elim entails_refl) (sExists_elim fun p hp => ?_)
+      refine entails_trans ?_ (sExists_intro ⟨p, rfl⟩)
+      exact and_intro (pure_intro hp) (imp_intro and_elim_l))
     (later_sExists_false := by
       intro _
       simp only [later_eq]; exact or_intro_l)
+    (later_false_impl_sep := by
+      intro _ _
+      simp only [later_eq]
+      refine entails_trans (and_intro entails_refl (pure_intro trivial)) ?_
+      exact entails_trans (imp_elim entails_refl)
+        (sep_mono (imp_intro and_elim_l) (imp_intro and_elim_l)))
     (later_sep := by
       intro _ _
       simp only [later_eq]

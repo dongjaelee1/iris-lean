@@ -370,10 +370,10 @@ theorem internalEq_rewrite_contractive' {A : Type _} [OFE A] (a b : A) (Ψ : A �
 instance eq_timeless {A : Type _} [OFE A] (a b : A) [TCOr (DiscreteE a) (DiscreteE b)] :
     Timeless (PROP := PROP) iprop(a ≡ b) where
   timeless :=
-    calc iprop(▷ a ≡ b)
-      _ ⊢ ▷ ⌜a = b⌝ := later_mono discrete_eq.1
-      _ ⊢ ◇ ⌜a = b⌝ := Timeless.timeless (P := iprop(⌜a = b⌝))
-      _ ⊢ ◇ a ≡ b   := except0_mono discrete_eq.2
+    calc iprop(<only0> a ≡ b)
+      _ ⊢ <only0> ⌜a = b⌝ := only0_mono discrete_eq.1
+      _ ⊢ ⌜a = b⌝ := Timeless.timeless (P := iprop(⌜a = b⌝))
+      _ ⊢ a ≡ b   := discrete_eq.2
 
 /-! ## Equality of propositions -/
 

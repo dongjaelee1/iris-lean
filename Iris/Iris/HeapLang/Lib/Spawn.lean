@@ -105,9 +105,16 @@ theorem spawn_spec (Ψ : Val → IProp GF) (f : Val) :
   wp_apply wp_wand $$ Hf with %v HΨ
   wp_pures
   iinv Hinv with Hpt
+  -- The step of the store removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
+  -- under `▷` (this needs finite step-indices).
+  iapply wp_store_later
+  inext
   unfold spawnInv
   icases Hpt with ⟨%_, Hl, _⟩
-  wp_store
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  iintro Hl
   imodintro; iframe Hl; imodintro
   iright; iexists v; isplit
   · itrivial
@@ -126,9 +133,15 @@ theorem join_spec (Ψ : Val → IProp GF) (l : Loc) :
   wp_rec
   wp_bind !_
   iinv Hinv with Hpt
+  iapply (wp_load_later (dq := DFrac.own 1))
+  inext
   unfold spawnInv
   icases Hpt with ⟨%lv, Hl, Hcond⟩
-  wp_load; imodintro; iframe Hl
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  iintro Hl
+  imodintro; iframe Hl
   icases Hcond with (%Heq | ⟨%w, %Heq, (HΨw | Hγ')⟩) <;> subst Heq
   · isplitr
     · ileft; itrivial

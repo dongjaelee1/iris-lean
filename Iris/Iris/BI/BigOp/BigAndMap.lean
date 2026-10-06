@@ -125,16 +125,14 @@ instance bigAndM_absorbing_inst {Φ : K → V → PROP} {m : M V} [∀ k x, Abso
 @[rocq_alias big_andM_empty_timeless]
 instance bigAndM_nil_timeless_inst {Φ : K → V → PROP} :
     Timeless ([∧map] k ↦ x ∈ (∅ : M V), Φ k x) where
-  timeless := (later_congr bigAndM_empty).1.trans <| (later_true.1.trans except0_true.2).trans <|
-    except0_mono bigAndM_empty.2
+  timeless := true_intro.trans bigAndM_empty.2
 
 @[rocq_alias big_andM_timeless]
 theorem bigAndM_timeless {Φ : K → V → PROP} {m : M V}
     (h : ∀ {k x}, get? m k = some x → Timeless (Φ k x)) :
     Timeless ([∧map] k ↦ x ∈ m, Φ k x) where
-  timeless := bigOpM_closed (P := fun Q => ▷ Q ⊢ ◇ Q)
-    (later_true.1.trans except0_true.2)
-    (later_and.1.trans <| and_mono · · |>.trans except0_and.2)
+  timeless := bigOpM_closed (P := fun Q => <only0> Q ⊢ Q) true_intro
+    (only0_and.1.trans <| and_mono · ·)
     (h · |>.timeless)
 
 @[rocq_alias big_andM_timeless']

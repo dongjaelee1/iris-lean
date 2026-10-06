@@ -34,9 +34,14 @@ class Intuitionistic [BI PROP] (P : PROP) where
   intuitionistic : P ⊢ □ P
 export Intuitionistic (intuitionistic)
 
-/-- Require that the proposition `P` does not depend on the step index. -/
+/-- Require that the proposition `P` does not depend on the step index.
+
+`P` is timeless when `P` holds at every step-index if it holds at step-index `0`. In the logic,
+this is `<only0> P ⊢ P`. This version works for every type of step-indices (Transfinite Iris).
+The other version, `▷ P ⊢ ◇ P` (`P` at `n` gives `P` at `n + 1`), follows from it
+(`timeless_except0`). The two versions are equivalent with Löb induction (`timeless_alt`). -/
 @[rocq_alias Timeless]
 class Timeless [BI PROP] (P : PROP) where
-  timeless : ▷ P ⊢ ◇ P
+  timeless : <only0> P ⊢ P
 
 end Iris.BI

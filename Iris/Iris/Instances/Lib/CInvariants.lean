@@ -23,10 +23,19 @@ namespace Iris
 
 open BI CMRA OFE Iris Iris.Std LawfulSet Excl COFE ProofMode
 
-/-! # Cancelable Invariants -/
+/-! # Cancelable Invariants
 
-abbrev CInvF : OFunctorPre :=
-  ProdOF (constOF (Option (Excl Unit))) (constOF (Option DFrac))
+The cancelable invariant `cinv N γ P` is the invariant `inv N (P ∨ own γ 1)`. The token `own γ p`
+is the ownership of the fraction `p` of the ghost name `γ`. With the full token `own γ 1`, you can
+cancel the invariant and get `▷ P` back (`cancel`).
+
+This is the representation of Transfinite Iris. All rules hold for every type of step-indices.
+The current Rocq Iris adds an exclusive token to the invariant (`P ∗ cinv_excl γ ∨ cinv_own γ 1`).
+That representation gives the rules `cinv_acc_1` and `cinv_inv`, but its proofs take `∗` apart
+under `▷`, and this needs finite step-indices.
+-/
+
+abbrev CInvF : OFunctorPre := constOF Qp
 
 @[rocq_alias cinvG]
 class CInvG (GF : BundledGFunctors) where
@@ -36,20 +45,23 @@ attribute [reducible, instance] CInvG.inv
 
 #rocq_ignore «cinvΣ» "Superseded by the `CInvG` typeclass on `BundledGFunctors`."
 #rocq_ignore «subG_cinvΣ» "Superseded by Lean's direct `ElemG` typeclass synthesis."
+#rocq_ignore cinv_excl "Not in this representation (Transfinite Iris): `cinv` has no exclusive token."
+#rocq_ignore cinv_excl_excl "Not in this representation (Transfinite Iris): `cinv` has no exclusive token."
+#rocq_ignore cinv_own_excl_alloc
+  "Not in this representation (Transfinite Iris): `cinv` has no exclusive token."
+#rocq_ignore cinv_acc_1 "Needs the exclusive token of the current Rocq representation."
+#rocq_ignore cinv_inv "Needs the exclusive token of the current Rocq representation."
 
 namespace CancelableInvariant
 
 variable {GF : BundledGFunctors} [InvGS_gen hlc GF] [W : CInvG GF]
 
 @[rocq_alias cinv_own]
-def own (γ : GName) (p : Qp) : IProp GF := iOwn (E := W.inv) γ (none, some (DFrac.own p))
-
-@[rocq_alias cinv_excl]
-def excl (γ : GName) : IProp GF := iOwn (E := W.inv) γ (some (Excl.excl ()), none)
+def own (γ : GName) (p : Qp) : IProp GF := iOwn (E := W.inv) γ p
 
 @[rocq_alias cinv]
 def cinv (N : Namespace) (γ : GName) (P : IProp GF) : IProp GF :=
-  inv N iprop(P ∗ excl γ ∨ own γ (1 : Qp))
+  inv N iprop(P ∨ own γ (1 : Qp))
 
 /-! ## Instances -/
 
@@ -57,15 +69,12 @@ def cinv (N : Namespace) (γ : GName) (P : IProp GF) : IProp GF :=
 instance instTimelessOwn (γ : GName) (p : Qp) : Timeless (own (GF := GF) γ p) :=
   iOwn_timeless
 
-instance instTimelessExcl (γ : GName) : Timeless (excl (GF := GF) γ) :=
-  iOwn_timeless
-
 @[rocq_alias cinv_contractive]
 instance instContractiveCinv (N : Namespace) (γ : GName) :
     Contractive (cinv (GF := GF) N γ) where
   distLater_dist {n x y} H := by
     unfold cinv
-    refine Contractive.distLater_dist fun m hm => or_ne.ne (sep_ne.ne (H _ hm) .rfl) .rfl
+    refine Contractive.distLater_dist fun m hm => or_ne.ne (H _ hm) .rfl
 
 @[rocq_alias cinv_ne]
 instance instNonExpansiveCinv (N : Namespace) (γ : GName) :
@@ -84,16 +93,20 @@ theorem own_valid {γ : GName} {q1 q2 : Qp} :
     ⊢@{IProp GF} own γ q1 -∗ own γ q2 -∗ ⌜(q1 + q2).val ≤ 1⌝ := by
   unfold own
   iintro H1 H2
-  icombine H1 H2 as H
-  ihave %H := iOwn_cmraValid $$ H
+  ihave H := iOwn_op $$ [H1 H2]
+  · isplitl [H1]
+    · iexact H1
+    · iexact H2
+  ihave H := iOwn_cmraValid $$ H
+  icases internalCmraValid_discrete $$ H with %H
   ipureintro
-  exact H.2
+  exact H
 
 @[rocq_alias cinv_own_fractional]
 instance instFractionalOwn (γ : GName) :
     Fractional (fun p : Qp => own (GF := GF) γ p) where
   fractional p q := by
-    change iOwn (E := W.inv) γ ((none, some (DFrac.own (p + q)))) ⊣⊢ _
+    change iOwn (E := W.inv) γ (p + q) ⊣⊢ _
     refine .trans ?_ iOwn_op
     exact equiv_iff.mp rfl
 
@@ -103,38 +116,12 @@ instance instAsFractionalOwn (γ : GName) (q : Qp) :
   as_fractional := .rfl
   as_fractional_fractional := instFractionalOwn γ
 
-@[rocq_alias cinv_own_excl_alloc]
-theorem own_excl_alloc (P : GName → Prop) (HP : PredInfinite P) :
-    ⊢@{IProp GF} |==> ∃ γ, ⌜P γ⌝ ∗ excl γ ∗ own γ (1 : Qp) := by
-  imod iOwn_alloc_strong (E := W.inv)
-    ((some (Excl.excl ()), none) • (none, some (DFrac.own 1)) :
-      CInvF (IProp GF) (IProp GF)) P ?_
-    ⟨trivial, DFrac.valid_own_one⟩ with ⟨%γ, %HPγ, Hown⟩
-  · exact HP.exists_ge
-  · imodintro
-    iexists γ
-    -- NOTE: Ideally, iframe would discharge this pure goal
-    iframe %HPγ
-    unfold excl own
-    icases iOwn_op.mp $$ Hown with ⟨Hexcl, Hown⟩
-    iframe
-
 @[rocq_alias cinv_own_1_l]
 theorem own_one_l {γ : GName} {q : Qp} :
     ⊢ own (GF := GF) γ (1 : Qp) -∗ own γ q -∗ False := by
   iintro H1 H2
   icases own_valid $$ H1 H2 with %H
   exact absurd H (by have := q.2; have : (1 : Qp).val = 1 := rfl; grind)
-
-@[rocq_alias cinv_excl_excl]
-theorem excl_excl (γ : GName) :
-    ⊢ excl (GF := GF) γ -∗ excl γ -∗ False := by
-  iintro H1 H2
-  ihave H := iOwn_op $$ [H1 H2]
-  · unfold excl; iframe
-  ihave H := iOwn_cmraValid $$ H
-  icases internalCmraValid_discrete $$ H with %H
-  exact H.1.elim
 
 @[rocq_alias cinv_iff]
 nonrec theorem cinv_iff {N : Namespace} {γ : GName} {P Q : IProp GF} :
@@ -144,44 +131,45 @@ nonrec theorem cinv_iff {N : Namespace} {γ : GName} {P Q : IProp GF} :
   iapply inv_iff $$ HI
   iintro !> !>
   isplit
-  · iintro (⟨HP, Hexcl⟩ | Htok)
+  · iintro (HP | Htok)
     · ileft
-      iframe
       iapply HPQ₁ $$ HP
     · iright; iframe
-  · iintro (⟨HQ, Hexcl⟩ | Htok)
+  · iintro (HQ | Htok)
     · ileft
-      iframe
       iapply HPQ₂ $$ HQ
-    · iframe
+    · iright; iframe
 
 @[rocq_alias cinv_alloc_strong]
 theorem alloc_strong (P : GName → Prop) (HP : PredInfinite P) (E : CoPset) (N : Namespace) :
     ⊢@{IProp GF} |={E}=> ∃ γ, ⌜P γ⌝ ∗ own γ (1 : Qp) ∗
       ∀ Q, ▷ Q ={E}=∗ cinv N γ Q := by
-  imod own_excl_alloc P HP with ⟨%γ, %HPγ, Hexcl, Hown⟩
+  imod iOwn_alloc_strong (E := W.inv) (1 : Qp) P HP.exists_ge Qp.valid_one with ⟨%γ, %HPγ, Hown⟩
   imodintro
   iexists γ
-  iframe %HPγ Hown
+  iframe %HPγ
+  isplitl [Hown]
+  · unfold own; iexact Hown
   iintro %Q HQ
   unfold cinv
   iapply inv_alloc
   inext
   ileft
-  iframe
+  iexact HQ
 
 @[rocq_alias cinv_alloc_strong_open]
 theorem alloc_strong_open (P : GName → Prop) (HP : PredInfinite P) (E : CoPset) (N : Namespace)
   (Hsub : ↑N ⊆ E) :
     ⊢@{IProp GF} |={E}=> ∃ γ, ⌜P γ⌝ ∗ own γ (1 : Qp) ∗
       ∀ (Q : IProp GF), |={E, E \ ↑N}=> cinv N γ Q ∗ (▷ Q ={E \ ↑N, E}=∗ True) := by
-  imod own_excl_alloc P HP with ⟨%γ, %HPγ, Hexcl, Hown⟩
+  imod iOwn_alloc_strong (E := W.inv) (1 : Qp) P HP.exists_ge Qp.valid_one with ⟨%γ, %HPγ, Hown⟩
   imodintro
   iexists γ
-  iframe %HPγ Hown
-  iframe
+  iframe %HPγ
+  isplitl [Hown]
+  · unfold own; iexact Hown
   iintro %Q
-  imod inv_alloc_open N E iprop(Q ∗ excl γ ∨ own γ (1 : Qp)) Hsub with ⟨HI, Hclose⟩
+  imod inv_alloc_open N E iprop(Q ∨ own γ (1 : Qp)) Hsub with ⟨HI, Hclose⟩
   imodintro
   unfold cinv
   iframe
@@ -189,7 +177,7 @@ theorem alloc_strong_open (P : GName → Prop) (HP : PredInfinite P) (E : CoPset
   iapply Hclose
   inext
   ileft
-  iframe
+  iexact HQ
 
 @[rocq_alias cinv_alloc_cofinite]
 theorem alloc_cofinite (G : List GName) (E : CoPset) (N : Namespace) :
@@ -225,14 +213,14 @@ theorem acc_strong (E : CoPset) (N : Namespace) (γ : GName) (p : Qp) (P : IProp
       ▷ P ∗ own γ p ∗ ∀ (E' : CoPset), ▷ P ∨ own γ (1 : Qp) ={E', ↑N ∪ E'}=∗ True := by
   unfold cinv
   iintro #Hinv Hown
-  imod inv_acc_strong Hsub $$ Hinv with ⟨(⟨HP, >Hexcl⟩ | >Hown'), Hclose⟩
+  imod inv_acc_strong Hsub $$ Hinv with ⟨(HP | >Hown'), Hclose⟩
   · imodintro
     iframe
     iintro %E' HPor
     iapply Hclose
     icases HPor with (HP | Hown1)
-    · ileft; iframe
-    · iright; iframe
+    · inext; ileft; iexact HP
+    · inext; iright; iexact Hown1
   · iexfalso
     iapply own_one_l $$ Hown' Hown
 
@@ -260,52 +248,16 @@ theorem inv_open_fupd {E : CoPset} {N : Namespace} {P : IProp GF} (Hsub : ↑N �
   imod Hclose $$ [$HP] with -
   itrivial
 
-@[rocq_alias cinv_acc_1]
-theorem acc_one (E : CoPset) (N : Namespace) (γ : GName) (P : IProp GF) (Hsub : ↑N ⊆ E) :
-    ⊢ cinv N γ P -∗ own γ (1 : Qp) ={E}=∗
-      ▷ P ∗ (▷ P ={E}=∗ own γ (1 : Qp)) := by
-  iintro #Hinv Hγ
-  unfold cinv
-  imod inv_acc Hsub $$ Hinv with ⟨(⟨HP, >Hexcl⟩ | >Hγ'), Hclose⟩
-  · imod Hclose $$ [Hγ] with -
-    · inext; iright; iassumption
-    imodintro
-    iframe
-    iintro HP
-    imod inv_acc Hsub $$ Hinv with ⟨(⟨_HPbad, >Hexcl2⟩ | >Hγ1), Hclose2⟩
-    · iexfalso
-      iapply excl_excl $$ Hexcl Hexcl2
-    · imod Hclose2 $$ [HP Hexcl] with -
-      · inext; ileft; iframe
-      imodintro
-      iexact Hγ1
-  · iexfalso
-    iapply own_one_l $$ Hγ Hγ'
-
 @[rocq_alias cinv_cancel]
 theorem cancel (E : CoPset) {N : Namespace} {γ : GName} {P : IProp GF} (Hsub : ↑N ⊆ E) :
     ⊢ cinv N γ P -∗ own γ (1 : Qp) ={E}=∗ ▷ P := by
   iintro #Hinv Hγ
-  imod acc_one _ _ _ _ Hsub $$ Hinv Hγ with ⟨HP, -⟩
+  imod acc_strong _ _ _ _ _ Hsub $$ Hinv Hγ with ⟨HP, Hγ, Hcl⟩
+  imod Hcl $$ [Hγ] with _
+  · iright; iexact Hγ
+  rw [subset_union_diff Hsub]
   imodintro
   iexact HP
-
-@[rocq_alias cinv_inv]
-theorem to_inv {N : Namespace} {γ : GName} {q : Qp} {P : IProp GF} :
-    ⊢ cinv N γ P -∗ own γ q ==∗ inv N P := by
-  unfold cinv own
-  iintro #Hinv Hown
-  imod iOwn_update (a' := (none, some DFrac.discard)) $$ Hown with #Hdisc
-  · exact .prod _ .id (.option _ _ DFrac.update_discard)
-  imodintro
-  iapply inv_alter $$ Hinv
-  iintro !> !> (⟨$, Hexcl⟩ | Hone)
-  · iintro HP
-    ileft
-    iframe HP Hexcl
-  · iexfalso
-    icombine Hdisc Hone gives %⟨_, H⟩
-    exact absurd (a := (1 : Qp).val < 1) H (by simp)
 
 @[rocq_alias into_inv_cinv]
 instance intoInv_cinv (N : Namespace) (γ : GName) (P : IProp GF) :

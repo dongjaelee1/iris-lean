@@ -153,7 +153,7 @@ instance tforall_timeless (Ψ : TT.Arg → PROP) [∀ x, Timeless (Ψ x)] :
   infer_instance
 
 @[rocq_alias bi_texist_timeless]
-instance texist_timeless [SIdxFinite SI] (Ψ : TT.Arg → PROP) [∀ x, Timeless (Ψ x)] :
+instance texist_timeless (Ψ : TT.Arg → PROP) [∀ x, Timeless (Ψ x)] :
     Timeless iprop(∃.. x, Ψ x) := by
   rw [(texist_exist Ψ).to_eq]
   infer_instance

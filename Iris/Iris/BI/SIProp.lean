@@ -257,12 +257,16 @@ instance instBI : BI (SiProp) where
   later_mono h _ hlP m hm := h m (hlP m hm)
   later_intro {P} _ hP _ hm := P.closed hP (SIdx.lt_le_incl hm)
   later_sForall_2 n h m hm P hΦ := h _ ⟨P, rfl⟩ n SIdx.le_refl hΦ m hm
+  later_false_impl_sExists {Φ} _ h := by
+    obtain ⟨P, hΦP, hP0⟩ := h 0 SIdx.le_0_l fun m hm => absurd hm (SIdx.not_lt_zero m)
+    exact ⟨_, ⟨P, rfl⟩, hΦP, fun _ _ hF => P.closed hP0 (SIdx.le_ngt.mpr (hF 0))⟩
   later_sExists_false := by
     intro _ Φ n h
     rcases SIdxFinite.finite_index n with rfl | ⟨k, rfl⟩
     · exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
     · obtain ⟨P, hΦP, hPk⟩ := h k (SIdx.lt_succ_self k)
       exact .inr ⟨_, ⟨P, rfl⟩, hΦP, fun _ hm => P.closed hPk (SIdx.lt_succ_r.mp hm)⟩
+  later_false_impl_sep _ h := ⟨fun m hm hF => (h m hm hF).1, fun m hm hF => (h m hm hF).2⟩
   later_sep_1 _ h := ⟨fun m hm => (h m hm).1, fun m hm => (h m hm).2⟩
   later_sep_2 _ h m hm := ⟨h.1 m hm, h.2 m hm⟩
   later_or_1 {P Q} _ h :=
@@ -363,6 +367,7 @@ attribute [rocq_alias siProp_primitive.exist_elim] BI.sExists_elim
 attribute [rocq_alias siProp_primitive.later_mono] BI.later_mono
 attribute [rocq_alias siProp_primitive.later_intro] BI.later_intro
 attribute [rocq_alias siProp_primitive.later_forall_2] BI.later_sForall_2
+attribute [rocq_alias siProp_primitive.later_false_exist] BI.later_false_impl_sExists
 attribute [rocq_alias siProp_primitive.later_exist_false] BI.later_sExists_false
 attribute [rocq_alias siProp_primitive.later_false_em] BI.later_false_em
 
@@ -522,10 +527,8 @@ theorem cmraValid_entails_iff [CMRA A] [CMRA B] {a : A} {b : B} :
 
 instance cmraValid_timeless [CMRA A] [CMRA.Discrete A] {a : A} :
     Timeless (cmraValid a : SiProp) where
-  timeless n h := by
-    by_cases h0 : (0 : SI) < n
-    · exact .inr (CMRA.discrete_valid (h 0 h0)).validN
-    · exact .inl fun _ hm => h0 (SIdx.le_lt_trans SIdx.le_0_l hm)
+  timeless _ h :=
+    (CMRA.discrete_valid (h 0 SIdx.le_0_l fun m hm => absurd hm (SIdx.not_lt_zero m))).validN
 
 /-! ## Soundness lemmas -/
 

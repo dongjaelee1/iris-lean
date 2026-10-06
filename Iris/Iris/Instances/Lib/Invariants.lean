@@ -301,8 +301,10 @@ section Modification
 
 variable {GF : BundledGFunctors} [InvGS_gen hlc GF]
 
+/-- This rule takes `∗` apart under `▷`, thus it needs finite step-indices. For a timeless `P`,
+see `inv_alter_timeless`. -/
 @[rocq_alias inv_alter]
-theorem inv_alter (N : Namespace) (P Q : IProp GF) :
+theorem inv_alter [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
     ⊢ inv N P -∗ ▷ □ (P -∗ Q ∗ (Q -∗ P)) -∗ inv N Q := by
   simp only [inv]
   iintro #HI #HPQ
@@ -320,15 +322,38 @@ theorem inv_alter (N : Namespace) (P Q : IProp GF) :
 @[rocq_alias inv_iff]
 theorem inv_iff (N : Namespace) (P Q : IProp GF) :
     ⊢ inv N P -∗ ▷ □ (P ↔ Q) -∗ inv N Q := by
+  simp only [inv]
   iintro #HI #HPQ
-  iapply inv_alter $$ HI
-  inext; imodintro; iintro HP
+  imodintro
+  iintro %E Hsub
+  imod HI $$ %E Hsub with ⟨HP, H⟩
+  imodintro
   isplitl [HP]
-  · simp only [iff]
+  · inext
+    simp only [iff]
     iapply HPQ $$ HP
   · iintro HQ
+    iapply H
+    inext
     simp only [iff]
     iapply HPQ $$ HQ
+
+@[rocq_alias inv_alter_timeless]
+theorem inv_alter_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] :
+    ⊢ inv N P -∗ □ (P -∗ Q ∗ ▷ (Q -∗ P)) -∗ inv N Q := by
+  simp only [inv]
+  iintro #HI #HPQ
+  imodintro
+  iintro %E Hsub
+  imod HI $$ %E Hsub with ⟨>HP, H⟩
+  imodintro
+  icases HPQ $$ HP with ⟨HQ, HQP⟩
+  isplitl [HQ]
+  · inext; iexact HQ
+  · iintro HQ
+    iapply H
+    inext
+    iapply HQP $$ HQ
 
 end Modification
 
@@ -339,7 +364,7 @@ open Iris Iris.Std LawfulSet
 variable {GF : BundledGFunctors} [InvGS_gen hlc GF]
 
 @[rocq_alias inv_combine]
-theorem inv_combine (N1 N2 N : Namespace) (P Q : IProp GF) (Hdisj : N1 ## N2)
+theorem inv_combine [SIdxFinite SI] (N1 N2 N : Namespace) (P Q : IProp GF) (Hdisj : N1 ## N2)
     (Hsub : ↑N1 ∪ ↑N2 ⊆ (↑N : CoPset)) : ⊢ inv N1 P -∗ inv N2 Q -∗ inv N iprop(P ∗ Q) := by
   simp only [inv]
   iintro #HI1 #HI2
@@ -371,7 +396,7 @@ theorem inv_combine (N1 N2 N : Namespace) (P Q : IProp GF) (Hdisj : N1 ## N2)
   iassumption
 
 @[rocq_alias inv_combine_dup_l]
-theorem inv_combine_dup_l (N : Namespace) (P Q : IProp GF) :
+theorem inv_combine_dup_l [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
     ⊢ □ (P -∗ (P ∗ P)) -∗ inv N P -∗ inv N Q -∗ inv N iprop(P ∗ Q) := by
   simp only [inv]
   iintro #HPP #HI1 #HI2
@@ -395,7 +420,7 @@ section Splitting
 variable {GF : BundledGFunctors} [InvGS_gen hlc GF]
 
 @[rocq_alias inv_split_l]
-theorem inv_split_l (N : Namespace) (P Q : IProp GF) :
+theorem inv_split_l [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N P := by
   iintro H
   iapply inv_alter $$ H
@@ -406,7 +431,7 @@ theorem inv_split_l (N : Namespace) (P Q : IProp GF) :
   isplitl [HP] <;> iassumption
 
 @[rocq_alias inv_split_r]
-theorem inv_split_r (N : Namespace) (P Q : IProp GF) :
+theorem inv_split_r [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N Q := by
   iintro H
   iapply inv_alter $$ H
@@ -417,11 +442,43 @@ theorem inv_split_r (N : Namespace) (P Q : IProp GF) :
   isplitl [HP] <;> iassumption
 
 @[rocq_alias inv_split]
-theorem inv_split (N : Namespace) (P Q : IProp GF) :
+theorem inv_split [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N P ∗ inv N Q := by
   iintro #H
   ihave H1 := inv_split_l $$ H
   ihave H2 := inv_split_r $$ H
+  isplit <;> iassumption
+
+@[rocq_alias inv_split_l_timeless]
+theorem inv_split_l_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
+    ⊢ inv N iprop(P ∗ Q) -∗ inv N P := by
+  iintro #H
+  iapply inv_alter_timeless N iprop(P ∗ Q) P $$ H
+  imodintro
+  iintro ⟨HP, HQ⟩
+  isplitl [HP]; iassumption
+  inext
+  iintro HP
+  isplitl [HP] <;> iassumption
+
+@[rocq_alias inv_split_r_timeless]
+theorem inv_split_r_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
+    ⊢ inv N iprop(P ∗ Q) -∗ inv N Q := by
+  iintro #H
+  iapply inv_alter_timeless N iprop(P ∗ Q) Q $$ H
+  imodintro
+  iintro ⟨HP, HQ⟩
+  isplitl [HQ]; iassumption
+  inext
+  iintro HQ
+  isplitl [HP] <;> iassumption
+
+@[rocq_alias inv_split_timeless]
+theorem inv_split_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
+    ⊢ inv N iprop(P ∗ Q) -∗ inv N P ∗ inv N Q := by
+  iintro #H
+  ihave H1 := inv_split_l_timeless N P Q $$ H
+  ihave H2 := inv_split_r_timeless N P Q $$ H
   isplit <;> iassumption
 
 end Splitting

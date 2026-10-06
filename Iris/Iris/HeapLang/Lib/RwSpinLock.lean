@@ -227,8 +227,16 @@ theorem tryAcquireReader_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
   subst Heq
   wp_lam
   wp_bind !_
-  iinv Hlockinv with ⟨%z, >Hl, Hz⟩ Hclose
-  wp_load
+  iinv Hlockinv with HI Hclose
+  -- The steps of the heap operations remove the `▷` from the invariant, so `∃` and `∗` are not
+  -- taken apart under `▷` (this needs finite step-indices).
+  iapply (wp_load_later (dq := DFrac.own 1))
+  inext
+  icases HI with ⟨%z, Hl, Hz⟩
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  iintro Hl
   imod Hclose $$ [$Hl $Hz] with -
   imodintro
   wp_pures
@@ -241,9 +249,19 @@ theorem tryAcquireReader_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
   rw [decide_eq_true hle]
   wp_pures
   wp_bind cmpXchg(_, _, _)
-  iinv Hlockinv with ⟨%z', >Hl, Hz⟩ Hclose
-  wp_cmpxchg with hsuc hfail
-  · obtain rfl : z = z' := by simpa using hsuc.symm
+  iinv Hlockinv with HI Hclose
+  iapply wp_cmpXchg_later
+  inext
+  icases HI with ⟨%z', Hl, Hz⟩
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  isplitr
+  · ipureintro; rfl
+  iintro Hl
+  by_cases hsuc : hl_val(#z') = hl_val(#z)
+  · simp only [hsuc, ↓reduceIte, decide_true]
+    obtain rfl : z = z' := by simpa using hsuc.symm
     icases Hz with (⟨%Hneg, -⟩ | ⟨-, %q, %g, Hauth, %Hsize, %Hfold, HΦ⟩)
     · omega
     ieval (rewrite [← Qp.half_add_half q]) at HΦ
@@ -264,7 +282,8 @@ theorem tryAcquireReader_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
     wp_pures
     iapply Hφ; simp only [↓reduceIte]
     iexists q.half; iframe
-  · imod Hclose $$ [$Hl $Hz] with -
+  · simp only [hsuc, ↓reduceIte, decide_false]
+    imod Hclose $$ [$Hl $Hz] with -
     imodintro
     wp_pures
     iapply Hφ
@@ -298,8 +317,14 @@ theorem releaseReader_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) (q : Q
   subst Heq
   wp_lam
   wp_bind faa(_, _)
-  iinv Hlockinv with ⟨%z, Hl, Hz⟩ Hclose
-  wp_faa
+  iinv Hlockinv with HI Hclose
+  iapply wp_faa_later
+  inext
+  icases HI with ⟨%z, Hl, Hz⟩
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  iintro Hl
   icases Hz with (⟨-, Hempty⟩ | ⟨%Hge, %q', %g, Hauth, %Hsize, %Hsum, HΦq'⟩)
   · iexfalso
     ihave %Hmem := own_auth_singleton_2 $$ [$]
@@ -338,9 +363,19 @@ theorem tryAcquireWriter_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
   subst Heq
   wp_lam
   wp_bind cmpXchg(_, _, _)
-  iinv Hlockinv with ⟨%z, >Hl, Hz⟩ Hclose
-  wp_cmpxchg with hsuc hfail
-  · obtain rfl : z = 0 := by simpa using hsuc
+  iinv Hlockinv with HI Hclose
+  iapply wp_cmpXchg_later
+  inext
+  icases HI with ⟨%z, Hl, Hz⟩
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  isplitr
+  · ipureintro; rfl
+  iintro Hl
+  by_cases hsuc : hl_val(#z) = hl_val(#(0 : Int))
+  · simp only [hsuc, ↓reduceIte, decide_true]
+    obtain rfl : z = 0 := by simpa using hsuc
     icases Hz with (⟨%Hneg, -⟩ | ⟨-, %q, %g, Hauth, %Hsize, %Hfold, HΦ⟩)
     · omega
     obtain rfl : g = ∅ := size_eq_zero_iff.mp (by simpa using Hsize)
@@ -357,7 +392,8 @@ theorem tryAcquireWriter_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
     wp_pures
     iapply Hφ; simp only [↓reduceIte]
     iframe Hgive HΦ
-  · imod Hclose $$ [$Hl $Hz] with -
+  · simp only [hsuc, ↓reduceIte, decide_false]
+    imod Hclose $$ [$Hl $Hz] with -
     imodintro
     wp_pures
     iapply Hφ; simp only [Bool.false_eq_true, ↓reduceIte]; itrivial
@@ -383,8 +419,14 @@ theorem releaseWriter_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
   iintro %φ ⟨⟨#HΦdup, %l, %Heq, #Hlockinv⟩, Hlocked, HΦ⟩ Hφ
   subst Heq
   wp_lam
-  iinv Hlockinv with ⟨%z, >Hl, Hz⟩ Hclose
-  wp_store
+  iinv Hlockinv with HI Hclose
+  iapply wp_store_later
+  inext
+  icases HI with ⟨%z, Hl, Hz⟩
+  iexists _
+  isplitl [Hl]
+  · iexact Hl
+  iintro Hl
   icases Hz with (⟨-, Hquarter⟩ | ⟨-, %-, %-, Hauth, -⟩)
   · icombine Hquarter Hlocked as Hown
     imod Hclose $$ [Hl Hown HΦ] with -

@@ -129,11 +129,19 @@ theorem try_acquire_spec (γ : GName) (lk : Val) (R : IProp GF) :
   subst Heq
   wp_bind cmpXchg(_,_,_)
   iinv Hinv with G1
+  -- The step of `cmpXchg` removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
+  -- under `▷` (this needs finite step-indices).
+  iapply wp_cmpXchg_later
+  inext
   unfold lockInv
   icases G1 with ⟨%b, Hpt, Hcond⟩
+  iexists hl_val(#b)
+  iframe Hpt
+  isplitr
+  · ipureintro; cases b <;> rfl
+  iintro Hpt
   cases b
-  · simp only [Bool.false_eq_true, ↓reduceIte]
-    wp_cmpxchg_suc
+  · simp only [Bool.false_eq_true, ↓reduceIte, decide_true]
     imodintro
     isplitl [Hpt]
     · iframe; simp; itrivial
@@ -141,8 +149,7 @@ theorem try_acquire_spec (γ : GName) (lk : Val) (R : IProp GF) :
     imodintro
     iapply Hcont $$ [Hcond]
     simp only [↓reduceIte]; iframe
-  · simp only [↓reduceIte]
-    wp_cmpxchg_fail
+  · simp only [↓reduceIte, Val.lit.injEq, BaseLit.bool.injEq, Bool.true_eq_false, decide_false]
     imodintro
     isplitl [Hpt]
     · iframe; simp; itrivial
@@ -177,9 +184,13 @@ theorem release_spec (γ : GName) (lk : Val) (R : IProp GF) :
   icases Hlock with ⟨%l, %Heq, #Hinv⟩
   subst Heq
   iinv Hinv with G1
+  iapply wp_store_later
+  inext
   unfold lockInv
   icases G1 with ⟨%b, Hpt, Hcond⟩
-  wp_store
+  iexists _
+  iframe Hpt
+  iintro Hpt
   imodintro; iframe Hpt
   simp only [Bool.false_eq_true, ↓reduceIte]; iframe
   iapply Hcont; itrivial

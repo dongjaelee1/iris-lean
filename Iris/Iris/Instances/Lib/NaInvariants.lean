@@ -169,8 +169,11 @@ nonrec theorem inv_alloc {p : NaInvPoolName} {E : CoPset} {N : Namespace} {P : I
   · ipureintro; assumption
   · iassumption
 
+/-- This rule takes `∗` apart under `▷`, thus it needs finite step-indices. For every type of
+step-indices, see `inv_acc_open`, `inv_acc_open_timeless` and
+`inv_acc_open_timeless_weakening`. -/
 @[rocq_alias na_inv_acc]
-nonrec theorem inv_acc {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
+nonrec theorem inv_acc [SIdxFinite SI] {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
     ⊢ inv p N P -∗ own p F ={E}=∗ ▷ P ∗ own p (F \ ↑N) ∗ (▷ P ∗ own p (F \ ↑N) ={E}=∗ own p F) := by
   unfold inv
@@ -222,13 +225,141 @@ nonrec theorem inv_acc {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : I
     icases Hbad with %Hbad
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
+/-- Close the invariant `inv p N P` that was opened with the token `own p {i}`. This is the
+closing part of the accessors below. It holds for every type of step-indices. -/
+private theorem inv_close {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
+    {i : Pos} (Hin : i ∈ (↑N : CoPset)) (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
+    ⊢ Iris.inv N iprop(P ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) -∗
+      own p ((↑N : CoPset) \ {i}) -∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) -∗
+      ▷ P ∗ own p (F \ ↑N) -∗ |={E}=> own p F := by
+  have HNminusi : ↑N = {i} ∪ ((↑N : CoPset) \ {i}) := by
+    refine (subset_union_diff ?_).symm
+    intro x hx; rw [mem_singleton] at hx; exact hx ▸ Hin
+  iintro #Hinv HtokNdi Hdis ⟨HPret, HtokFret⟩
+  imod Iris.inv_acc HNE $$ Hinv with ⟨Hcontent, Hclose⟩
+  ihave Hcontent : ▷ (iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) $$ [Hcontent]
+  · inext
+    icases Hcontent with (⟨-, Hdis2⟩ | Htoki)
+    · ileft; iexact Hdis2
+    · iright; iexact Htoki
+  icases Hcontent with (>Hdis2 | >Htoki_back)
+  · iexfalso
+    ihave Hk := iOwn_op (E := W.inv) $$ [Hdis Hdis2]
+    · isplitl [Hdis] <;> iassumption
+    ihave Hk := iOwn_cmraValid $$ Hk
+    icases internalCmraValid_discrete $$ Hk with %Hbad
+    have Hk := DisjointLeibnizSet.valid_op_iff_disj.mp Hbad.2
+    exact Hk i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
+  · ihave Hreturn : ▷ (P ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) $$ [HPret Hdis]
+    · inext; ileft; isplitl [HPret] <;> iassumption
+    imod Hclose $$ Hreturn with _
+    imodintro
+    ihave HtokN_new : own p ((↑N : CoPset)) $$ [Htoki_back HtokNdi]
+    · conv => rhs; rw [HNminusi]
+      iapply (own_union disjoint_diff_right).mpr
+      isplitl [Htoki_back]
+      · iexact Htoki_back
+      · iexact HtokNdi
+    conv => rhs; rw [← subset_union_diff HNF]
+    iapply (own_union disjoint_diff_right).mpr
+    isplitl [HtokN_new]
+    · iexact HtokN_new
+    · iexact HtokFret
+
+/-- Open a non-atomic invariant. All the results are under `▷`. This rule holds for every type of
+step-indices. -/
+@[rocq_alias na_inv_acc_open]
+nonrec theorem inv_acc_open {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
+    (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
+    ⊢ inv p N P -∗ own p F ={E}=∗
+      ▷ (P ∗ own p (F \ ↑N) ∗ (▷ P ∗ own p (F \ ↑N) -∗ |={E}=> own p F)) := by
+  unfold inv
+  iintro #⟨%i, %Hin, Hinv⟩ Htoks
+  have HNminusi : ↑N = {i} ∪ ((↑N : CoPset) \ {i}) := by
+    refine (subset_union_diff ?_).symm
+    intro x hx; rw [mem_singleton] at hx; exact hx ▸ Hin
+  icases (own_union disjoint_diff_right).mp $$ [Htoks] with ⟨HtokN, HtokRest⟩
+  · rw [subset_union_diff HNF]
+    iassumption
+  icases (own_union disjoint_diff_right).mp $$ [HtokN] with ⟨Htoki, HtokNdi⟩
+  · rw [← HNminusi]; iassumption
+  imod Iris.inv_acc HNE $$ Hinv with ⟨Hcontent, Hclose⟩
+  icases Hcontent with (Hcontent | >Htoki2)
+  · ihave Hreturn : ▷ (P ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) $$ [Htoki]
+    · inext; iright; iassumption
+    imod Hclose $$ Hreturn with _
+    imodintro
+    inext
+    icases Hcontent with ⟨HP, Hdis⟩
+    isplitl [HP]; iassumption
+    isplitl [HtokRest]; iassumption
+    iapply inv_close Hin HNE HNF $$ Hinv HtokNdi Hdis
+  · iexfalso
+    ihave Hbad : ⌜({i} : CoPset) ## {i}⌝ $$ [Htoki Htoki2]
+    · iapply own_disjoint $$ Htoki Htoki2
+    icases Hbad with %Hbad
+    exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
+
+/-- Open a non-atomic invariant and get a timeless `Q` that `P` gives. `Q` is not under `▷`. This
+rule holds for every type of step-indices. -/
+@[rocq_alias na_inv_acc_open_timeless_weakening]
+nonrec theorem inv_acc_open_timeless_weakening {p : NaInvPoolName} {E F : CoPset} {N : Namespace}
+    {P Q : IProp GF} [Timeless Q] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
+    ⊢ inv p N P -∗ own p F -∗ □ (P -∗ Q) ={E}=∗
+      Q ∗ own p (F \ ↑N) ∗ (▷ P ∗ own p (F \ ↑N) -∗ |={E}=> own p F) := by
+  unfold inv
+  iintro #⟨%i, %Hin, Hinv⟩ Htoks #HPQ
+  have HNminusi : ↑N = {i} ∪ ((↑N : CoPset) \ {i}) := by
+    refine (subset_union_diff ?_).symm
+    intro x hx; rw [mem_singleton] at hx; exact hx ▸ Hin
+  icases (own_union disjoint_diff_right).mp $$ [Htoks] with ⟨HtokN, HtokRest⟩
+  · rw [subset_union_diff HNF]
+    iassumption
+  icases (own_union disjoint_diff_right).mp $$ [HtokN] with ⟨Htoki, HtokNdi⟩
+  · rw [← HNminusi]; iassumption
+  imod Iris.inv_acc HNE $$ Hinv with ⟨Hcontent, Hclose⟩
+  ihave Hcontent : ▷ (Q ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) $$ [Hcontent]
+  · inext
+    icases Hcontent with (⟨HP, Hdis⟩ | Htoki2)
+    · ileft
+      isplitl [HP]
+      · iapply HPQ $$ HP
+      · iexact Hdis
+    · iright; iexact Htoki2
+  icases Hcontent with >(⟨HQ, Hdis⟩ | Htoki2)
+  · ihave Hreturn : ▷ (P ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) $$ [Htoki]
+    · inext; iright; iassumption
+    imod Hclose $$ Hreturn with _
+    imodintro
+    isplitl [HQ]; iassumption
+    isplitl [HtokRest]; iassumption
+    iapply inv_close Hin HNE HNF $$ Hinv HtokNdi Hdis
+  · iexfalso
+    ihave Hbad : ⌜({i} : CoPset) ## {i}⌝ $$ [Htoki Htoki2]
+    · iapply own_disjoint $$ Htoki Htoki2
+    icases Hbad with %Hbad
+    exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
+
+/-- Open a non-atomic invariant with a timeless `P`. `P` is not under `▷`. This rule holds for every
+type of step-indices. -/
+@[rocq_alias na_inv_acc_open_timeless]
+theorem inv_acc_open_timeless {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
+    [Timeless P] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
+    ⊢ inv p N P -∗ own p F ={E}=∗
+      P ∗ own p (F \ ↑N) ∗ (▷ P ∗ own p (F \ ↑N) -∗ |={E}=> own p F) := by
+  iintro #HI Hown
+  iapply inv_acc_open_timeless_weakening HNE HNF $$ HI Hown
+  imodintro
+  iintro HP
+  iexact HP
+
 @[rocq_alias into_inv_na]
 instance intoInv_na (N : Namespace) (P : IProp GF) :
     IntoInv (inv p N P) N := {}
 
 set_option synthInstance.checkSynthOrder false in
 @[rocq_alias into_acc_na]
-instance intoAcc_na (p : NaInvPoolName) (E F : CoPset) (N : Namespace) (P : IProp GF) :
+instance intoAcc_na [SIdxFinite SI] (p : NaInvPoolName) (E F : CoPset) (N : Namespace) (P : IProp GF) :
     IntoAcc (X := Unit) (inv p N P) (↑N ⊆ E ∧ ↑N ⊆ F) (own p F) (fupd E E) (fupd E E)
     (fun _ => iprop(▷ P ∗ own p (F \ ↑N))) (fun _ => iprop(▷ P ∗ own p (F \ ↑N)))
               (fun _ => some (own p F)) where

@@ -231,15 +231,15 @@ instance (priority := high) instFramePointsTo (p : Bool) (l : L) (v : V) (q₁ q
 instance instTimelessMetaToken (l : L) (E : CoPset) :
     BI.Timeless (PROP := IProp GF) (metaToken l E) := by
   unfold metaToken
-  refine @UPred.exists_timeless' _ _ _ _ (fun γm => ?_)
-  exact @UPred.sep_timeless' _ _ _ _ inferInstance inferInstance
+  refine @exists_timeless _ _ _ _ (fun γm => ?_)
+  exact @sep_timeless _ _ _ _ inferInstance inferInstance
 
 @[rocq_alias meta_timeless]
 instance instTimelessMeta {A : Type _} [Pos.Countable A] (l : L) (N : Namespace) (x : A) :
     BI.Timeless (PROP := IProp GF) (metaInfo l N x) := by
   unfold metaInfo
-  refine @UPred.exists_timeless' _ _ _ _ (fun γm => ?_)
-  exact @UPred.sep_timeless' _ _ _ _ inferInstance inferInstance
+  refine @exists_timeless _ _ _ _ (fun γm => ?_)
+  exact @sep_timeless _ _ _ _ inferInstance inferInstance
 
 @[rocq_alias meta_persistent]
 instance instPersistentMeta {A : Type _} [Pos.Countable A] (l : L) (N : Namespace) (x : A) :

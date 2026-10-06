@@ -8,7 +8,7 @@ module
 public import Iris.Algebra.OFE
 public import Iris.Algebra.COFESolver
 
-@[expose] public section
+@[expose] public noncomputable section
 universe usi
 
 /-!
@@ -44,6 +44,9 @@ abbrev Dom (Val : Type _) (Err : Type _) [OFE Val] [OFE Err] [IsCOFE Val] [IsCOF
 namespace Dom
 open Iris OFE COFE
 
+/- The fold and unfold maps use the solver of `Iris.Algebra.COFESolver`. This solver needs finite
+step-indices. -/
+variable [SIdxFinite SI]
 variable [OFE V] [OFE E] [IsCOFE V] [IsCOFE E] [Inhabited E]
 
 def fold : V ⊕ E ⊕ Later (Dom V E) ⊕ Later (Dom V E -n> Dom V E) -n> Dom V E :=

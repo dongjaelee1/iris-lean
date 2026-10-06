@@ -217,7 +217,7 @@ theorem internalCmraIncluded_map {B : Type _} [CMRA B] (g : A → B) [NonExpansi
     rw [← hg]; exact internalEq.of_internalEquiv_ne g
 
 @[rocq_alias internal_included_timeless]
-instance internalCmraIncluded_timeless [SIdxFinite SI] {a b : A} [CMRA.Discrete A] :
+instance internalCmraIncluded_timeless {a b : A} [CMRA.Discrete A] :
     Timeless (PROP := PROP) iprop(a ≼ b) := by
   haveI : ∀ x : A, DiscreteE x := fun x => ⟨OFE.Discrete.discrete⟩
   unfold internalCmraIncluded

@@ -416,6 +416,11 @@ theorem dist_at {n : SI} {P Q : MonPred I PROP} :
 #rocq_ignore monPred_equiv "Covered by equiv_at."
 #rocq_ignore monPred_equiv' "Covered by equiv_at."
 
+/-- `▷ False → P i` gives `▷ False → P j` for all `j ⊒ i` (the upward closure). -/
+theorem only0_upclosed_at (P : MonPred I PROP) (i : I.car) :
+    iprop(▷ False → P.monPred_at i) ⊢ MonPred.upclosed (fun j => iprop(▷ False → P.monPred_at j)) i :=
+  forall_intro fun _ => imp_intro <| pure_elim_right fun hij => imp_mono_right (P.monPred_mono hij)
+
 /-- BI instance on monotone predicates (Rocq `monPred_bi_mixin` + persistently/later
 mixins, packaged into `monPredI : bi`). -/
 @[rocq_alias monPredI]
@@ -499,12 +504,22 @@ instance : BI (MonPred I PROP) where
         i ⟨r, rfl⟩).trans ?_
     refine (forall_elim i).trans ?_
     exact (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans (pure_imp_elim hΦ)
+  later_false_impl_sExists := @fun Φ => entails_at.mpr fun i => by
+    refine (forall_elim i).trans <| (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans ?_
+    refine later_false_impl_sExists.trans <| exists_elim fun p => ?_
+    refine pure_elim_left fun ⟨q, hΦ, hq⟩ => ?_
+    subst hq
+    exact (and_intro (pure_intro hΦ) (only0_upclosed_at q i)).trans
+      (MonPred.sExists_at_intro (q := iprop(⌜Φ q⌝ ∧ (▷ False → q))) i ⟨q, rfl⟩)
   later_sExists_false := @fun _ Φ => entails_at.mpr fun i => by
     refine later_sExists_false.trans (or_mono_right ?_)
     refine exists_elim fun p => pure_elim_left fun ⟨q, hΦ, hq⟩ => ?_
     subst hq
     exact (and_intro (pure_intro hΦ) BIBase.Entails.rfl).trans
       (MonPred.sExists_at_intro (q := iprop(⌜Φ q⌝ ∧ ▷ q)) i ⟨q, rfl⟩)
+  later_false_impl_sep {P Q} := entails_at.mpr fun i =>
+    (forall_elim i).trans <| (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)).trans <|
+      later_false_impl_sep.trans (sep_mono (only0_upclosed_at P i) (only0_upclosed_at Q i))
   later_sep_1 := entails_at.mpr fun i => later_sep_1
   later_sep_2 := entails_at.mpr fun i => later_sep_2
   later_or_1 := entails_at.mpr fun i => later_or_1
@@ -805,6 +820,12 @@ theorem monPred_at_except_0 (i : I.car) (P : MonPred I PROP) :
     iprop(◇ P).monPred_at i ⊣⊢ ◇ P.monPred_at i :=
   .rfl
 
+@[rocq_alias monPred_at_only_0]
+theorem monPred_at_only0 (i : I.car) (P : MonPred I PROP) :
+    iprop(<only0> P).monPred_at i ⊣⊢ <only0> P.monPred_at i :=
+  ⟨(forall_elim i).trans (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)),
+   only0_upclosed_at P i⟩
+
 @[rocq_alias monPred_at_laterN]
 theorem monPred_at_laterN (n : Nat) (i : I.car) (P : MonPred I PROP) :
     iprop(▷^[n] P).monPred_at i ⊣⊢ ▷^[n] P.monPred_at i := by
@@ -861,7 +882,7 @@ instance monPred_at_affine (P : MonPred I PROP) [Affine P] (i : I.car) :
 @[rocq_alias monPred_at_timeless]
 instance monPred_at_timeless (P : MonPred I PROP) [Timeless P] (i : I.car) :
     Timeless (P.monPred_at i) where
-  timeless := (entails_at.mp Timeless.timeless i).trans (monPred_at_except_0 i P).mp
+  timeless := (monPred_at_only0 i P).mpr.trans (entails_at.mp Timeless.timeless i)
 
 @[rocq_alias monPred_persistent]
 instance monPred_persistent (P : MonPred I PROP) [∀ i, Persistent (P.monPred_at i)] :
@@ -932,7 +953,8 @@ instance monPred_in_absorbing (i : I.car) :
 @[rocq_alias monPred_in_timeless]
 instance monPred_in_timeless (i : I.car) :
     Timeless (monPred_in i : MonPred I PROP) where
-  timeless := entails_at.mpr fun j => (pure_timeless (I.rel.le i j)).timeless
+  timeless := entails_at.mpr fun j =>
+    (monPred_at_only0 j _).mp.trans (pure_timeless (I.rel.le i j)).timeless
 
 /-! ### Objective predicates -/
 
@@ -1211,7 +1233,9 @@ instance monPred_objectively_persistent [BIPersistentlyForall PROP] (P : MonPred
 @[rocq_alias monPred_objectively_timeless]
 instance monPred_objectively_timeless (P : MonPred I PROP) [Timeless P] :
     Timeless iprop(<obj> P) where
-  timeless := entails_at.mpr fun _ => Timeless.timeless (P := iprop(∀ j, P.monPred_at j))
+  timeless := entails_at.mpr fun i => (monPred_at_only0 i _).mp.trans <|
+    only0_forall.mp.trans <| forall_mono fun j =>
+      (monPred_at_only0 j P).mpr.trans (entails_at.mp Timeless.timeless j)
 
 /-! ### The `subjectively` modality -/
 
@@ -1303,9 +1327,11 @@ instance monPred_subjectively_persistent (P : MonPred I PROP) [Persistent P] :
     (exists_mono fun _ => Persistent.persistent).trans persistently_exists_mpr
 
 @[rocq_alias monPred_subjectively_timeless]
-instance monPred_subjectively_timeless [SIdxFinite SI] (P : MonPred I PROP) [Timeless P] :
+instance monPred_subjectively_timeless (P : MonPred I PROP) [Timeless P] :
     Timeless iprop(<subj> P) where
-  timeless := entails_at.mpr fun _ => Timeless.timeless (P := iprop(∃ j, P.monPred_at j))
+  timeless := entails_at.mpr fun i => (monPred_at_only0 i _).mp.trans <|
+    only0_exists.mp.trans <| exists_mono fun j =>
+      (monPred_at_only0 j P).mpr.trans (entails_at.mp Timeless.timeless j)
 
 @[rocq_alias monPred_subjectively_persistently]
 theorem monPred_subjectively_persistently [BIPersistentlyExist PROP] (P : MonPred I PROP) :

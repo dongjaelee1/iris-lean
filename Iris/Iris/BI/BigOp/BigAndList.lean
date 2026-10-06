@@ -231,14 +231,13 @@ instance bigAndL_persistent_inst {Φ : Nat → A → PROP} {l : List A} [∀ k x
 @[rocq_alias big_andL_nil_timeless]
 instance bigAndL_nil_timeless_inst {Φ : Nat → A → PROP} :
     Timeless ([∧list] k ↦ x ∈ ([] : List A), Φ k x) where
-  timeless := by simpa only [bigOpL] using (later_true.1.trans except0_true.2)
+  timeless := by simpa only [bigOpL] using (true_intro : <only0> True ⊢@{PROP} True)
 
 @[rocq_alias big_andL_timeless]
 theorem bigAndL_timeless {Φ : Nat → A → PROP} {l : List A} (h : ∀ {k x}, l[k]? = some x → Timeless (Φ k x)) :
     Timeless ([∧list] k ↦ x ∈ l, Φ k x) where
-  timeless := bigOpL_closed (P := fun Q => ▷ Q ⊢ ◇ Q)
-    (later_true.1.trans except0_true.2)
-    (later_and.1.trans <| and_mono · ·|>.trans except0_and.2)
+  timeless := bigOpL_closed (P := fun Q => <only0> Q ⊢ Q) true_intro
+    (only0_and.1.trans <| and_mono · ·)
     (h · |>.timeless)
 
 @[rocq_alias big_andL_timeless']

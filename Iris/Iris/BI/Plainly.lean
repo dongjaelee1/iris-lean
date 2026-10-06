@@ -883,10 +883,10 @@ instance internalEq_timeless {P Q : PROP} [Timeless P] [Timeless Q] :
     Timeless (PROP := PROP) iprop(P ≡ Q) where
   timeless :=
     have ⟨mp, mpr⟩:= prop_ext P Q
-    calc iprop(▷ P ≡ Q)
-      _ ⊢ ▷ ■ (P ∗-∗ Q) := later_mono mp
-      _ ⊢ ◇ ■ (P ∗-∗ Q) := Timeless.timeless
-      _ ⊢ ◇ P ≡ Q := except0_mono mpr
+    calc iprop(<only0> P ≡ Q)
+      _ ⊢ <only0> ■ (P ∗-∗ Q) := only0_mono mp
+      _ ⊢ ■ (P ∗-∗ Q) := Timeless.timeless
+      _ ⊢ P ≡ Q := mpr
 
 @[rocq_alias later_plainly_1]
 theorem later_plainly_mp {P : PROP} : ▷ ■ P ⊢ ■ ▷ P := later_plainly.1

@@ -311,11 +311,7 @@ theorem persistently_siPure [Sbi PROP] {Pi : SiProp} :
 @[rocq_alias si_pure_timeless]
 instance siPure_timeless [Sbi PROP] (Pi : SiProp) [Timeless Pi] :
     Timeless (PROP := PROP) iprop(<si_pure> Pi) where
-  timeless :=
-    calc iprop(▷ <si_pure> Pi)
-      _ ⊢ <si_pure> (▷ Pi) := siPure_later.mpr
-      _ ⊢ <si_pure> (◇ Pi) := siPure_mono Timeless.timeless
-      _ ⊢ ◇ <si_pure> Pi := siPure_except0.mp
+  timeless := siPure_only0.mpr.trans (siPure_mono Timeless.timeless)
 
 @[rocq_alias si_pure_si_emp_valid_elim]
 theorem siPure_siEmpValid_elim [Sbi PROP] {P : PROP} [Absorbing P] :
@@ -518,11 +514,7 @@ theorem siEmpValid_only0 [Sbi PROP] {P : PROP} :
 @[rocq_alias si_emp_valid_timeless]
 instance siEmpValid_timeless [Sbi PROP] (P : PROP) [Timeless P] :
     Timeless iprop(<si_emp_valid> P) where
-  timeless := by
-    calc iprop(▷ <si_emp_valid> P)
-      _ ⊢ <si_emp_valid> (▷ P) := siEmpValid_later.mpr
-      _ ⊢ <si_emp_valid> (◇ P) := siEmpValid_mono Timeless.timeless
-      _ ⊢ ◇ <si_emp_valid> P := siEmpValid_except0.mp
+  timeless := siEmpValid_only0.mpr.trans (siEmpValid_mono Timeless.timeless)
 
 @[rocq_alias only_0_persistently]
 theorem only0_persistently [Sbi PROP] {P : PROP} : <only0> <pers> P ⊣⊢ <pers> <only0> P := by
@@ -534,9 +526,22 @@ theorem only0_persistently [Sbi PROP] {P : PROP} : <only0> <pers> P ⊣⊢ <pers
   · exact only0_persistently_mpr
 
 @[rocq_alias only_0_intuitionistically]
-theorem only0_intuitionistically [Sbi PROP] [BILoeb PROP] [Timeless (PROP := PROP) emp]
+theorem only0_intuitionistically [Sbi PROP] [Timeless (PROP := PROP) emp]
     {P : PROP} : <only0> □ P ⊣⊢ □ <only0> P :=
   only0_affinely.trans (affinely_congr only0_persistently)
+
+/-- `<pers>` keeps timelessness (Rocq Iris MR !1256: `persistently_timeless` in `sbi.v`). The
+proof writes `▷ False` as `<si_pure> (▷ False)` and uses the law `persistently_imp_siPure`. -/
+@[rocq_alias bi.persistently_timeless]
+instance persistently_timeless [Sbi PROP] {P : PROP} [Timeless P] :
+    Timeless iprop(<pers> P) where
+  timeless := only0_persistently.mp.trans (persistently_mono Timeless.timeless)
+
+/-- `□` keeps timelessness (Rocq Iris MR !1256: `intuitionistically_timeless` in `sbi.v`). -/
+@[rocq_alias bi.intuitionistically_timeless]
+instance intuitionistically_timeless [Sbi PROP] [Timeless (PROP := PROP) emp] {P : PROP}
+    [Timeless P] : Timeless iprop(□ P) where
+  timeless := only0_intuitionistically.mp.trans (intuitionistically_mono Timeless.timeless)
 
 @[rocq_alias only_0_persistent]
 instance only0_persistent [Sbi PROP] (P : PROP) [Persistent P] :

@@ -343,13 +343,13 @@ instance intoExcept0_except0 [BI PROP] (P : PROP) :
 @[ipm_backtrack, rocq_alias into_except_0_later]
 instance intoExcept0_later [BI PROP] (P : PROP) [Timeless P] :
     IntoExcept0 iprop(▷ P) P where
-  into_except0 := Timeless.timeless
+  into_except0 := timeless_except0.mp
 
 @[ipm_backtrack, rocq_alias into_except_0_later_if]
 instance intoExcept0_laterIf [BI PROP] p (P : PROP) [Timeless P] :
     IntoExcept0 iprop(▷?p P) P where
   into_except0 := match p with
-                  | true => Timeless.timeless (P := P)
+                  | true => (timeless_except0 (P := P)).mp
                   | false => except0_intro
 
 @[rocq_alias into_except_0_affinely]
@@ -409,7 +409,7 @@ instance (priority := default + 10) addModal_later_except_0 [BI PROP]
     (P Q : PROP) [h : Timeless P] :
     AddModal iprop(▷ P) P iprop(◇ Q) where
   add_modal := calc
-    _ ⊢ ◇ P ∗ (P -∗ ◇ Q)   := sep_mono_left h.timeless
+    _ ⊢ ◇ P ∗ (P -∗ ◇ Q)   := sep_mono_left timeless_except0.mp
     _ ⊢ ◇ (P ∗ (P -∗ ◇ Q)) := except0_frame_right
     _ ⊢ ◇ (◇ Q)            := except0_mono wand_elim_right
     _ ⊢ ◇ Q                 := except0_idem.mp
@@ -418,7 +418,7 @@ instance (priority := default + 10) addModal_later_except_0 [BI PROP]
 instance (priority := default + 10) addModal_later [BI PROP] (P Q : PROP) [h : Timeless P] :
     AddModal iprop(▷ P) P iprop(▷ Q) where
   add_modal := calc
-    _ ⊢ ◇ P ∗ (P -∗ ▷ Q)   := sep_mono_left h.timeless
+    _ ⊢ ◇ P ∗ (P -∗ ▷ Q)   := sep_mono_left timeless_except0.mp
     _ ⊢ ◇ (P ∗ (P -∗ ▷ Q)) := except0_frame_right
     _ ⊢ ◇ (▷ Q)            := except0_mono wand_elim_right
     _ ⊢ ▷ Q                 := except0_later

@@ -145,8 +145,11 @@ theorem box_alloc {M : Type _ → Type _} [LawfulFiniteMap M SliceName] (N : Nam
   iexists (fun _ => iprop(True))
   simp only [bigSepM_empty.to_eq]; itrivial
 
+/-! The rules below take `∗` and `∃` apart under `▷` (in `▷?q box N f P`). Thus they need finite
+step-indices, as in Transfinite Iris. -/
+
 @[rocq_alias slice_insert_empty]
-theorem slice_insert_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_insert_empty [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   (E : CoPset) {q : Bool} {f : M Bool} (Q : IProp GF) {P : IProp GF} {N : Namespace} :
     (▷?q box N f P) ⊢
     |={E}=> ∃ γ, ⌜get? f γ = none⌝ ∗
@@ -181,7 +184,7 @@ theorem slice_insert_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     unfold box_own_prop box_own_auth; iframe H Hfrag Hprop Hinv
 
 @[rocq_alias slice_delete_empty]
-theorem slice_delete_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_delete_empty [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     {E : CoPset} {q : Bool} {f : M Bool} {P Q : IProp GF}
     {γ : SliceName} {N : Namespace}
     (Hf : get? f γ = some false) :
@@ -210,7 +213,7 @@ theorem slice_delete_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   · iexists Φ; iframe; itrivial
 
 @[rocq_alias slice_fill]
-theorem slice_fill {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_fill [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     {E : CoPset} {q : Bool} {f : M Bool} {γ : SliceName}
     {P Q : IProp GF} {N : Namespace}
     (HE : ↑N ⊆ E) (Hf : get? f γ = some false) :
@@ -236,7 +239,7 @@ theorem slice_fill {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   iframe
 
 @[rocq_alias slice_empty]
-theorem slice_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_empty [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     {E : CoPset} {q : Bool} {f : M Bool} {P Q : IProp GF}
     {γ : SliceName} {N : Namespace}
     (HE : ↑N ⊆ E) (Hf : get? f γ = some true) :
@@ -265,7 +268,7 @@ theorem slice_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   iframe
 
 @[rocq_alias slice_insert_full]
-theorem slice_insert_full {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_insert_full [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     {E : CoPset} {q : Bool} {f : M Bool} {P Q : IProp GF} {N : Namespace}
     (HE : ↑N ⊆ E) :
     ▷ Q ∗ (▷?q box N f P) ⊢
@@ -281,7 +284,7 @@ theorem slice_insert_full {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   itrivial
 
 @[rocq_alias slice_delete_full]
-theorem slice_delete_full {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_delete_full [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     {E : CoPset} {q : Bool} {f : M Bool} {P Q : IProp GF}
     {γ : SliceName} {N : Namespace}
     (HE : ↑N ⊆ E) (Hf : PartialMap.get? f γ = some true) :
@@ -301,7 +304,7 @@ theorem slice_delete_full {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
   itrivial
 
 @[rocq_alias box_fill]
-theorem box_fill {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem box_fill [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     (E : CoPset) {f : M Bool} {P : IProp GF} {N : Namespace}
     (HE : ↑N ⊆ E) :
     box N f P ∗ ▷ P ⊢ |={E}=> box N (Std.PartialMap.map (fun _ => true) f) P := by
@@ -332,7 +335,7 @@ theorem box_fill {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     iframe Hfrag HγΦ Hinv
 
 @[rocq_alias box_empty]
-theorem box_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem box_empty [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     (E : CoPset) {f : M Bool} {P : IProp GF} {N : Namespace}
     (HE : ↑N ⊆ E) (Hall : all (fun _ b => b = true) f) :
     box N f P ⊢ |={E}=> ▷ P ∗ box N (Std.PartialMap.map (fun _ => false) f) P := by
@@ -368,7 +371,7 @@ theorem box_empty {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
       · rw [bigSepM_map]; itrivial
 
 @[rocq_alias slice_iff]
-theorem slice_iff {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_iff [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     (E : CoPset) (q : Bool) (f : M Bool) (P Q Q' : IProp GF)
     (γ : SliceName) (b : Bool) (N : Namespace)
     (HE : ↑N ⊆ E) (Hf : get? f γ = some b) :
@@ -413,7 +416,7 @@ theorem slice_iff {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
       iapply Hiff2 $$ HQ
 
 @[rocq_alias slice_split]
-theorem slice_split {M : Type _ → Type _} [LawfulFiniteMap M SliceName] [DecidableEq SliceName]
+theorem slice_split [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName] [DecidableEq SliceName]
   {E : CoPset} {q : Bool} {f : M Bool} {P Q1 Q2 : IProp GF} {γ : SliceName} {b : Bool} {N : Namespace}
   (HE : ↑N ⊆ E) (Hf : get? f γ = some b) :
     slice N γ iprop(Q1 ∗ Q2) ∗ (▷?q box N f P) ⊢
@@ -459,7 +462,7 @@ theorem slice_split {M : Type _ → Type _} [LawfulFiniteMap M SliceName] [Decid
     · itrivial
 
 @[rocq_alias slice_combine]
-theorem slice_combine {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
+theorem slice_combine [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]
     (E : CoPset) {q : Bool} {f : M Bool} {P Q1 Q2 : IProp GF}
     {γ1 γ2 : SliceName} {b : Bool} {N : Namespace}
     (HE : ↑N ⊆ E) (Hne : γ1 ≠ γ2) (Hf1 : get? f γ1 = some b) (Hf2 : get? f γ2 = some b) :

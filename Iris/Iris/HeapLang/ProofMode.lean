@@ -580,17 +580,25 @@ macro_rules
 
 /-! ## Tactic lemmas for the heap tactics -/
 
-/-- Hand out looked-up hypothesis and a wand that restores the context
-    Analogue of `envs_lookup_split` in Iris-Rocq, used by read lemmas -/
-theorem lookup_split [BI PROP] {Δ' Δ'' P : PROP} [Affine P] {p : Bool}
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ □?p P) : Δ' ⊢ P ∗ (P -∗ Δ') := by
+/-- Split the context `Δ` at a hypothesis `□?p H`, strip `▷` from the two parts, and hand out
+the points-to `P` and a wand that restores the later-stripped context `Δ'`.
+
+The heap tactics split the context first and strip `▷` from each part after. This uses only
+`later_sep_2`. If they strip `▷` from the whole context first, they must split `▷ (Δ'' ∗ P)`,
+which needs `later_sep_1` (and thus finite step-indices). -/
+theorem later_lookup_split [BI PROP] {Δ Δ₀ Δ' Δ'' H P : PROP} [Affine P] {p : Bool}
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : □?p H ⊢ ▷ □?p P)
+    (hsplit' : Δ' ⊣⊢ Δ'' ∗ □?p P) : Δ ⊢ ▷ P ∗ ▷ (P -∗ Δ') := by
   match p with
-  | false => exact hsplit.1.trans (sep_comm.1.trans (sep_mono .rfl (wand_intro hsplit.2)))
+  | false =>
+    refine hsplit.1.trans <| (sep_mono hlater hlaterP).trans <| sep_comm.1.trans ?_
+    exact sep_mono .rfl (later_mono (wand_intro hsplit'.2))
   | true =>
-    refine hsplit.1.trans ?_
-    refine (sep_mono .rfl intuitionistically_sep_dup.1).trans ?_
-    refine sep_left_comm.1.trans ?_
-    exact sep_mono intuitionistically_elim (wand_intro (sep_elim_left.trans hsplit.2))
+    refine hsplit.1.trans <| (sep_mono .rfl intuitionistically_sep_dup.1).trans ?_
+    refine (sep_mono hlater (sep_mono hlaterP hlaterP)).trans <| sep_assoc.2.trans ?_
+    refine (sep_mono (later_sep_2.trans (later_mono hsplit'.2))
+      (later_mono intuitionistically_elim)).trans <| sep_comm.1.trans ?_
+    exact sep_mono .rfl (later_mono (wand_intro sep_elim_left))
 
 /-- Recover the exact-result form used by the shared heap-tactic machinery from a Texan
 triple. -/
@@ -605,20 +613,21 @@ theorem wp_exact_of_triple [HeapLangGS hlc GF]
   ipureintro
   rfl
 
+/-! The heap tactics below split the context `Δ` at the points-to hypothesis `H` first
+(`hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H`) and strip `▷` from the two parts after (`hlater : Δ₀ ⊢ ▷ Δ''` and
+`hlaterP : □?p H ⊢ ▷ □?p (l ↦ v)`). Thus they work for every type of step-indices. -/
+
 /-- Helper lemma for the heap `tac_wp_*` lemmas. -/
-theorem tac_wp_heap_op [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' P P' : IProp GF}
+theorem tac_wp_heap_op [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H P P' : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {e : Exp} {r : Val} {Φ}
     (hval : ProgramLogic.toVal e = none)
     (hwp : ▷ P ⊢ WP e @ s ; E {{ v', ⌜v' = r⌝ ∗ P' }})
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ P)
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ P)
     (hcont : Δ'' ∗ P' ⊢ WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) r)) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K e) @ s ; E {{ Φ }} := by
-  refine hlater.trans ?_
+  refine hsplit.1.trans ?_
   refine .trans ?_ (wp_bind (ProgramLogic.fill K))
-  refine (later_mono hsplit.1).trans ?_
-  refine later_sep.1.trans ?_
-  refine (sep_mono .rfl hwp).trans ?_
+  refine (sep_mono hlater (hlaterP.trans hwp)).trans ?_
   refine (wp_frame_step_l' hval Std.LawfulSet.subset_refl).trans (wp_mono fun v' => ?_)
   iintro ⟨HΔ, %hv, HP⟩
   subst hv
@@ -640,70 +649,59 @@ public theorem tac_wp_alloc [ι : HeapLangGS hlc GF] {Δ Δ' : IProp GF}
     wand_intro <| (sep_mono_right sep_elim_left).trans (hcont l)
 
 @[rocq_alias heap_lang.tac_wp_free]
-public theorem tac_wp_free [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_free [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {v : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some v))
     (hcont : Δ'' ⊢ WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val(#()))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(free(#l))) @ s ; E {{ Φ }} :=
-  tac_wp_heap_op rfl (wp_exact_of_triple wp_free) hlater hsplit (sep_elim_left.trans hcont)
+  tac_wp_heap_op rfl (wp_exact_of_triple wp_free) hsplit hlater hlaterP (sep_elim_left.trans hcont)
 
 @[rocq_alias heap_lang.tac_wp_load]
-public theorem tac_wp_load [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF} {p : Bool}
+public theorem tac_wp_load [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ' Δ'' H : IProp GF} {p : Bool}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {q} {v : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ □?p (l ↦{q} some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : □?p H ⊢ ▷ □?p (l ↦{q} some v))
+    (hsplit' : Δ' ⊣⊢ Δ'' ∗ □?p (l ↦{q} some v))
     (hcont : Δ' ⊢ WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) v)) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(!v(#l))) @ s ; E {{ Φ }} := by
-  refine hlater.trans ?_
   refine .trans ?_ (wp_bind (ProgramLogic.fill K))
   iapply wand_apply (wand_entails ((wp_load (s := s) (E := E) (l := l)
     (q := q) (v := v)).trans (forall_elim _)))
-  refine .trans ?_ later_sep.1
-  refine later_mono ?_
-  exact (lookup_split hsplit).trans (sep_mono .rfl (wand_mono .rfl hcont))
+  exact (later_lookup_split hsplit hlater hlaterP hsplit').trans
+    (sep_mono .rfl (later_mono (wand_mono .rfl hcont)))
 
 @[rocq_alias heap_lang.tac_wp_store]
-public theorem tac_wp_store [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_store [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {v v' : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some v))
     (hcont : Δ'' ∗ (l ↦ some v') ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val(#()))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(v(#l) ← &v')) @ s ; E {{ Φ }} := by
-  refine hlater.trans ?_
   refine .trans ?_ (wp_bind (ProgramLogic.fill K))
   iapply wand_apply (wand_entails ((wp_store (s := s) (E := E) (l := l)
     (v := v') (v' := v)).trans (forall_elim _)))
-  refine .trans ?_ later_sep.1
-  refine later_mono ?_
-  refine hsplit.1.trans ?_
-  refine .trans sep_comm.mp ?_
-  exact sep_mono .rfl (wand_intro hcont)
+  refine hsplit.1.trans <| (sep_mono hlater hlaterP).trans <| sep_comm.1.trans ?_
+  exact sep_mono .rfl (later_mono (wand_intro hcont))
 
 @[rocq_alias heap_lang.tac_wp_xchg]
-public theorem tac_wp_xchg [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_xchg [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {v v' : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some v))
     (hcont : Δ'' ∗ (l ↦ some v') ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) v)) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(xchg(#l, &v'))) @ s ; E {{ Φ }} :=
-  tac_wp_heap_op rfl (wp_exact_of_triple wp_xchg) hlater hsplit hcont
+  tac_wp_heap_op rfl (wp_exact_of_triple wp_xchg) hsplit hlater hlaterP hcont
 
 @[rocq_alias heap_lang.tac_wp_cmpxchg_fail]
-public theorem tac_wp_cmpXchg_fail [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF} {p : Bool}
+public theorem tac_wp_cmpXchg_fail [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ' Δ'' H : IProp GF} {p : Bool}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {q} {v v1 v2 : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ □?p (l ↦{q} some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : □?p H ⊢ ▷ □?p (l ↦{q} some v))
+    (hsplit' : Δ' ⊣⊢ Δ'' ∗ □?p (l ↦{q} some v))
     (hne : v ≠ v1) (hsafe : v.compareSafe v1)
     (hcont : Δ' ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val((&v, #false)))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(cmpXchg(v(#l), v(&v1), v(&v2)))) @ s ; E {{ Φ }} := by
-  refine hlater.trans ?_
   refine .trans ?_ (wp_bind (ProgramLogic.fill K))
-  refine (later_mono ((lookup_split hsplit).trans sep_comm.1)).trans ?_
-  refine later_sep.1.trans ?_
+  refine (later_lookup_split hsplit hlater hlaterP hsplit').trans <| sep_comm.1.trans ?_
   refine (sep_mono .rfl (wp_exact_of_triple (wp_cmpXchg_fail (s := s) (E := E)
     (e1 := hl(v(&v1))) (e2 := hl(v(&v2))) rfl rfl hsafe (decide_eq_false hne)))).trans ?_
   refine (wp_frame_step_l' rfl Std.LawfulSet.subset_refl).trans (wp_mono fun _ => ?_)
@@ -713,41 +711,39 @@ public theorem tac_wp_cmpXchg_fail [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp
   iapply Hrestore $$ HP
 
 @[rocq_alias heap_lang.tac_wp_cmpxchg_suc]
-public theorem tac_wp_cmpXchg_suc [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_cmpXchg_suc [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {v v1 v2 : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some v))
     (heq : v = v1) (hsafe : v.compareSafe v1)
     (hcont : Δ'' ∗ (l ↦ some v2) ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val((&v, #true)))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(cmpXchg(v(#l), v(&v1), v(&v2)))) @ s ; E {{ Φ }} :=
   tac_wp_heap_op rfl
     (wp_exact_of_triple (wp_cmpXchg_true rfl rfl hsafe (decide_eq_true heq)))
-    hlater hsplit hcont
+    hsplit hlater hlaterP hcont
 
 @[rocq_alias heap_lang.tac_wp_cmpxchg]
-public theorem tac_wp_cmpXchg [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_cmpXchg [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ' Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {v v1 v2 : Val} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some v))
+    (hsplit' : Δ' ⊣⊢ Δ'' ∗ (l ↦ some v))
     (hsafe : v.compareSafe v1)
     (hsuc : v = v1 → Δ'' ∗ (l ↦ some v2) ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val((&v, #true)))) @ s ; E {{ Φ }})
     (hfail : v ≠ v1 → Δ' ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val((&v, #false)))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(cmpXchg(v(#l), v(&v1), v(&v2)))) @ s ; E {{ Φ }} :=
-  if heq : v = v1 then tac_wp_cmpXchg_suc hlater hsplit heq hsafe (hsuc heq)
-  else tac_wp_cmpXchg_fail (p := false) hlater hsplit heq hsafe (hfail heq)
+  if heq : v = v1 then tac_wp_cmpXchg_suc hsplit hlater hlaterP heq hsafe (hsuc heq)
+  else tac_wp_cmpXchg_fail (p := false) hsplit hlater hlaterP hsplit' heq hsafe (hfail heq)
 
 @[rocq_alias heap_lang.tac_wp_faa]
-public theorem tac_wp_faa [ι : HeapLangGS hlc GF] {Δ Δ' Δ'' : IProp GF}
+public theorem tac_wp_faa [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H : IProp GF}
     {s : Stuckness} {E : CoPset} {K : List ECtxItem} {l : Loc} {z1 z2 : Int} {Φ}
-    (hlater : Δ ⊢ ▷ Δ')
-    (hsplit : Δ' ⊣⊢ Δ'' ∗ (l ↦ some hl_val(#z1)))
+    (hsplit : Δ ⊣⊢ Δ₀ ∗ H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : H ⊢ ▷ (l ↦ some hl_val(#z1)))
     (hcont : Δ'' ∗ (l ↦ some hl_val(#(z1 + z2))) ⊢
       WP (ProgramLogic.fill K (Exp.ofVal (Expr := Exp) hl_val(#z1))) @ s ; E {{ Φ }}) :
     Δ ⊢ WP (ProgramLogic.fill K hl(faa(#l, #z2))) @ s ; E {{ Φ }} :=
-  tac_wp_heap_op rfl (wp_exact_of_triple wp_faa) hlater hsplit hcont
+  tac_wp_heap_op rfl (wp_exact_of_triple wp_faa) hsplit hlater hlaterP hcont
 
 @[rocq_alias heap_lang.tac_wp_allocN]
 public theorem tac_wp_allocN [ι : HeapLangGS hlc GF] {Δ Δ' : IProp GF}
@@ -825,10 +821,41 @@ meta def lookupPointsTo {u} {w : Level} {GF : Q(BundledGFunctors.{w})} {hlc : Q(
   let pfSplit : Q($eΔ' ⊣⊢ $eΔ'' ∗ □?$p (pointsTo $l $dq (some $v))) := pf
   return { v, name, vid, eΔ'', hyps'', pfSplit }
 
+/-- The split of the original context `eΔ` at the hypothesis that `lookupPointsTo` found in the
+later-stripped context, and the proofs that strip `▷` from the two parts. -/
+structure LaterSplit {u : Level} {prop : Q(Type u)} (bi : Q(BI $prop)) (eΔ eΔ'' : Q($prop))
+    (p : Q(Bool)) (P : Q($prop)) where
+  /-- The original context without the hypothesis. -/
+  eΔ₀ : Q($prop)
+  /-- The hypothesis in the original context, before `▷` is stripped. -/
+  H : Q($prop)
+  pfSplit : Q($eΔ ⊣⊢ $eΔ₀ ∗ □?$p $H)
+  pfLater : Q($eΔ₀ ⊢ ▷ $eΔ'')
+  pfLaterP : Q(□?$p $H ⊢ ▷ □?$p $P)
+
+/-- Split the original context `hyps` at the hypothesis `vid`, then strip `▷` from the two parts.
+The strip of the rest of the context must give the context `eΔ''` of `lookupPointsTo`, and the
+strip of the hypothesis must give `□?p P`. The tactics split first and strip after, because the
+other order needs `later_sep_1`, which holds only for finite step-indices. -/
+meta def splitLater {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {eΔ : Q($prop)}
+    (hyps : Hyps bi eΔ) (name : Name) (vid : IVarId) (eΔ'' : Q($prop)) (p : Q(Bool))
+    (P : Q($prop)) : ProofModeM (LaterSplit bi eΔ eΔ'' p P) := do
+  let ⟨eΔ₀, hyps₀, _, H, p', _, pfSplit⟩ := hyps.remove false vid
+  let ⟨eΔ₀', _, pfLater⟩ ← iModAction hyps₀ q(modality_laterN 1)
+  let ⟨eP', _, pfLaterP⟩ ← iModAction (Hyps.mkHyp bi name vid p' H) q(modality_laterN 1)
+  unless ← isDefEq p' p do
+    throwIPMError m!"internal error: {name} changed between intuitionistic and spatial"
+  unless ← isDefEq eΔ₀' eΔ'' do
+    throwIPMError m!"internal error: the context without {name} does not match"
+  unless ← isDefEq eP' q(iprop(□?$p $P)) do
+    throwIPMError m!"internal error: the hypothesis {name} does not match"
+  return { eΔ₀, H, pfSplit, pfLater, pfLaterP }
+
 /-- The goal handed to a heap tactic by `ProofModeM.runTacticHeapWp`: `WpGoal` fields,
 plus the `HeapLangGS` instance `hgs` extracted from the goal's `IrisGS_gen`, and the
 context `hyps'`/`eΔ'` after stripping the WP's step modality, with `pfLater` witnessing
-the strip. -/
+the strip. The tactics look up a points-to in `hyps'`, then they split the original context
+`hyps` with `splitLater`. -/
 structure HeapWpGoal extends WpGoal where
   hgs : Q(HeapLangGS $hlc $GF)
   {eΔ' : Q($prop)}
@@ -862,7 +889,7 @@ meta def runTacticHeapWp {α} (tacName : Name)
 /-! ## The heap tactics -/
 
 elab "wp_load" : tactic =>
-  runTacticHeapWp `wp_load fun mvar {s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_load fun mvar {hyps, s, E, e, Φ, hgs, eΔ', hyps', ..} => do
     let some {result := l, K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.load (Exp.ofVal (Val.lit (BaseLit.loc $l)))) := e' | failure
       return l
@@ -872,16 +899,19 @@ elab "wp_load" : tactic =>
     -- find `l ↦{dq} some v` in the spatial context and extract `dq`
     let dq ← mkFreshExprMVarQ q(DFrac)
     let p ← mkFreshExprMVarQ q(Bool)
-    let ⟨v, _, _, _, _, pfSplit⟩ ← lookupPointsTo hgs hyps' l dq p
+    let ⟨v, name, vid, eΔ'', _, pfSplit⟩ ← lookupPointsTo hgs hyps' l dq p
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' p q(pointsTo $l $dq (some $v))
 
     -- fill the loaded value back into `K` and finish the continuation
     -- (over `hyps'`: the points-to hypothesis is kept)
     let pfCont ← finishHeapOp hyps' hgs s E K v Φ
 
-    mvar.assign q(tac_wp_load (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit $pfCont)
+    mvar.assign
+      q(tac_wp_load (ι := $hgs) (Δ' := $eΔ') $pfSplit0 $pfLater0 $pfLaterP $pfSplit $pfCont)
 
 elab "wp_store" : tactic => do
-  runTacticHeapWp `wp_store fun mvar {bi, s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_store fun mvar {bi, hyps, s, E, e, Φ, hgs, hyps', ..} => do
     let some {result := (l, v'), K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.store (Exp.ofVal (Val.lit (BaseLit.loc $l))) (Exp.ofVal $v')) := e' | failure
       return (l, v')
@@ -889,20 +919,23 @@ elab "wp_store" : tactic => do
     trace[wp_heap.redex] "store {l} ← {v'}; K = {K}"
 
     -- find and remove `l ↦ some v` (stores need full ownership)
-    let ⟨_, name, vid, _, hyps'', pfSplit⟩ ←
+    let ⟨v, name, vid, eΔ'', hyps'', _⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' q(false) q(pointsTo $l (DFrac.own 1) (some $v))
 
     let ⟨_, hyps''', pf'''⟩ := hyps''.add bi name vid q(false) q(pointsTo $l (DFrac.own 1) (some $v'))
 
     let pfCont ← finishHeapOp hyps''' hgs s E K q(hl_val(#())) Φ
 
-    mvar.assign q(tac_wp_store (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit <| $(pf''').mp.trans $pfCont)
+    mvar.assign
+      q(tac_wp_store (ι := $hgs) $pfSplit0 $pfLater0 $pfLaterP <| $(pf''').mp.trans $pfCont)
   -- a store's result is often discarded by a `;`, so try stepping through the
   -- sequencing redex using `wp_seq`
   evalTactic (← `(tactic| try wp_seq))
 
 elab "wp_xchg" : tactic => do
-  runTacticHeapWp `wp_xchg fun mvar {bi, s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_xchg fun mvar {bi, hyps, s, E, e, Φ, hgs, hyps', ..} => do
     let some {result := (l, v'), K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.xchg (Exp.ofVal (Val.lit (BaseLit.loc $l))) (Exp.ofVal $v')) := e' | failure
       return (l, v')
@@ -910,19 +943,22 @@ elab "wp_xchg" : tactic => do
     trace[wp_heap.redex] "xchg {l} ← {v'}; K = {K}"
 
     -- find and remove `l ↦ some v` (xchg writes, so it needs full ownership)
-    let ⟨v, name, vid, _, hyps'', pfSplit⟩ ←
+    let ⟨v, name, vid, eΔ'', hyps'', _⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' q(false) q(pointsTo $l (DFrac.own 1) (some $v))
 
     let ⟨_, hyps''', pf'''⟩ := hyps''.add bi name vid q(false) q(pointsTo $l (DFrac.own 1) (some $v'))
 
     let pfCont ← finishHeapOp hyps''' hgs s E K v Φ
 
-    mvar.assign q(tac_wp_xchg (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit <| $(pf''').mp.trans $pfCont)
+    mvar.assign
+      q(tac_wp_xchg (ι := $hgs) $pfSplit0 $pfLater0 $pfLaterP <| $(pf''').mp.trans $pfCont)
   -- like in `wp_store`, an `xchg` often discards its result, so try `wp_seq`
   evalTactic (← `(tactic| try wp_seq))
 
 elab "wp_faa" : tactic =>
-  runTacticHeapWp `wp_faa fun mvar {bi, s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_faa fun mvar {bi, hyps, s, E, e, Φ, hgs, hyps', ..} => do
     let some {result := (l, z2), K, ..} ← findECtx e fun _ e' => do
       -- faa is only defined on integers
       let ~q(Exp.faa (Exp.ofVal (Val.lit (BaseLit.loc $l)))
@@ -932,25 +968,26 @@ elab "wp_faa" : tactic =>
     trace[wp_heap.redex] "faa {l} += {z2}; K = {K}"
 
     -- find and remove `l ↦ some v` (faa writes, so it needs full ownership)
-    let ⟨v, name, vid, eΔ'', hyps'', pfSplit⟩ ←
+    let ⟨v, name, vid, eΔ'', hyps'', _⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
 
     -- check that the points-to value is an integer (FAA requirement)
     let ~q(Val.lit (BaseLit.int $z1)) := v
       | throwIPMError
           m!"the points-to hypothesis for location {l} does not store an integer"
-    have pfSplit : Q($eΔ' ⊣⊢ $eΔ'' ∗
-      pointsTo $l (DFrac.own 1) (some (Val.lit (BaseLit.int $z1)))) := pfSplit
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ← splitLater hyps name vid eΔ'' q(false)
+      q(pointsTo $l (DFrac.own 1) (some (Val.lit (BaseLit.int $z1))))
 
     let ⟨_, hyps''', pf'''⟩ := hyps''.add bi name vid q(false)
       q(pointsTo $l (DFrac.own 1) (some (Val.lit (BaseLit.int ($z1 + $z2)))))
 
     let pfCont ← finishHeapOp hyps''' hgs s E K q(Val.lit (BaseLit.int $z1)) Φ
 
-    mvar.assign q(tac_wp_faa (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit <| $(pf''').mp.trans $pfCont)
+    mvar.assign
+      q(tac_wp_faa (ι := $hgs) $pfSplit0 $pfLater0 $pfLaterP <| $(pf''').mp.trans $pfCont)
 
 elab "wp_cmpxchg_suc" : tactic =>
-  runTacticHeapWp `wp_cmpxchg_suc fun mvar {bi, s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_cmpxchg_suc fun mvar {bi, hyps, s, E, e, Φ, hgs, hyps', ..} => do
     let some {result := (l, v1, v2), K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.cmpXchg (Exp.ofVal (Val.lit (BaseLit.loc $l)))
           (Exp.ofVal $v1) (Exp.ofVal $v2)) := e' | failure
@@ -959,8 +996,10 @@ elab "wp_cmpxchg_suc" : tactic =>
     trace[wp_heap.redex] "cmpXchg {l}: {v1} → {v2}; K = {K}"
 
     -- find and remove `l ↦ some v` (a successful cmpXchg writes, so full ownership)
-    let ⟨v, name, vid, _, hyps'', pfSplit⟩ ←
+    let ⟨v, name, vid, eΔ'', hyps'', _⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' q(false) q(pointsTo $l (DFrac.own 1) (some $v))
 
     -- check safety, don't throw hard error to match Rocq behavior
     let pfSafe ← iSolveSidecondition q(($v).compareSafe $v1 = true) (failOnUnsolved := false)
@@ -975,10 +1014,11 @@ elab "wp_cmpxchg_suc" : tactic =>
       q(Val.pair $v (Val.lit (BaseLit.bool true))) Φ
 
     mvar.assign
-      q(tac_wp_cmpXchg_suc (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit $pfEq $pfSafe <| $(pf''').mp.trans $pfCont)
+      q(tac_wp_cmpXchg_suc (ι := $hgs) $pfSplit0 $pfLater0 $pfLaterP $pfEq $pfSafe <|
+        $(pf''').mp.trans $pfCont)
 
 elab "wp_cmpxchg_fail" : tactic =>
-  runTacticHeapWp `wp_cmpxchg_fail fun mvar {s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_cmpxchg_fail fun mvar {hyps, s, E, e, Φ, hgs, eΔ', hyps', ..} => do
     let some {result := (l, v1, v2), K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.cmpXchg (Exp.ofVal (Val.lit (BaseLit.loc $l)))
           (Exp.ofVal $v1) (Exp.ofVal $v2)) := e' | failure
@@ -989,7 +1029,9 @@ elab "wp_cmpxchg_fail" : tactic =>
     -- any fraction suffices for a failing compare (the points-to is only read)
     let dq ← mkFreshExprMVarQ q(DFrac)
     let p ← mkFreshExprMVarQ q(Bool)
-    let ⟨v, _, _, _, _, pfSplit⟩ ← lookupPointsTo hgs hyps' l dq p
+    let ⟨v, name, vid, eΔ'', _, pfSplit⟩ ← lookupPointsTo hgs hyps' l dq p
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' p q(pointsTo $l $dq (some $v))
 
     -- check safety, don't throw hard error to match Rocq behavior
     let pfSafe ← iSolveSidecondition q(($v).compareSafe $v1 = true) (failOnUnsolved := false)
@@ -1002,11 +1044,11 @@ elab "wp_cmpxchg_fail" : tactic =>
 
     mvar.assign
       q(tac_wp_cmpXchg_fail (ι := $hgs) (Δ' := $eΔ') (v2 := $v2)
-        $pfLater $pfSplit $pfNeq $pfSafe $pfCont)
+        $pfSplit0 $pfLater0 $pfLaterP $pfSplit $pfNeq $pfSafe $pfCont)
 
 -- `colGt` on the names keeps an omitted one from swallowing the next line's tactic
 elab "wp_cmpxchg" " with" colGt ppSpace h1:binderIdent colGt ppSpace h2:binderIdent : tactic =>
-  runTacticHeapWp `wp_cmpxchg fun mvar {bi, GF, hlc, s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_cmpxchg fun mvar {bi, hyps, GF, hlc, s, E, e, Φ, hgs, eΔ', hyps', ..} => do
     let some {result := (l, v1, v2), K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.cmpXchg (Exp.ofVal (Val.lit (BaseLit.loc $l)))
           (Exp.ofVal $v1) (Exp.ofVal $v2)) := e' | failure
@@ -1017,6 +1059,8 @@ elab "wp_cmpxchg" " with" colGt ppSpace h1:binderIdent colGt ppSpace h2:binderId
     -- find and remove `l ↦ some v` (the success branch writes, so full ownership)
     let ⟨v, name, vid, eΔ'', hyps'', pfSplit⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' q(false) q(pointsTo $l (DFrac.own 1) (some $v))
 
     let ⟨_, hypsSuc, pfEq⟩ := hyps''.add bi name vid q(false)
       q(pointsTo $l (DFrac.own 1) (some $v2))
@@ -1046,10 +1090,10 @@ elab "wp_cmpxchg" " with" colGt ppSpace h1:binderIdent colGt ppSpace h2:binderId
 
     mvar.assign
       q(tac_wp_cmpXchg (ι := $hgs) (Δ' := $eΔ') (v2 := $v2)
-        $pfLater $pfSplit $pfSafe $pfSuc $pfFail)
+        $pfSplit0 $pfLater0 $pfLaterP $pfSplit $pfSafe $pfSuc $pfFail)
 
 elab "wp_free" : tactic =>
-  runTacticHeapWp `wp_free fun mvar {s, E, e, Φ, hgs, eΔ', hyps', pfLater, ..} => do
+  runTacticHeapWp `wp_free fun mvar {hyps, s, E, e, Φ, hgs, hyps', ..} => do
     let some {result := l, K, ..} ← findECtx e fun _ e' => do
       let ~q(Exp.free (Exp.ofVal (Val.lit (BaseLit.loc $l)))) := e' | failure
       return l
@@ -1058,12 +1102,14 @@ elab "wp_free" : tactic =>
 
     -- find and remove `l ↦ some v` (freeing needs full ownership); the continuation
     -- runs over the pruned context `hyps''` since the points-to is consumed
-    let ⟨_, _, _, _, hyps'', pfSplit⟩ ←
+    let ⟨v, name, vid, eΔ'', hyps'', _⟩ ←
       lookupPointsTo hgs hyps' l q(DFrac.own 1) q(false)
+    let ⟨_, _, pfSplit0, pfLater0, pfLaterP⟩ ←
+      splitLater hyps name vid eΔ'' q(false) q(pointsTo $l (DFrac.own 1) (some $v))
 
     let pfCont ← finishHeapOp hyps'' hgs s E K q(hl_val(#())) Φ
 
-    mvar.assign q(tac_wp_free (ι := $hgs) (Δ' := $eΔ') $pfLater $pfSplit $pfCont)
+    mvar.assign q(tac_wp_free (ι := $hgs) $pfSplit0 $pfLater0 $pfLaterP $pfCont)
 
 
 elab "wp_alloc" colGt ppSpace loc:binderIdent " with" colGt ppSpace hyp:binderIdent : tactic =>

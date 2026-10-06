@@ -193,8 +193,16 @@ theorem waitLoop_spec (γ : GName) (lk : Val) (x : Nat) (R : IProp GF) :
   wp_rec
   wp_pures
   wp_bind !_
-  iinv Hinv with ⟨%o, %n, >Hlo, >Hln, >Hauth, Hstate⟩ Hclose
-  wp_load
+  iinv Hinv with HI Hclose
+  -- The step of the load removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
+  -- under `▷` (this needs finite step-indices).
+  iapply (wp_load_later (dq := DFrac.own 1))
+  inext
+  icases HI with ⟨%o, %n, Hlo, Hln, Hauth, Hstate⟩
+  iexists _
+  isplitl [Hlo]
+  · iexact Hlo
+  iintro Hlo
   by_cases hxo : x = o
   · subst hxo
     icases Hstate with (⟨Howner, HR⟩ | Hissued')
@@ -224,15 +232,31 @@ theorem acquire_spec (γ : GName) (lk : Val) (R : IProp GF) :
   wp_rec
   wp_pures
   wp_bind !_
-  iinv Hinv with ⟨%o, %n, >Hlo, >Hln, >Hauth, Hstate⟩ Hclose
-  wp_load
+  iinv Hinv with HI Hclose
+  iapply (wp_load_later (dq := DFrac.own 1))
+  inext
+  icases HI with ⟨%o, %n, Hlo, Hln, Hauth, Hstate⟩
+  iexists _
+  isplitl [Hln]
+  · iexact Hln
+  iintro Hln
   imod Hclose $$ [$Hlo $Hln $Hauth $Hstate] with -
   imodintro
   wp_pures
   wp_bind cmpXchg(_, _, _)
-  iinv Hinv with ⟨%o', %n', >Hlo, >Hln, >Hauth, Hstate⟩ Hclose
-  wp_cmpxchg with hsuc hfail
-  · obtain rfl : n' = n := by simp only [Val.lit.injEq, BaseLit.int.injEq] at hsuc; omega
+  iinv Hinv with HI Hclose
+  iapply wp_cmpXchg_later
+  inext
+  icases HI with ⟨%o', %n', Hlo, Hln, Hauth, Hstate⟩
+  iexists _
+  isplitl [Hln]
+  · iexact Hln
+  isplitr
+  · ipureintro; rfl
+  iintro Hln
+  by_cases hsuc : hl_val(#n') = hl_val(#n)
+  · simp only [hsuc, ↓reduceIte, decide_true]
+    obtain rfl : n' = n := by simp only [Val.lit.injEq, BaseLit.int.injEq] at hsuc; omega
     imod iOwn_update (a' := (auth o' (n' + 1) : TicketR) • ticket n') $$ Hauth
       with ⟨Hauth, Hissued⟩
     · refine Auth.auth_update_alloc ?_
@@ -249,7 +273,8 @@ theorem acquire_spec (γ : GName) (lk : Val) (R : IProp GF) :
     unfold isLock issued lockInv
     iframe Hissued Hinv
     itrivial
-  · imod Hclose $$ [$Hlo $Hln $Hauth $Hstate] with -
+  · simp only [hsuc, ↓reduceIte, decide_false]
+    imod Hclose $$ [$Hlo $Hln $Hauth $Hstate] with -
     imodintro
     wp_pures
     iapply IH $$ Hcont
@@ -262,15 +287,27 @@ theorem release_spec (γ : GName) (lk : Val) (R : IProp GF) :
   wp_rec
   wp_pures
   wp_bind !_
-  iinv Hinv with ⟨%o', %n, >Hlo, >Hln, >Hauth, Hstate⟩ Hclose
-  wp_load
+  iinv Hinv with HI Hclose
+  iapply (wp_load_later (dq := DFrac.own 1))
+  inext
+  icases HI with ⟨%o', %n, Hlo, Hln, Hauth, Hstate⟩
+  iexists _
+  isplitl [Hlo]
+  · iexact Hlo
+  iintro Hlo
   ihave %rfl := own_owner_agree $$ [$Hauth $Howner]
   imod Hclose $$ [$Hlo $Hln $Hauth $Hstate] with -
   imodintro
   wp_pures
   iapply wp_fupd
-  iinv Hinv with ⟨%o', %n', >Hlo, >Hln, >Hauth, Hstate⟩ Hclose
-  wp_store
+  iinv Hinv with HI Hclose
+  iapply wp_store_later
+  inext
+  icases HI with ⟨%o', %n', Hlo, Hln, Hauth, Hstate⟩
+  iexists _
+  isplitl [Hlo]
+  · iexact Hlo
+  iintro Hlo
   ihave %rfl := own_owner_agree $$ [$Hauth $Howner]
   icases Hstate with (⟨Howner', -⟩ | Hissued)
   · iexfalso; iapply own_owner_exclusive $$ [$Howner $Howner']
