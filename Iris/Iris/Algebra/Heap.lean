@@ -17,7 +17,7 @@ public import Iris.Std.Set
 public import Iris.Std.PartialMap
 meta import Iris.Std.RocqPorting
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris Std

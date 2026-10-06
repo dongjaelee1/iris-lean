@@ -9,7 +9,7 @@ public import Iris.Algebra.OFE
 public import Iris.Algebra.BigOp
 public import Iris.Std.List
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

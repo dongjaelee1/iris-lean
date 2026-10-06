@@ -14,7 +14,7 @@ public import Iris.Std.GenSetsInstances
 public import Iris.Std.CoPset
 public import Iris.Std.GenSets
 
-@[expose] public section
+@[expose] public noncomputable section
 
 universe usi
 

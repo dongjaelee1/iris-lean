@@ -17,7 +17,7 @@ This CMRA captures the notion of fractional ownership of another resource.
 This version follows Iris Rocq in fixing the underlying type of fractions to be `ℚ ∩ (0, 1]`
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Rat

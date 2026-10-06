@@ -19,7 +19,7 @@ authoritative element can allocate a new fragment by increasing its fraction and
 fragment's resource to its payload.
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

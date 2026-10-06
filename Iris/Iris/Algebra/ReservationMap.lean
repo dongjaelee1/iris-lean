@@ -15,7 +15,7 @@ public import Iris.Algebra.LeibnizSet
 
 namespace Iris
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris Iris.Std PartialMap

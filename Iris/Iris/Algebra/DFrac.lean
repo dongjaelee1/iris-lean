@@ -12,7 +12,7 @@ public import Iris.Algebra.Updates
 public import Iris.Algebra.LocalUpdates
 public import Iris.Algebra.IsOp
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

@@ -460,7 +460,7 @@ def PrimStepMatchedByErasedSteps (e1 : Exp) (σ1 : State) (e2 : Exp)
     (σ2 : State) (efs : List Exp) : Prop :=
   ∃ e2' σ2' κ' efs' e2'',
     PrimStep.primStep (e1, σ1) κ' (e2', σ2', efs') ∧
-      Relation.ReflTransGen PurePrimStep e2 e2'' ∧
+      FromMathlib.Relation.ReflTransGen PurePrimStep e2 e2'' ∧
       eraseExpr e2' = e2'' ∧ eraseState σ2' = σ2 ∧ eraseTp efs' = efs
 
 @[rocq_alias heap_lang.prim_step_matched_by_erased_steps_ectx]
@@ -595,7 +595,7 @@ private theorem pureStepIn (K : List ECtxItem) {e1 e2 : Exp} [h : PureExec True 
 /-- `Fst (Fst ((v0, v1), v2))` reduces to `v0` by four pure steps. -/
 @[rocq_alias heap_lang.projs_pure_steps]
 theorem projs_pure_steps (v0 v1 v2 : Val) :
-    Relation.ReflTransGen PurePrimStep (eraseResolve hl(v(&v0)) hl(v(&v1)) hl(v(&v2))) hl(v(&v0)) :=
+    FromMathlib.Relation.ReflTransGen PurePrimStep (eraseResolve hl(v(&v0)) hl(v(&v1)) hl(v(&v2))) hl(v(&v0)) :=
   calc eraseResolve hl(v(&v0)) hl(v(&v1)) hl(v(&v2))
     _ -ᵖ->* hl(fst(fst((v((&v0, &v1)), v(&v2))))) := pureStepIn [.pairL v2, .fst, .fst]
     _ -ᵖ->* hl(fst(fst(v(((&v0, &v1), &v2))))) := pureStepIn [.fst, .fst]
@@ -850,14 +850,14 @@ private theorem map_eq_append_cons {α β : Type _} {f : α → β} :
 @[rocq_alias heap_lang.pure_step_tp_safe]
 theorem pureStep_tp_safe {t1 t2 : List Exp} {e1 : Exp} {σ : State}
     (Ht2 : ∀ e2 ∈ t2, PrimStep.NotStuck (e2, σ))
-    (Hpr : t1.Forall₂ (Relation.ReflTransGen PurePrimStep) (eraseTp t2))
+    (Hpr : t1.Forall₂ (FromMathlib.Relation.ReflTransGen PurePrimStep) (eraseTp t2))
     (Hmem : e1 ∈ t1) : PrimStep.NotStuck (e1, eraseState σ) := by
   obtain ⟨ps, ss, rfl⟩ := List.append_of_mem Hmem
   obtain ⟨l2, l2', hl2, hpr1, hpr2, hlen⟩ := List.exists_of_forall₂_append Hpr
   obtain ⟨e2, l2'', rfl, hpstep, _⟩ := List.exists_of_forall₂_cons hpr2
   obtain ⟨t2a, e2', t2b, rfl, _, rfl, _⟩ := map_eq_append_cons (f := eraseExpr) hl2
   have hns : PrimStep.NotStuck (e2', σ) := Ht2 e2' (by simp)
-  rcases Relation.ReflTransGen.cases_head hpstep with heq | ⟨e', hpstep_first, _⟩
+  rcases FromMathlib.Relation.ReflTransGen.cases_head hpstep with heq | ⟨e', hpstep_first, _⟩
   · subst heq
     rcases hns with hval | hred
     · obtain ⟨v, hv⟩ := Option.isSome_iff_exists.mp hval
@@ -874,7 +874,7 @@ private theorem pureSteps_refl (t : List Exp) : Language.PureSteps t t := by
   | cons _ _ ih => exact .cons .refl ih
 
 private theorem pureSteps_set {t t' : List Exp} (h : Language.PureSteps t t') {i : Nat}
-    {e' eo' : Exp} (hpure : Relation.ReflTransGen PurePrimStep e' eo') :
+    {e' eo' : Exp} (hpure : FromMathlib.Relation.ReflTransGen PurePrimStep e' eo') :
     Language.PureSteps (t.set i e') (t'.set i eo') := by
   induction h generalizing i with
   | nil => exact .nil
@@ -893,9 +893,9 @@ private theorem getElem?_eraseTp {t : List Exp} {i : Nat} {ei : Exp}
 from an original configuration whose erasure `pure_steps` up to it. -/
 private theorem erasure_cut {e : Exp} {σ : State} {φ : Val → State → Prop}
     (Had : adequate .NotStuck e σ φ) {ρ2 : List Exp × State}
-    (h : Relation.ReflTransGen Language.ErasedStep ([eraseExpr e], eraseState σ) ρ2) :
+    (h : FromMathlib.Relation.ReflTransGen Language.ErasedStep ([eraseExpr e], eraseState σ) ρ2) :
     ∃ (t2'' : List Exp) (σ2' : State),
-      Relation.ReflTransGen Language.ErasedStep ([e], σ) (t2'', σ2') ∧
+      FromMathlib.Relation.ReflTransGen Language.ErasedStep ([e], σ) (t2'', σ2') ∧
       ρ2.2 = eraseState σ2' ∧
       Language.PureSteps ρ2.1 (eraseTp t2'') := by
   induction h with

@@ -10,7 +10,7 @@ public import Iris.Algebra.View
 public import Iris.Algebra.Updates
 meta import Iris.Std.RocqPorting
 
-@[expose] public section
+@[expose] public noncomputable section
 
 /-! # RA for monotone partial bijections -/
 

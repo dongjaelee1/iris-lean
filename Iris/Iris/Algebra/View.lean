@@ -14,7 +14,7 @@ public import Iris.Algebra.BigOp
 public import Iris.Algebra.Updates
 public import Iris.Algebra.LocalUpdates
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris

@@ -17,7 +17,7 @@ embeds `a`; for preorders, the resource-algebra inclusion order between principa
 coincides with `R`.
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

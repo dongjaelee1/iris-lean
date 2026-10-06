@@ -7,7 +7,7 @@ module
 
 public import Iris.Algebra.CMRA
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

@@ -22,7 +22,7 @@ This file also includes some CMRA's for types with nonstandard operations, for e
 These are newtyped to avoid clashing with the normal mathematical operations.
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 open Std
 

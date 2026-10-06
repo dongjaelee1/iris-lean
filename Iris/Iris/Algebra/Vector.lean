@@ -8,7 +8,7 @@ module
 public import Iris.Algebra.List
 public import Iris.Std.Vector
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris
@@ -25,7 +25,7 @@ variable [OFE α]
 @[rocq_alias vec_ofe_mixin]
 instance : OFE (Vector α n) where
   Dist k u v := u.toList ≡{k}≡ v.toList
-  dist_eqv := InvImage.equivalence dist_eqv
+  dist_eqv := ⟨fun _ => dist_eqv.refl _, dist_eqv.symm, dist_eqv.trans⟩
   eq_dist' := ⟨fun h _ => h ▸ .rfl, fun h => Vector.toList_inj.mp (eq_dist_2 h)⟩
   dist_lt h hlt := h.lt hlt
 #rocq_ignore vecO "Use Vector"

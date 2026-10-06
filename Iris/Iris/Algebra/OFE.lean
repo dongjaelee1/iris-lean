@@ -9,7 +9,7 @@ public import Iris.Algebra.StepIndexChoice
 public import Iris.Std.Nat
 public import Iris.Std.Option
 
-@[expose] public section
+@[expose] public noncomputable section
 
 namespace Iris
 

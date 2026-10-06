@@ -16,7 +16,7 @@ public import Iris.Algebra.IsOp
 A variant of the Frac CMRA with unbounded validity (>1).
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 namespace Iris

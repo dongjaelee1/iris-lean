@@ -126,7 +126,7 @@ instance make_laterable_ne [BI PROP] : NonExpansive <| make_laterable (PROP := P
   ne := by
     intro n P Q HPQ
     unfold make_laterable
-    apply exists_ne
+    apply BI.exists_ne
     intro R
     apply sep_ne.ne; rfl
     apply intuitionistically_ne.ne

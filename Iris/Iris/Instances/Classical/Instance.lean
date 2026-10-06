@@ -9,7 +9,7 @@ public import Iris.BI
 public import Iris.Instances.Data
 public import Iris.Std.Equivalence
 
-@[expose] public section
+@[expose] public noncomputable section
 universe s
 
 namespace Iris.Instances.Classical

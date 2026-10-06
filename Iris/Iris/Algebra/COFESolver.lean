@@ -7,7 +7,7 @@ module
 
 public import Iris.Algebra.OFE
 
-@[expose] public section
+@[expose] public noncomputable section
 
 /-!
 # Solver for recursive domain equations

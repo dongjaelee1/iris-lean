@@ -20,7 +20,7 @@ inductive Iterate {α : Type _} (R : α → α → Prop) : Nat → α → α →
 attribute [simp] Iterate.rfl Iterate.tail
 
 theorem ReflTrans_iff_exists_iterate {α : Type _} {R : α → α → Prop} {x y} :
-    Relation.ReflTransGen R x y ↔ ∃ n, Iterate R n x y := by
+    FromMathlib.Relation.ReflTransGen R x y ↔ ∃ n, Iterate R n x y := by
   refine ⟨fun rtcR => ?_, fun ⟨n, itR⟩ => ?_⟩
   · induction rtcR with
     | refl => exact ⟨0, .rfl _⟩

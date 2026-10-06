@@ -31,7 +31,7 @@ It provides authoritative and fragmental ownership over heap elements with fract
 * `HeapView.update_replace`: Replacement update lemma
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris

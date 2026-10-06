@@ -16,7 +16,7 @@ The authoritative camera has 2 types of elements:
 - the fragment `◯ b`
 -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris

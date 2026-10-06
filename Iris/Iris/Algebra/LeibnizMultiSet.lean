@@ -11,7 +11,7 @@ public import Iris.Algebra.LocalUpdates
 public import Iris.Algebra.Updates
 public import Iris.Std.GenMultiSets
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 /-! ## The multiset union CMRA -/

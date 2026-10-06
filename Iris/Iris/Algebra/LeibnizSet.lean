@@ -14,7 +14,7 @@ public import Iris.Std.GenSets
 public import Iris.Std.Infinite
 public import Iris.Std.CoPset
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 /-! ## Leibniz Set algebras

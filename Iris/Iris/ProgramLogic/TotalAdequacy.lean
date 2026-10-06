@@ -145,7 +145,7 @@ private theorem get_nil : ⊢ get (ι := ι) ([] : List Expr) := by
 @[rocq_alias twp_twptp]
 theorem of_twp (s : Stuckness) (e : Expr) (Φ : Val → IProp GF) :
     WP e @ s ; ⊤ [{ Φ }] ⊢ get [e] := by
-  let Ψ := fun (E : CoPset) (e : Expr) (_ : Val → IProp GF) => iprop(⌜E = ⊤⌝ -∗ get (ι := ι) [e])
+  let Ψ := fun (E : CoPset) (e : Expr) (_ : Val → IProp GF) => iprop(⌜E = (⊤ : CoPset)⌝ -∗ get (ι := ι) [e])
   letI : NonExpansive
       (fun x : twp.Internal.Args Expr Val GF => Ψ x.1 x.2.1 x.2.2) :=
     ⟨fun _ _ _ ⟨hE, he, _⟩ => hE ▸ he ▸ .rfl⟩

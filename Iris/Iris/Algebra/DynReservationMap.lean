@@ -16,7 +16,7 @@ public import Iris.Algebra.LeibnizSet
 
 namespace Iris
 
-@[expose] public section
+@[expose] public noncomputable section
 
 
 open Iris.Std PartialMap
@@ -131,13 +131,13 @@ variable [LawfulPartialMap H Pos] [CMRA A]
 @[rocq_alias dyn_reservation_map_validN_instance]
 def ValidN (n : SI) (x : DynReservationMap A H) : Prop :=
   match x.token with
-  | .valid e => ✓{n} x.data ∧ setInfinite (⊤ \ e) ∧ ∀ i, get? x.data i = none ∨ i ∉ e
+  | .valid e => ✓{n} x.data ∧ setInfinite (top \ e) ∧ ∀ i, get? x.data i = none ∨ i ∉ e
   | .error => False
 
 @[rocq_alias dyn_reservation_map_valid_instance]
 def Valid (x : DynReservationMap A H) : Prop :=
   match x.token with
-  | .valid e => ✓ x.data ∧ setInfinite (⊤ \ e) ∧ ∀ i, get? x.data i = none ∨ i ∉ e
+  | .valid e => ✓ x.data ∧ setInfinite (top \ e) ∧ ∀ i, get? x.data i = none ∨ i ∉ e
   | .error => False
 
 #rocq_ignore dyn_reservation_map_valid_eq "Definitional unfolding of Valid"

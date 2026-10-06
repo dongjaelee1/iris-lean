@@ -173,7 +173,7 @@ scoped notation (name := ErasedStep) conf:40 " -·->ₜₚ " conf':41 => Languag
 
 /-- A sequence of `Language.erasedStep`s -/
 scoped notation (name := erasedStepStar) conf:40 " -·->ₜₚ* " conf':41 =>
-  Relation.ReflTransGen Language.ErasedStep conf conf'
+  FromMathlib.Relation.ReflTransGen Language.ErasedStep conf conf'
 
 /-- A nonempty sequence of `Language.erasedStep`s -/
 scoped notation (name := erasedStepPlus) conf:40 " -·->ₜₚ+ " conf':41 =>
@@ -407,7 +407,7 @@ scoped notation (name := PurePrimStepN) conf:40 " -ᵖ->^[" n "] " conf':41 =>
 /-- `e₁ -ᵖ->* e₂` represents a sequence of some number of pure steps taken from `e₁` up to `e₂`.
 -/
 scoped notation (name := PurePrimStepStar) conf:40 " -ᵖ->* " conf':41 =>
-  Relation.ReflTransGen Language.PurePrimStep conf conf'
+  FromMathlib.Relation.ReflTransGen Language.PurePrimStep conf conf'
 
 end Notation
 
@@ -506,7 +506,7 @@ theorem erasedStep_pureSteps {t₁ t₂ t₃ : List Expr} {σ₁ σ₂ : State} 
   obtain ⟨ps₃, e₃, ss₃, rfl, ss_ss₃, ps_ps₃, length_ps, e_e₃⟩ :=
     show ∃ ps₃ e₃ ss₃, t₃ = ps₃ ++ e₃ :: ss₃ ∧ ss -ᵖ->ₜₚ* ss₃
          ∧ ps -ᵖ->ₜₚ* ps₃ ∧ ps.length = ps₃.length ∧ e -ᵖ->* e₃ by grind
-  rcases Relation.ReflTransGen.cases_head e_e₃ with (rfl | ⟨e', firstPureStep, lastSteps⟩)
+  rcases FromMathlib.Relation.ReflTransGen.cases_head e_e₃ with (rfl | ⟨e', firstPureStep, lastSteps⟩)
   · right
     exists (ps₃.length), e, eₜ, e', obs
     simp [length_ps, pstep]

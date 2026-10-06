@@ -9,7 +9,7 @@ public import Iris.Algebra.Auth
 public import Iris.Algebra.LocalUpdates
 public import Iris.Algebra.Numbers
 
-@[expose] public section
+@[expose] public noncomputable section
 
 /-!
 # Authoritative CMRA over `MaxInt`

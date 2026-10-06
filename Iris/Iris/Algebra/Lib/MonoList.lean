@@ -12,7 +12,7 @@ meta import Iris.Std.RocqPorting
 
 /-! # Monotone lists -/
 
-@[expose] public section
+@[expose] public noncomputable section
 
 namespace Iris
 

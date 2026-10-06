@@ -11,7 +11,7 @@ public import Iris.Instances.UPred.Instance
 public import Iris.Instances.IProp.Instance
 public import Iris.Algebra.Agree
 
-@[expose] public section
+@[expose] public noncomputable section
 
 universe usi
 
