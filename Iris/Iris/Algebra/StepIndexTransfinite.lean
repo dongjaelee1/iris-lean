@@ -17,7 +17,9 @@ This file ports the step-index property classes of Transfinite Iris
   adequacy of the transfinite program logic.
 - `SIdxLarge` (`LargeIndex`): existential quantification over a (small) type commutes with
   universal quantification over step-indices, for downward-closed predicates. This is the
-  "existential property" of the paper and holds for sufficiently large ordinals.
+  "existential property" of the paper and holds for sufficiently large ordinals. The Lean class
+  has the type of the quantifier as an argument (`SIdxLarge I X`); Rocq's `LargeIndex` is the
+  statement for all types of one universe (`∀ X : Type v, SIdxLarge I X`).
 - The classes `FiniteExistential` and `FiniteBoundedExistential` of the Rocq development hold for
   every type of step-indices since Lean's logic is classical; they are stated as theorems here
   (`SIdx.forall_or`, `SIdx.forall_lt_or`, `SIdx.commute_finite_exists`,
@@ -38,21 +40,38 @@ class SIdxTransfinite (I : Type u) [SIdx I] where
   /-- Every finite iterate of `succᵢ` is below `upperLimit`. -/
   iter_succ_lt_upperLimit (n : Nat) (m : I) : Nat.repeat SIdx.succ n m < upperLimit m
 
-/-- A type of step-indices is *large* (relative to the universe `v`) if existential quantification
-over types in `Type v` commutes with universal quantification over the indices, for predicates
-that are downward closed in the index (Transfinite Iris, `LargeIndex`).
+/-- The type of step-indices `I` is *large* for the type `X` if existential quantification over
+`X` commutes with universal quantification over the indices, for predicates that are downward
+closed in the index (Transfinite Iris, `LargeIndex`).
 
-This is the *existential property* of the Transfinite Iris paper. It fails for `Nat` and holds
-for the ordinals of a larger universe. -/
-class SIdxLarge.{v} (I : Type u) [SIdx I] : Prop where
-  commute_exists {X : Type v} (P : X → I → Prop) :
+This is the *existential property* of the Transfinite Iris paper. It fails for `Nat` (for example
+for `X := Nat`) and holds for the ordinals of a larger universe than `X`.
+
+Rocq's `LargeIndex` is the statement for all types of one universe: `∀ X : Type v, SIdxLarge I X`.
+The Lean class has the type `X` as an argument, so that the instance search selects the instance
+from the type of the quantifier. (With only a universe parameter, the universe is an output of the
+instance search, and the search can find only one of several instances.) Lemmas take the instance
+after the arguments that fix `X`, so that `X` is known when the instance search runs. -/
+@[rocq_alias LargeIndex]
+class SIdxLarge (I : Type u) [SIdx I] (X : Type v) : Prop where
+  commute_exists (P : X → I → Prop) :
     (∀ x a b, a < b → P x b → P x a) → (∀ a, ∃ x, P x a) → ∃ x, ∀ a, P x a
 
-/-- The existential property for a universe implies it for smaller universes. -/
-theorem SIdxLarge.down.{v, w} {I : Type u} [SIdx I] [h : SIdxLarge.{max v w} I] :
-    SIdxLarge.{v} I where
-  commute_exists {X} P hmono hex := by
-    obtain ⟨⟨x⟩, hx⟩ := h.commute_exists (X := ULift.{w} X) (fun x a => P x.down a)
+/-- The existential property for `X` gives it for `ULift X`. With this instance, a small type in a
+large universe has the property. -/
+instance SIdxLarge.ulift {I : Type u} [SIdx I] {X : Type v} [h : SIdxLarge I X] :
+    SIdxLarge I (ULift.{w} X) where
+  commute_exists P hmono hex := by
+    obtain ⟨x, hx⟩ := h.commute_exists (fun x a => P ⟨x⟩ a) (fun x a b => hmono ⟨x⟩ a b)
+      (fun a => let ⟨⟨x⟩, hx⟩ := hex a; ⟨x, hx⟩)
+    exact ⟨⟨x⟩, hx⟩
+
+/-- The existential property for `ULift X` gives it for `X`. (Not an instance: the instance
+search would loop through `ULift (ULift X)`, ....) -/
+theorem SIdxLarge.of_ulift {I : Type u} [SIdx I] {X : Type v} [h : SIdxLarge I (ULift.{w} X)] :
+    SIdxLarge I X where
+  commute_exists P hmono hex := by
+    obtain ⟨⟨x⟩, hx⟩ := h.commute_exists (fun x a => P x.down a)
       (fun x a b hab => hmono x.down a b hab) (fun a => let ⟨x, hx⟩ := hex a; ⟨⟨x⟩, hx⟩)
     exact ⟨x, hx⟩
 
