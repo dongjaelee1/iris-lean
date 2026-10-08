@@ -493,8 +493,8 @@ instance instBIUPred : BI (UPred M) where
 #rocq_ignore uPred_primitive.later_persistently_1 "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_persistently_2 "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_exist_false "Inlined in `uPredI` construction"
-#rocq_ignore uPred_primitive.later_false_exist "Inlined in `uPredI` construction"
-#rocq_ignore uPred_primitive.later_false_sep "Inlined in `uPredI` construction"
+#transfinite_ignore uPred_primitive.later_false_exist "Inlined in `uPredI` construction"
+#transfinite_ignore uPred_primitive.later_false_sep "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_false_em "Inlined in `uPredI` construction"
 #rocq_ignore uPred_primitive.later_forall_2 "Inlined in `uPredI` construction"
 

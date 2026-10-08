@@ -45,7 +45,7 @@ theorem laterN_holds_iter {P : UPred M} :
   | 0, _, _, _, h => h
   | n + 1, _, x, _, h => laterN_holds_iter n x _ (h _ (SIdx.lt_succ_self _))
 
-@[rocq_alias uPred_primitive.big_later_soundness]
+@[transfinite_alias uPred_primitive.big_later_soundness]
 theorem big_later_soundness [SIdxTransfinite SI] (P : UPred M) :
     iprop(True ⊢ ⧍ P) → iprop((True : UPred M) ⊢ P) := by
   intro H n x _
@@ -55,7 +55,7 @@ theorem big_later_soundness [SIdxTransfinite SI] (P : UPred M) :
     UPred.mono _ Hk (incN_refl _) (SIdx.lt_le_incl (SIdxTransfinite.iter_succ_lt_upperLimit k n))
   exact UPred.mono _ (laterN_holds_iter k unit unit_validN Hk') incN_unit SIdx.le_refl
 
-@[rocq_alias uPred_primitive.big_laterN_soundness]
+@[transfinite_alias uPred_primitive.big_laterN_soundness]
 theorem big_laterN_soundness [SIdxTransfinite SI] (n : Nat) (P : UPred M) :
     iprop(True ⊢ bigLaterN n P) → iprop((True : UPred M) ⊢ P) := by
   induction n generalizing P with
@@ -64,7 +64,7 @@ theorem big_laterN_soundness [SIdxTransfinite SI] (n : Nat) (P : UPred M) :
 
 /-- Soundness of the big later for pure propositions (Transfinite Iris, `transfinite_soundness`):
 a pure proposition that holds after finitely many steps holds. -/
-@[rocq_alias uPred.transfinite_soundness]
+@[transfinite_alias uPred.transfinite_soundness]
 theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) :
     iprop((True : UPred M) ⊢ ⧍ ⌜φ⌝) → φ :=
   fun h => pure_soundness (big_later_soundness _ h)
@@ -73,7 +73,7 @@ theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) :
 
 /-- A timeless proposition that holds at index `0` holds. This is the definition of `Timeless`
 (Transfinite Iris: `timeless_zero`). -/
-@[rocq_alias uPred_primitive.timeless_zero]
+@[transfinite_alias uPred_primitive.timeless_zero]
 theorem timeless_zero (P : UPred M) [Timeless P] : iprop(▷ False → P) ⊢ P := Timeless.timeless
 
 /-- `P` holds at index `0` (as a proposition of the model). -/
@@ -85,7 +85,7 @@ private theorem holds_of_zero {P : UPred M} [Timeless P] {n : SI} {x : ValidAt M
       exact UPred.mono _ H (incN_trans hinc (hy.incN)) SIdx.le_refl
     · exact absurd (HF 0 (SIdx.neq_0_lt_0.mp hn')) id
 
-@[rocq_alias uPred_primitive.later_sep_timeless]
+@[transfinite_alias uPred_primitive.later_sep_timeless]
 theorem later_sep_timeless (P Q : UPred M) [Timeless P] [Timeless Q] :
     iprop(▷ (P ∗ Q)) ⊣⊢ iprop(▷ P ∗ ▷ Q) := by
   refine ⟨fun n x H => ?_, later_sep_2⟩
@@ -99,7 +99,7 @@ theorem later_sep_timeless (P Q : UPred M) [Timeless P] [Timeless Q] :
     · exact holds_of_zero H2 Hy1.symm.to_incN
     · exact holds_of_zero H3 Hy2.symm.to_incN
 
-@[rocq_alias uPred_primitive.later_exist_timeless]
+@[transfinite_alias uPred_primitive.later_exist_timeless]
 theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
     iprop(▷ ∃ a, Ψ a) ⊢ iprop(▷ False ∨ ∃ a, ▷ Ψ a) := by
   intro n x H
@@ -112,7 +112,7 @@ theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless 
 
 /-- A proposition of the model is satisfiable if at every index it holds for some valid resource
 (Transfinite Iris, `uPred_satisfiable`). The resource may depend on the index. -/
-@[rocq_alias uPred_satisfiable]
+@[transfinite_alias uPred_satisfiable]
 def satisfiable (P : UPred M) : Prop := ∀ n, ∃ x, ∃ h : ✓{n} x, P n ⟨x, h⟩
 
 theorem satisfiable_intro {P : UPred M} (H : iprop(True ⊢ P)) : satisfiable P :=
@@ -156,7 +156,7 @@ theorem satisfiable_exists {X : Type v} {P : X → UPred M} (hP : satisfiable ip
       ⟨y, validN_of_le (SIdx.lt_le_incl hab) hy, UPred.mono _ H (incN_refl _) (SIdx.lt_le_incl hab)⟩)
     (fun n => let ⟨y, hy, _, ⟨a, rfl⟩, Ha⟩ := hP n; ⟨a, y, hy, Ha⟩)
 
-@[rocq_alias uPred_Satisfiable]
+@[transfinite_alias uPred_Satisfiable]
 instance instSatisfiable : Satisfiable.{w, v} (UPred M) where
   satisfiable := satisfiable
   intro := satisfiable_intro
@@ -173,7 +173,7 @@ instance instSatisfiable : Satisfiable.{w, v} (UPred M) where
 does in Lean, `later_or_1`), then at a limit index `ω` one can decide whether a function
 `f : SI → Bool` becomes `true`. (In Lean this is trivial classically; the point of the lemma is
 that the commuting law is only justified by classical reasoning in the model.) -/
-@[rocq_alias uPred_primitive.dec_halting]
+@[transfinite_alias uPred_primitive.dec_halting]
 theorem later_or_is_classical (ω : SI) (m : M) (f : SI → Bool)
     (comm : ∀ P Q : UPred M, iprop(▷ (P ∨ Q)) ⊢ iprop(▷ P ∨ ▷ Q))
     (Hdec : ∀ n, n < ω → (∀ m, m ≤ n → f m = false) ∨ (∃ m, f m = true))

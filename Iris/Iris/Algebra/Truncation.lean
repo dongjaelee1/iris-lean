@@ -31,7 +31,7 @@ open OFE
 
 /-- An OFE is *truncated* at `α` if equality is already determined by the distance at `α`
 (Transfinite Iris, `OfeTruncated`). -/
-@[rocq_alias OfeTruncated]
+@[transfinite_alias OfeTruncated]
 class OFE.Truncated (A : Type _) [OFE A] (α : SI) : Prop where
   eq_of_dist {x y : A} : x ≡{α}≡ y → x = y
 
@@ -45,7 +45,7 @@ theorem dist_iff {x y : A} : x ≡{α}≡ y ↔ x = y := ⟨eq_of_dist, Dist.of_
 theorem eq_of_dist_le {n : SI} (h : α ≤ n) {x y : A} (hxy : x ≡{n}≡ y) : x = y :=
   eq_of_dist (hxy.le h)
 
-@[rocq_alias ofe_truncated_dist]
+@[transfinite_alias ofe_truncated_dist]
 theorem dist_of_dist_le {n : SI} (_ : α ≤ n) {x y : A} (hxy : x ≡{α}≡ y) : x ≡{n}≡ y :=
   Dist.of_eq (eq_of_dist hxy)
 
@@ -142,7 +142,7 @@ noncomputable def expand (α : SI) : TruncO α A -n> A where
 theorem truncate_expand (α : SI) (q : TruncO α A) : truncate α (expand α q) = q :=
   TruncO.mk_out q
 
-@[rocq_alias ofe_trunc_expand_truncate_id]
+@[transfinite_alias ofe_trunc_expand_truncate_id]
 theorem expand_truncate (α : SI) (x : A) : expand α (truncate α x) ≡{α}≡ x := TruncO.out_mk x
 
 theorem expand_truncate_le {α n : SI} (h : n ≤ α) (x : A) : expand α (truncate α x) ≡{n}≡ x :=
@@ -155,7 +155,7 @@ theorem truncate_eq_truncate {α : SI} {x y : A} :
     truncate α x = truncate α y ↔ x ≡{α}≡ y := TruncO.mk_eq_mk
 
 /-- Maps between truncations (Transfinite Iris, `trunc_map`). -/
-@[rocq_alias trunc_map]
+@[transfinite_alias trunc_map]
 noncomputable def truncMap (α β : SI) (f : A -n> B) : TruncO α A -n> TruncO β B :=
   (truncate β).comp (f.comp (expand α))
 
@@ -166,7 +166,7 @@ theorem truncMap_ne (α β : SI) : NonExpansive (truncMap (A := A) (B := B) α �
   ne _ _ _ h := fun _ => (truncate β).ne.1 (h _)
 
 /-- Rocq: `trunc_map_compose`. -/
-@[rocq_alias trunc_map_compose]
+@[transfinite_alias trunc_map_compose]
 theorem truncMap_comp_dist (α β γ : SI) (f : A -n> B) (g : B -n> C) (q : TruncO α A) :
     truncMap α β (g.comp f) q ≡{γ}≡ truncMap γ β g (truncMap α γ f q) :=
   (truncate β).ne.1 (g.ne.1 (expand_truncate γ _).symm)
@@ -184,7 +184,7 @@ theorem truncMap_congr {α β : SI} {f g : A -n> B} (h : ∀ x, f x = g x) (q : 
   rw [Hom.ext (funext h)]
 
 /-- `truncMap` preserves bounded inverses (Rocq: `trunc_map_inv`). -/
-@[rocq_alias trunc_map_inv]
+@[transfinite_alias trunc_map_inv]
 theorem truncMap_inv {α β : SI} (hle : α ≤ β) (f : A -n> B) (g : B -n> A)
     (h1 : ∀ x, f (g x) ≡{α}≡ x) (h2 : ∀ x, g (f x) ≡{α}≡ x) :
     (∀ q, truncMap α β f (truncMap β α g q) ≡{α}≡ q) ∧
@@ -205,7 +205,7 @@ namespace TruncO
 
 variable {A : Type _} [COFE A] {α : SI}
 
-@[rocq_alias Truncatable_cofe]
+@[transfinite_alias Truncatable_cofe]
 noncomputable instance instCOFE : IsCOFE (TruncO α A) where
   compl c := truncate α (COFE.compl (c.map (expand α)))
   conv_compl := ((truncate α).ne.1 COFE.conv_compl).trans (Dist.of_eq (truncate_expand α _))
@@ -221,12 +221,12 @@ end TruncO
 
 /-- Limits of bounded chains of limit length `n` agree up to `n` if the chains agree pointwise
 (Transfinite Iris, `BcomplUniqueLim`). The transfinite COFE solver requires this of the functor. -/
-@[rocq_alias BcomplUniqueLim]
+@[transfinite_alias BcomplUniqueLim]
 class BcomplUniqueLim (A : Type _) [COFE A] : Prop where
   lbcompl_unique {n : SI} (hn : SIdx.Limit n) (c d : BChain A n) :
     (∀ m (hm : m < n), c.bchain m hm ≡{m}≡ d.bchain m hm) → IsCOFE.lbcompl hn c ≡{n}≡ IsCOFE.lbcompl hn d
 
-@[rocq_alias Truncatable_unique_lim]
+@[transfinite_alias Truncatable_unique_lim]
 instance TruncO.instBcomplUniqueLim {A : Type _} [COFE A] [BcomplUniqueLim A] {α : SI} :
     BcomplUniqueLim (TruncO α A) where
   lbcompl_unique hn _ _ h :=

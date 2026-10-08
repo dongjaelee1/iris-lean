@@ -819,7 +819,7 @@ theorem monPred_at_except_0 (i : I.car) (P : MonPred I PROP) :
     iprop(◇ P).monPred_at i ⊣⊢ ◇ P.monPred_at i :=
   .rfl
 
-@[rocq_alias monPred_at_only_0]
+@[transfinite_alias monPred_at_only_0]
 theorem monPred_at_only0 (i : I.car) (P : MonPred I PROP) :
     iprop(<only0> P).monPred_at i ⊣⊢ <only0> P.monPred_at i :=
   ⟨(forall_elim i).trans (pure_imp_elim (Std.Refl.refl i : I.rel.le i i)),

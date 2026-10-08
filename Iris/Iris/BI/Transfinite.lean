@@ -87,12 +87,12 @@ section BigLaterPlain
 variable [Sbi PROP]
 
 /-- Rocq: `plain_big_later`. -/
-@[rocq_alias plain_big_later]
+@[transfinite_alias plain_big_later]
 instance bigLater_plain (P : PROP) [Plain P] : Plain iprop(⧍ P) :=
   inferInstanceAs (Plain iprop(∃ n : Nat, ▷^[n] P))
 
 /-- Rocq: `plain_big_laterN`. -/
-@[rocq_alias plain_big_laterN]
+@[transfinite_alias plain_big_laterN]
 instance bigLaterN_plain (n : Nat) (P : PROP) [Plain P] : Plain (bigLaterN n P) := by
   induction n with
   | zero => exact inferInstanceAs (Plain P)
@@ -108,7 +108,7 @@ end BigLaterPlain
 The rules for existential quantification require properties of the step-index type:
 `finite_exists` holds for every type of step-indices (Lean is classical, so Transfinite Iris's
 `FiniteExistential` is always available), while `exists_` requires `SIdxLarge SI X`. -/
-@[rocq_alias Satisfiable]
+@[transfinite_alias Satisfiable]
 class Satisfiable.{w, v} (PROP : Type _)
     [outParam (Sbi PROP)] [outParam (BIUpdate PROP)] where
   satisfiable : PROP → Prop

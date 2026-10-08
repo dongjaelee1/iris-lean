@@ -321,7 +321,7 @@ theorem embed_except_0 [BiEmbedLater PROP1 PROP2] (P : PROP1) :
   (embed_or _ P).trans
     (or_congr ((BiEmbedLater.embed_later _).trans (later_congr (embed_pure False))) .rfl)
 
-@[rocq_alias embed_only_0]
+@[transfinite_alias embed_only_0]
 theorem embed_only0 [BiEmbedLater PROP1 PROP2] (P : PROP1) :
     (⎡<only0> P⎤ : PROP2) ⊣⊢ <only0> ⎡P⎤ :=
   (embed_impl _ P).trans

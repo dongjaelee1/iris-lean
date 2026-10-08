@@ -46,7 +46,7 @@ a larger universe than `X`.
 Rocq's `LargeIndex` is `∀ X : Type v, SIdxLarge I X`. Here `X` is an argument, so that instance
 search selects the instance from the type of the quantifier. Lemmas take the instance after the
 arguments that fix `X`, so that `X` is known when instance search runs. -/
-@[rocq_alias LargeIndex]
+@[transfinite_alias LargeIndex]
 class SIdxLarge (I : Type u) [SIdx I] (X : Type v) : Prop where
   commute_exists (P : X → I → Prop) :
     (∀ x a b, a < b → P x b → P x a) → (∀ a, ∃ x, P x a) → ∃ x, ∀ a, P x a

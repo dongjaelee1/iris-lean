@@ -364,7 +364,7 @@ attribute [rocq_alias siProp_primitive.exist_elim] BI.sExists_elim
 attribute [rocq_alias siProp_primitive.later_mono] BI.later_mono
 attribute [rocq_alias siProp_primitive.later_intro] BI.later_intro
 attribute [rocq_alias siProp_primitive.later_forall_2] BI.later_sForall_2
-attribute [rocq_alias siProp_primitive.later_false_exist] BI.later_false_impl_sExists
+attribute [transfinite_alias siProp_primitive.later_false_exist] BI.later_false_impl_sExists
 attribute [rocq_alias siProp_primitive.later_exist_false] BI.later_sExists_false
 attribute [rocq_alias siProp_primitive.later_false_em] BI.later_false_em
 

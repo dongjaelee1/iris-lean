@@ -266,7 +266,7 @@ private theorem inv_close {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P 
     · iexact HtokFret
 
 /-- Open a non-atomic invariant. All the results are under `▷`. -/
-@[rocq_alias na_inv_acc_open]
+@[transfinite_alias na_inv_acc_open]
 nonrec theorem inv_acc_open {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
     ⊢ inv p N P -∗ own p F ={E}=∗
@@ -299,7 +299,7 @@ nonrec theorem inv_acc_open {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
 /-- Open a non-atomic invariant and get a timeless `Q` that `P` gives. `Q` is not under `▷`. -/
-@[rocq_alias na_inv_acc_open_timeless_weakening]
+@[transfinite_alias na_inv_acc_open_timeless_weakening]
 nonrec theorem inv_acc_open_timeless_weakening {p : NaInvPoolName} {E F : CoPset} {N : Namespace}
     {P Q : IProp GF} [Timeless Q] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
     ⊢ inv p N P -∗ own p F -∗ □ (P -∗ Q) ={E}=∗
@@ -338,7 +338,7 @@ nonrec theorem inv_acc_open_timeless_weakening {p : NaInvPoolName} {E F : CoPset
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
 /-- Open a non-atomic invariant with a timeless `P`. `P` is not under `▷`. -/
-@[rocq_alias na_inv_acc_open_timeless]
+@[transfinite_alias na_inv_acc_open_timeless]
 theorem inv_acc_open_timeless {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     [Timeless P] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
     ⊢ inv p N P -∗ own p F ={E}=∗

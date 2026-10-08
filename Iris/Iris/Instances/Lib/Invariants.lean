@@ -338,7 +338,7 @@ theorem inv_iff (N : Namespace) (P Q : IProp GF) :
     simp only [iff]
     iapply HPQ $$ HQ
 
-@[rocq_alias inv_alter_timeless]
+@[transfinite_alias inv_alter_timeless]
 theorem inv_alter_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] :
     ⊢ inv N P -∗ □ (P -∗ Q ∗ ▷ (Q -∗ P)) -∗ inv N Q := by
   simp only [inv]
@@ -449,7 +449,7 @@ theorem inv_split [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :
   ihave H2 := inv_split_r $$ H
   isplit <;> iassumption
 
-@[rocq_alias inv_split_l_timeless]
+@[transfinite_alias inv_split_l_timeless]
 theorem inv_split_l_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N P := by
   iintro #H
@@ -461,7 +461,7 @@ theorem inv_split_l_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Time
   iintro HP
   isplitl [HP] <;> iassumption
 
-@[rocq_alias inv_split_r_timeless]
+@[transfinite_alias inv_split_r_timeless]
 theorem inv_split_r_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N Q := by
   iintro #H
@@ -473,7 +473,7 @@ theorem inv_split_r_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Time
   iintro HQ
   isplitl [HP] <;> iassumption
 
-@[rocq_alias inv_split_timeless]
+@[transfinite_alias inv_split_timeless]
 theorem inv_split_timeless (N : Namespace) (P Q : IProp GF) [Timeless P] [Timeless Q] :
     ⊢ inv N iprop(P ∗ Q) -∗ inv N P ∗ inv N Q := by
   iintro #H

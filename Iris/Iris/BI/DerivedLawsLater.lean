@@ -72,7 +72,7 @@ theorem later_exists_false [SIdxFinite SI] {Φ : α → PROP} :
     rintro ⟨a, rfl⟩
     exact imp_intro_swap <| and_elim_l.trans (exists_intro (Ψ := fun a => iprop(▷ Φ a)) a)
 
-@[rocq_alias bi.later_false_impl_exist]
+@[transfinite_alias bi.later_false_impl_exist]
 theorem later_false_impl_exists {α : Sort _} {Φ : α → PROP} :
     (▷ False → ∃ a, Φ a) ⊢ ∃ a, ▷ False → Φ a := by
   refine later_false_impl_sExists.trans (exists_elim fun P => ?_)
@@ -890,7 +890,7 @@ theorem only0_elim_timeless {P : PROP} [Timeless P] : <only0> P ⊢ P :=
   Timeless.timeless
 
 /-- If a timeless `P` holds at `n`, it holds at `n + 1`. -/
-@[rocq_alias bi.timeless_except_0]
+@[transfinite_alias bi.timeless_except_0]
 theorem timeless_except0 {P : PROP} [Timeless P] : ▷ P ⊣⊢ ◇ P :=
   ⟨later_except0_only0.trans (except0_mono Timeless.timeless),
    or_elim (later_mono false_elim) later_intro⟩

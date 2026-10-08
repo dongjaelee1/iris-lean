@@ -144,7 +144,7 @@ instance : IsCOFE (UPred M) where
 
 /-- Limits of bounded chains of `UPred`s are unique. The transfinite COFE solver needs this
 (Transfinite Iris: `bcompl_unique`). -/
-@[rocq_alias bcompl_unique]
+@[transfinite_alias bcompl_unique]
 instance : BcomplUniqueLim (UPred M) where
   lbcompl_unique {_} _ _ _ h _ _ _ _ :=
     ⟨fun H m hm hlt => (h m hlt m _ SIdx.le_refl _).mp (H m hm hlt),
