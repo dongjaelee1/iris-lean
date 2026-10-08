@@ -2,8 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the trees of well-founded relations (`Ordinals.Tree.WellFounded`,
-`Ordinals.Tree.WfRel`): the main results use no axioms. -/
+/-! Tests for `Ordinals.Tree.WellFounded` and `Ordinals.Tree.WfRel`. -/
 
 open Ordinals
 
@@ -11,7 +10,6 @@ universe u
 
 /-! ## Usage -/
 
-/-- The tree of an element unfolds to the trees of its predecessors. -/
 example {A : Type u} {R : A → A → Prop} (hwf : WellFounded R) (a : A) :
     OTree.ofWf hwf a = OTree.mk {b // R b a} fun b => OTree.ofWf hwf b.1 :=
   OTree.ofWf_eq hwf a
@@ -21,15 +19,12 @@ example {A : Type u} {R : A → A → Prop} (hwf₀ hwf₁ : WellFounded R) :
     OTree.ofWfSet hwf₀ = OTree.ofWfSet hwf₁ :=
   rfl
 
-/-- The natural number `3` is the tree of `3` in `<`. -/
 example : OTree.ofNat.{0} 3 ≈ OTree.ofWf OTree.ulift_nat_lt_wf ⟨3⟩ :=
   OTree.ofNat_equiv_ofWf 3
 
-/-- `large.{0}` is above `ω` lifted from `OTree.{0}`. -/
 example : OTree.lift.{0, 1} OTree.omega < OTree.large.{0} :=
   OTree.lift_lt_large OTree.omega
 
-/-- `ω` is below the Hartogs ordinal of `ULift Nat`. -/
 example : OTree.omega.{u} < OTree.hartogs (ULift.{u} Nat) :=
   OTree.lt_of_le_of_lt OTree.omega_equiv_ofWfSet.le (OTree.ofWfSet_lt_hartogs _)
 

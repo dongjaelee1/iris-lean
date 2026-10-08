@@ -10,28 +10,8 @@ public import Ordinals.Tree.Rec
 # Ordinal arithmetic on trees
 
 Addition, multiplication and exponentiation of trees, by transfinite recursion (`orec`) on the
-second argument:
-
-- `add s t := orec s succ t`: start at `s` and apply `succ` (snu-sf: `OrdArith.add`).
-- `mul s t := orec zero (fun r => add r s) t`: start at `zero` and add `s` (snu-sf:
-  `OrdArith.mult`).
-- `pow s t := orec (succ zero) (fun r => mul r s) t`: start at `1` and multiply by `s` (snu-sf:
-  `OrdArith.expn`).
-
-Each operation has monotonicity lemmas and a congruence lemma for `≈`. The main results are
-`add_assoc`, `mul_add` (left distributivity), `mul_assoc`, `pow_add` and `pow_mul`, the
-equations for `zero`, `succ`, `sup`, `mk` and `max`, and the compatibility with `ofNat`.
-`trec_add` and `orec_add` (snu-sf: sections `RECAPP`, `ORECAPP`) give the recursion along a
-sum: the recursion along `add s t` is the recursion along `t` from the result along `s`.
-
-This file follows snu-sf/Ordinal (`src/Arithmetic.v`, module `OrdArith`). The names of the Rocq
-lemmas are in the docstrings. The lemmas take only the hypotheses that their proofs need. For
-example, `pow_le_pow_right` and `pow_sup` do not need `zero < s`: with this definition,
-`pow zero t ≈ succ zero` for each `t` (`pow_zero_left`).
-
-Lemmas with the name of a general algebraic law (`add_assoc`, `mul_add`, ...) are protected.
-
-The results of this file use no axioms.
+second argument, and the recursion along a sum (`trec_add`, `orec_add`). This file follows
+snu-sf/Ordinal (`src/Arithmetic.v`, module `OrdArith`).
 -/
 
 @[expose] public section
@@ -48,7 +28,7 @@ namespace OTree
 def add (s : OTree.{u}) : OTree.{u} → OTree.{u} :=
   orec s succ
 
-/-- snu-sf: `OrdArith.add_base_l`. -/
+/-- snu-sf: `OrdArith.add_base_l`, `OrdArith.mult_gen_le`. -/
 protected theorem le_add_right (s t : OTree.{u}) : s ≤ add s t :=
   base_le_orec t
 
@@ -148,7 +128,6 @@ theorem trec_add (hJ : JoinLaws dle wf djoin) (hS : StepLaws wf base next)
     have wY := hJ.join_wf wg
     have wY' := hJ.join_wf wn'
     have wB := hJ.dunion_wf hS.base_wf wY
-    -- `trec (succ (add s (f i)))` is `next (trec' (f i))`.
     have e₄ : ∀ i, dle (trec base next djoin (succ (add s (f i))))
           (next (trec (trec base next djoin s) next djoin (f i))) ∧
         dle (next (trec (trec base next djoin s) next djoin (f i)))
@@ -156,7 +135,6 @@ theorem trec_add (hJ : JoinLaws dle wf djoin) (hS : StepLaws wf base next)
       hJ.equiv_trans (wT _) (hS.next_wf (wT _)) (wn' i) (trec_succ hJ hS hl _)
         ⟨hm (wT _) (wT' _) (ih i).1, hm (wT' _) (wT _) (ih i).2⟩
     have e₅ := hJ.join_congr wg wn' e₄
-    -- The member `base` is below `trec s`.
     have hb := base_le_trec hJ hS s
     have wR := hJ.dunion_wf (wT s) wY'
     have e₆ : dle (dunion djoin (trec base next djoin s)
@@ -202,8 +180,7 @@ protected theorem add_assoc (r s t : OTree.{u}) : add (add r s) t ≈ add r (add
 def mul (s : OTree.{u}) : OTree.{u} → OTree.{u} :=
   orec zero fun r => add r s
 
-/-- `add · s` is monotone: the step of `mul` (snu-sf: `OrdArith.mult_gen_mon`; the lemma
-`OrdArith.mult_gen_le` is `le_add_right`). -/
+/-- The step of `mul` is monotone (snu-sf: `OrdArith.mult_gen_mon`). -/
 theorem add_right_mono (s : OTree.{u}) {r r' : OTree.{u}} (h : r ≤ r') : add r s ≤ add r' s :=
   OTree.add_le_add_right h s
 
@@ -286,7 +263,6 @@ protected theorem mul_add (r : OTree.{u}) (s : OTree.{u}) :
     ∀ t : OTree.{u}, mul r (add s t) ≈ add (mul r s) (mul r t)
   | mk ι f => by
     have ih := fun i => OTree.mul_add r s (f i)
-    -- Left side.
     have e₁ : mul r (add s (mk ι f)) ≈
         max (mul r s) (sup fun i => add (add (mul r s) (mul r (f i))) r) :=
       Equiv.trans (mul_congr_right (add_mk s ι f) r)
@@ -294,7 +270,6 @@ protected theorem mul_add (r : OTree.{u}) (s : OTree.{u}) :
           (max_congr (Equiv.refl _)
             (Equiv.trans (mul_sup r _)
               (sup_congr fun i => Equiv.trans (mul_succ r _) (add_congr_left (ih i) r)))))
-    -- Right side.
     have e₂ : add (mul r s) (mul r (mk ι f)) ≈
         max (mul r s) (sup fun i => add (mul r s) (add (mul r (f i)) r)) :=
       Equiv.trans (add_congr_right (mul_mk r ι f) _) (add_sup _ _)
@@ -331,8 +306,7 @@ protected theorem lt_mul_of_one_lt_right {s t : OTree.{u}} (hs : zero < s) (ht :
 def pow (s : OTree.{u}) : OTree.{u} → OTree.{u} :=
   orec (succ zero) fun r => mul r s
 
-/-- `mul · s` is monotone: the step of `pow` (snu-sf: the local `expn_gen_mon` of section
-`EXPN`). -/
+/-- The step of `pow` is monotone (snu-sf: `expn_gen_mon`). -/
 theorem mul_right_mono (s : OTree.{u}) {r r' : OTree.{u}} (h : r ≤ r') : mul r s ≤ mul r' s :=
   OTree.mul_le_mul_right h s
 
@@ -349,7 +323,7 @@ protected theorem pow_succ {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
     pow s (succ t) ≈ mul (pow s t) s :=
   orec_succ (fun r => OTree.le_mul_of_pos_right r hs) t
 
-/-- snu-sf: `OrdArith.le_expn_r`. The hypothesis `zero < s` of snu-sf is not necessary. -/
+/-- snu-sf: `OrdArith.le_expn_r`. -/
 protected theorem pow_le_pow_right (s : OTree.{u}) {t t' : OTree.{u}} (h : t ≤ t') :
     pow s t ≤ pow s t' :=
   orec_le_orec (mul_right_mono s) h
@@ -396,7 +370,6 @@ protected theorem pow_add {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
   | mk ι f => by
     have ih := fun i => OTree.pow_add hs t (f i)
     have h₁ : succ zero ≤ pow s t := succ_le_of_lt (OTree.zero_lt_pow s t)
-    -- Left side.
     have e₁ : pow s (add t (mk ι f)) ≈
         max (pow s t) (sup fun i => mul (mul (pow s t) (pow s (f i))) s) := by
       refine Equiv.trans (pow_congr_right s (add_mk t ι f)) (Equiv.trans (pow_max s _ _) ?_)
@@ -405,7 +378,6 @@ protected theorem pow_add {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
       · exact Equiv.trans (max_comm _ _) (max_equiv_of_le h₁)
       · exact sup_congr fun i =>
           Equiv.trans (OTree.pow_succ hs _) (mul_congr_left (ih i) s)
-    -- Right side.
     have e₂ : mul (pow s t) (pow s (mk ι f)) ≈
         max (pow s t) (sup fun i => mul (pow s t) (mul (pow s (f i)) s)) := by
       refine Equiv.trans (mul_congr_right (pow_mk s ι f) _) (Equiv.trans (mul_max _ _ _) ?_)
@@ -457,7 +429,7 @@ protected theorem pow_mul {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
 /-! ## Natural numbers
 
 snu-sf `OrdArith.le_from_nat` and `OrdArith.lt_from_nat` are `ofNat_le_ofNat_iff` and
-`ofNat_lt_ofNat_iff` (file `Ordinals.Tree.Constructions`). -/
+`ofNat_lt_ofNat_iff`. -/
 
 /-- snu-sf: `OrdArith.add_from_nat`. -/
 theorem ofNat_add (m : Nat) : ∀ n : Nat, ofNat.{u} (m + n) ≈ add (ofNat m) (ofNat n)

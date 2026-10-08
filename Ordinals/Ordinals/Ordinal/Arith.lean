@@ -10,12 +10,11 @@ public import Ordinals.Tree.Arith
 /-!
 # Ordinal arithmetic
 
-The standard ordinal sum `a + b`, product `a * b` and power `a ^ b`: the tree operations of
-`Ordinals.Tree.Arith` (snu-sf `OrdArith`) under the quotient. The lemmas are equalities.
+The standard sum `a + b`, product `a * b` and power `a ^ b`: the tree operations of
+`Ordinals.Tree.Arith` (snu-sf `OrdArith`) under the quotient.
 
-The power follows snu-sf: `a ^ b := orec 1 (· * a) b`. The base `1` is part of each join, so
-`0 ^ b = 1` for every `b` (`zero_pow`), and the usual laws `pow_succ`, `pow_add`, `pow_mul` need
-`0 < a`.
+As in snu-sf, `a ^ b := orec 1 (· * a) b`. The base `1` is in each join, so `0 ^ b = 1` for each
+`b` (`zero_pow`), and `pow_succ`, `pow_add` and `pow_mul` need `0 < a`.
 -/
 
 @[expose] public section
@@ -222,7 +221,6 @@ theorem ofNat_mul (m n : Nat) : ofNat.{u} (m * n) = ofNat m * ofNat n :=
 @[simp] protected theorem pow_zero (a : Ordinal.{u}) : a ^ (0 : Ordinal.{u}) = 1 :=
   Ordinal.inductionOn a fun s => sound (OTree.pow_zero s)
 
-/-- With snu-sf's definition, the base `0` gives `1` for each exponent. -/
 theorem zero_pow (b : Ordinal.{u}) : (0 : Ordinal.{u}) ^ b = 1 :=
   Ordinal.inductionOn b fun t => sound (OTree.pow_zero_left t)
 

@@ -2,8 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the fixed points (`Ordinals.Tree.Fixpoint`): the axioms of the main results, and
-examples of `mu` and `nu`. -/
+/-! Tests for the fixed points `mu` and `nu` (`Ordinals.Tree.Fixpoint`). -/
 
 open Ordinals OTree
 
@@ -49,7 +48,6 @@ example : mu evenStep 4 :=
   map_mu_le_mu evenStep_mono 4 <| .inr ⟨2, map_mu_le_mu evenStep_mono 2 <|
     .inr ⟨0, map_mu_le_mu evenStep_mono 0 (.inl rfl), rfl⟩, rfl⟩
 
-/-- `mu evenStep` is below each predicate that `evenStep` keeps, for example `n % 2 = 0`. -/
 example : ¬mu evenStep 3 := fun h => by
   have := mu_le evenStep_mono (P := fun n => n % 2 = 0)
     (fun n hn => by rcases hn with rfl | ⟨m, hm, rfl⟩ <;> omega) 3 h
@@ -68,10 +66,8 @@ example : mu evenStep = fun n => n % 2 = 0 := by
 
 /-! ## The least and the greatest fixed points can differ
 
-`shift P n := P (n + 1)`. Each constant predicate is a fixed point. The least fixed point is
-empty, and the greatest fixed point is full. -/
+Each constant predicate is a fixed point of `shift`. -/
 
-/-- `P` at the next number. -/
 def shift (P : Nat → Prop) (n : Nat) : Prop :=
   P (n + 1)
 
@@ -85,7 +81,6 @@ example (n : Nat) : ¬mu shift n :=
 example (n : Nat) : nu shift n :=
   le_nu shift_mono (P := fun _ => True) (fun _ _ => trivial) n trivial
 
-/-- `nu shift` is a fixed point of `shift`. -/
 example : shift (nu shift) = nu shift :=
   map_nu shift_mono
 

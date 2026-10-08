@@ -2436,8 +2436,8 @@ def ofDiscreteTotal [OFE α] [OFE.Discrete α]
 
 section OfDiscrete
 
-/-- Not an instance: its `CMRA` argument depends on the `outParam` `SI`, so instance search would
-have to guess it. Use it to build `CMRA.Discrete` instances for `CMRA.ofDiscrete` CMRAs. -/
+/-- `ofDiscrete` CMRAs are discrete. Not an instance: its `CMRA` argument depends on the
+`outParam` `SI`, so instance search would have to guess it. -/
 @[rocq_alias discrete_cmra_discrete]
 theorem ofDiscrete_discrete [OFE α] [OFE.Discrete α] (pcore : α → Option α)
   (op : α → α → α) (Valid : α → Prop)

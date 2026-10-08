@@ -301,7 +301,7 @@ section Modification
 
 variable {GF : BundledGFunctors} [InvGS_gen hlc GF]
 
-/-- This rule takes `∗` apart under `▷`, thus it needs finite step-indices. For a timeless `P`,
+/-- This rule takes `∗` apart under `▷`, so it needs finite step indices. For a timeless `P`,
 see `inv_alter_timeless`. -/
 @[rocq_alias inv_alter]
 theorem inv_alter [SIdxFinite SI] (N : Namespace) (P Q : IProp GF) :

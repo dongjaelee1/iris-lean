@@ -11,14 +11,9 @@ public import Ordinals.Tree.Jacobsthal
 /-!
 # Jacobsthal product and power of ordinals
 
-`a ×ⱼ b` (scoped notation) is the Jacobsthal product: the repeated natural sum, `a ×ⱼ succ b =
-a +ₕ (a ×ⱼ b)` (snu-sf: `Jacobsthal.mult`). `a ^ⱼ b` is the Jacobsthal power: the repeated
-Jacobsthal product (snu-sf: `Jacobsthal.expn`). They are the tree operations of
+The Jacobsthal product `a ×ⱼ b` is the repeated natural sum: `a ×ⱼ succ b = a +ₕ (a ×ⱼ b)`. The
+Jacobsthal power `a ^ⱼ b` is the repeated Jacobsthal product. They are the tree operations of
 `Ordinals.Tree.Jacobsthal` under the quotient.
-
-The Jacobsthal product distributes over the natural sum from the left (`jmul_nadd`) and is
-associative (`jmul_assoc`). It is at least the standard product (`mul_le_jmul`), and the natural
-sum is at least the standard sum (`add_le_nadd`).
 -/
 
 @[expose] public section
@@ -55,8 +50,7 @@ def jpow : Ordinal.{u} → Ordinal.{u} → Ordinal.{u} :=
 theorem add_le_nadd (a b : Ordinal.{u}) : a + b ≤ a +ₕ b :=
   Ordinal.inductionOn₂ a b OTree.add_le_nadd
 
-/-- The natural and the standard sum agree on a natural number on the right
-(snu-sf: `Hessenberg.arith_add_from_nat`). -/
+/-- snu-sf: `Hessenberg.arith_add_from_nat`. -/
 theorem nadd_ofNat_eq_add (a : Ordinal.{u}) (n : Nat) : a +ₕ ofNat n = a + ofNat n :=
   Ordinal.inductionOn a fun s => sound (OTree.nadd_ofNat_equiv_add s n)
 
@@ -85,8 +79,7 @@ theorem jmul_succ (a b : Ordinal.{u}) : a ×ⱼ succ b = a +ₕ (a ×ⱼ b) :=
 @[simp] theorem one_jmul (a : Ordinal.{u}) : 1 ×ⱼ a = a :=
   Ordinal.inductionOn a fun s => sound (OTree.one_jmul s)
 
-/-- The Jacobsthal product distributes over the natural sum (snu-sf:
-`ClassicJacobsthal.mult_dist`; here the proof is constructive). -/
+/-- snu-sf: `ClassicJacobsthal.mult_dist`. -/
 theorem jmul_nadd (a b c : Ordinal.{u}) : a ×ⱼ (b +ₕ c) = a ×ⱼ b +ₕ a ×ⱼ c :=
   Ordinal.inductionOn₃ a b c fun r s t => sound (OTree.jmul_nadd r s t)
 
@@ -125,7 +118,6 @@ theorem ofNat_jmul (m n : Nat) : ofNat.{u} (m * n) = ofNat m ×ⱼ ofNat n :=
 @[simp] theorem jpow_zero (a : Ordinal.{u}) : a ^ⱼ 0 = 1 :=
   Ordinal.inductionOn a fun s => sound (OTree.jpow_zero s)
 
-/-- As for the standard power, the base `0` gives `1` for each exponent. -/
 theorem zero_jpow (b : Ordinal.{u}) : 0 ^ⱼ b = 1 :=
   Ordinal.inductionOn b fun t => sound (OTree.jpow_zero_left t)
 
@@ -142,14 +134,14 @@ theorem jpow_one {a : Ordinal.{u}} (ha : 0 < a) : a ^ⱼ 1 = a := by
 @[simp] theorem one_jpow (b : Ordinal.{u}) : 1 ^ⱼ b = 1 :=
   Ordinal.inductionOn b fun t => sound (OTree.one_jpow t)
 
-/-- snu-sf: `ClassicJacobsthal.expn_add` (the exponent is a standard sum). -/
+/-- snu-sf: `ClassicJacobsthal.expn_add`. -/
 theorem jpow_add {a : Ordinal.{u}} (ha : 0 < a) (b c : Ordinal.{u}) :
     a ^ⱼ (b + c) = a ^ⱼ b ×ⱼ a ^ⱼ c := by
   induction a using Ordinal.ind with
   | _ s => induction b, c using Ordinal.inductionOn₂ with
     | _ t t' => exact sound (OTree.jpow_add ha t t')
 
-/-- snu-sf: `ClassicJacobsthal.expn_mult` (the exponent is a standard product). -/
+/-- snu-sf: `ClassicJacobsthal.expn_mult`. -/
 theorem jpow_mul {a : Ordinal.{u}} (ha : 0 < a) (b c : Ordinal.{u}) :
     a ^ⱼ (b * c) = (a ^ⱼ b) ^ⱼ c := by
   induction a using Ordinal.ind with

@@ -146,10 +146,8 @@ def atHom (i : I.car) : MonPred I PROP -n> PROP where
   f P := P.monPred_at i
   ne.1 _ _ _ h := h i
 
-/-- Bounded limits of monotone predicates: the pointwise bounded limit need not be monotone, so
-take its monotone closure `fun i => ∃ j, ⌜j ⊑ i⌝ ∧ lbcompl (c · j)`. It agrees with every
-`c m` (`m < n`) up to `m`, because each `c m` is already monotone. (Lean addition: Rocq's step
-indices are finite, so there are no bounded limits.) -/
+/-- Bounded limits of monotone predicates. The pointwise bounded limit need not be monotone, so
+take its monotone closure. It agrees with each `c m` up to `m`, because `c m` is monotone. -/
 def lbcompl {n : SI} (hn : SIdx.Limit n) (c : BChain (MonPred I PROP) n) : MonPred I PROP where
   monPred_at i := iprop(∃ j, ⌜I.rel.le j i⌝ ∧ IsCOFE.lbcompl hn (c.map (atHom j)))
   monPred_mono h := exists_mono fun _ => and_mono_left (pure_mono fun hj => Trans.trans hj h)

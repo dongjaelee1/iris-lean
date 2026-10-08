@@ -9,35 +9,10 @@ public import Ordinals.Tree.HessenbergArith
 /-!
 # The Jacobsthal product and power of trees
 
-The Jacobsthal product and power are the analogues of the standard product and power, with the
-natural sum `nadd` in place of the standard sum `add`. They use transfinite recursion (`orec`) on
-the second argument:
-
-- `jmul s t := orec zero (nadd s) t`: start at `zero` and add `s` on the left with the natural
-  sum (snu-sf: `Jacobsthal.mult`).
-- `jpow s t := orec (succ zero) (fun r => jmul r s) t`: start at `1` and multiply by `s` with the
-  Jacobsthal product (snu-sf: `Jacobsthal.expn`).
-
-The Jacobsthal product is at least the standard product (`mul_le_jmul`), and the Jacobsthal
-power is at least the standard power (`pow_le_jpow`). Each operation has monotonicity lemmas, a
-congruence lemma for `≈`, and the equations for `zero`, `succ`, `sup`, `mk` and `max`. The
-Jacobsthal product distributes over the natural sum on the left (`jmul_nadd`) and is associative
-(`jmul_assoc`). The Jacobsthal power changes a standard sum into a Jacobsthal product
-(`jpow_add`) and a standard product into a power of a power (`jpow_mul`).
-
-This file follows snu-sf/Ordinal (`src/Hessenberg.v`, module `Jacobsthal`, sections `MULT`,
-`EXPN`, `BASE`, `POSITIVE`; and `src/ClassicalHessenberg.v`, module `ClassicJacobsthal`). The
-names of the Rocq lemmas are in the docstrings. The lemmas take only the hypotheses that their
-proofs need.
-
-## Implementation notes
-
-snu-sf proves `ClassicJacobsthal.mult_dist` (`jmul_nadd` here) with classical logic: a case
-analysis on `o0 == 0` and on "successor or limit" for the two other arguments. Here the proof is
-constructive: an induction on two trees (`induction₂`) with the characterization of `<` below
-a natural sum (`lt_nadd_iff`) and below a Jacobsthal product (`lt_jmul_iff`). Thus
-`jmul_assoc`, `jpow_add` and `jpow_mul` are also constructive, and the results of
-`ClassicalHessenberg.v` are in this file. The results of this file use no axioms.
+The Jacobsthal product `jmul` and power `jpow` are the standard product and power with the
+natural sum `nadd` in place of `add`. This file follows snu-sf/Ordinal (`src/Hessenberg.v`,
+module `Jacobsthal`, and `src/ClassicalHessenberg.v`, module `ClassicJacobsthal`). Here the
+results of `ClassicJacobsthal` have constructive proofs.
 -/
 
 @[expose] public section
@@ -105,7 +80,7 @@ theorem jmul_congr {s s' t t' : OTree.{u}} (hs : s ≈ s') (ht : t ≈ t') :
     jmul s t ≈ jmul s' t' :=
   ⟨jmul_le_jmul hs.le ht.le, jmul_le_jmul hs.ge ht.ge⟩
 
-/-- The step below a larger tree (snu-sf: `Ord.lt_rec` for `jmul`). -/
+/-- snu-sf: `Ord.lt_rec` for `jmul`. -/
 theorem nadd_jmul_le_jmul {r s t : OTree.{u}} (h : s < t) : nadd r (jmul r s) ≤ jmul r t :=
   next_orec_le_orec (nadd_le_nadd_left · r) h
 
@@ -114,7 +89,6 @@ theorem jmul_le {r t x : OTree.{u}} (h : ∀ t', t' < t → nadd r (jmul r t') �
     jmul r t ≤ x :=
   orec_le (zero_le x) h
 
-/-- The trees below a Jacobsthal product. -/
 theorem lt_jmul_iff {x r t : OTree.{u}} :
     x < jmul r t ↔ ∃ t', t' < t ∧ x < nadd r (jmul r t') := by
   constructor
@@ -130,8 +104,7 @@ theorem jmul_lt_jmul_of_pos_left {r s t : OTree.{u}} (h : s < t) (hr : zero < r)
     jmul r s < jmul r t :=
   OTree.lt_of_lt_of_le (lt_nadd_of_pos_left _ hr) (nadd_jmul_le_jmul h)
 
-/-- The standard product is at most the Jacobsthal product
-(snu-sf: `Jacobsthal.arith_mult_larger`). -/
+/-- snu-sf: `Jacobsthal.arith_mult_larger`. -/
 theorem mul_le_jmul (s t : OTree.{u}) : mul s t ≤ jmul s t :=
   orec_mono OTree.le_rfl (fun h => OTree.le_trans (add_le_nadd _ s)
     (OTree.le_trans (nadd_comm _ s).le (nadd_le_nadd_left h s))) t
@@ -155,12 +128,10 @@ theorem one_jmul (s : OTree.{u}) : jmul (succ zero) s ≈ s := by
   · exact orec_mono OTree.le_rfl (fun h => OTree.le_trans
       (succ_le_succ (OTree.le_trans h (zero_nadd _).ge)) (succ_nadd _ _).ge) s
 
-/-- A Jacobsthal product with a positive right factor is at least the left factor
-(snu-sf: the local `expn_gen_le` of section `POSITIVE`). -/
+/-- snu-sf: `expn_gen_le`. -/
 theorem le_jmul_of_pos_right (s : OTree.{u}) {t : OTree.{u}} (h : zero < t) : s ≤ jmul s t :=
   OTree.le_trans (jmul_one s).ge (jmul_le_jmul_left (succ_le_of_lt h) s)
 
-/-- A Jacobsthal product with a positive left factor is at least the right factor. -/
 theorem le_jmul_of_pos_left {s : OTree.{u}} (t : OTree.{u}) (h : zero < s) : t ≤ jmul s t :=
   OTree.le_trans (one_jmul t).ge (jmul_le_jmul_right (succ_le_of_lt h) t)
 
@@ -173,9 +144,7 @@ theorem ofNat_jmul (m : Nat) : ∀ n : Nat, ofNat.{u} (m * n) ≈ jmul (ofNat m)
 
 /-! ## Distributivity and associativity -/
 
-/-- The Jacobsthal product distributes over the natural sum on the left
-(snu-sf: `ClassicJacobsthal.mult_dist`). snu-sf uses classical logic. This proof is
-constructive. -/
+/-- Left distributivity over the natural sum (snu-sf: `ClassicJacobsthal.mult_dist`). -/
 theorem jmul_nadd (r s t : OTree.{u}) : jmul r (nadd s t) ≈ nadd (jmul r s) (jmul r t) := by
   induction s, t using induction₂ with
   | _ s t ihs iht =>
@@ -213,8 +182,7 @@ along `t`, from `succ zero` (snu-sf: `Jacobsthal.expn`). -/
 def jpow (s : OTree.{u}) : OTree.{u} → OTree.{u} :=
   orec (succ zero) fun r => jmul r s
 
-/-- The standard power is at most the Jacobsthal power
-(snu-sf: `Jacobsthal.arith_expn_larger`). -/
+/-- snu-sf: `Jacobsthal.arith_expn_larger`. -/
 theorem pow_le_jpow (s t : OTree.{u}) : pow s t ≤ jpow s t :=
   orec_mono OTree.le_rfl (fun h => OTree.le_trans (mul_le_jmul _ s) (jmul_le_jmul_right h s)) t
 
@@ -231,23 +199,22 @@ theorem jpow_succ {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
     jpow s (succ t) ≈ jmul (jpow s t) s :=
   orec_succ (fun r => le_jmul_of_pos_right r hs) t
 
-/-- snu-sf: `Jacobsthal.le_expn_r`. The hypothesis `zero < s` of snu-sf is not necessary. -/
+/-- snu-sf: `Jacobsthal.le_expn_r`. -/
 theorem jpow_le_jpow_right (s : OTree.{u}) {t t' : OTree.{u}} (h : t ≤ t') :
     jpow s t ≤ jpow s t' :=
   orec_le_orec (jmul_le_jmul_right · s) h
 
-/-- snu-sf: `Jacobsthal.eq_expn_r`. The hypothesis `zero < s` of snu-sf is not necessary. -/
+/-- snu-sf: `Jacobsthal.eq_expn_r`. -/
 theorem jpow_congr_right (s : OTree.{u}) {t t' : OTree.{u}} (h : t ≈ t') :
     jpow s t ≈ jpow s t' :=
   orec_congr (jmul_le_jmul_right · s) h
 
-/-- snu-sf: `Jacobsthal.expn_join`. The hypothesis `zero < s` of snu-sf is not necessary. -/
+/-- snu-sf: `Jacobsthal.expn_join`. -/
 theorem jpow_sup (s : OTree.{u}) {ι : Type u} (f : ι → OTree.{u}) :
     jpow s (sup f) ≈ max (succ zero) (sup fun i => jpow s (f i)) :=
   orec_sup (jmul_le_jmul_right · s) f
 
-/-- snu-sf: `Jacobsthal.expn_join_inhabited`. The hypothesis `zero < s` of snu-sf is not
-necessary. -/
+/-- snu-sf: `Jacobsthal.expn_join_inhabited`. -/
 theorem jpow_sup_of_nonempty (s : OTree.{u}) {ι : Type u} [Nonempty ι] (f : ι → OTree.{u}) :
     jpow s (sup f) ≈ sup fun i => jpow s (f i) :=
   orec_sup_of_nonempty (jmul_le_jmul_right · s) f
@@ -257,7 +224,7 @@ theorem jpow_mk (s : OTree.{u}) (ι : Type u) (f : ι → OTree.{u}) :
     jpow s (mk ι f) ≈ max (succ zero) (sup fun i => jmul (jpow s (f i)) s) :=
   orec_mk ι f
 
-/-- snu-sf: `Jacobsthal.expn_union`. The hypothesis `zero < s` of snu-sf is not necessary. -/
+/-- snu-sf: `Jacobsthal.expn_union`. -/
 theorem jpow_max (r s t : OTree.{u}) : jpow r (max s t) ≈ max (jpow r s) (jpow r t) :=
   orec_max (jmul_le_jmul_right · r) s t
 
@@ -317,14 +284,12 @@ theorem ofNat_jpow {m : Nat} (hm : 0 < m) :
 
 /-! ## Power of a sum and of a product -/
 
-/-- The Jacobsthal power of a standard sum is the Jacobsthal product of the powers
-(snu-sf: `ClassicJacobsthal.expn_add`). -/
+/-- snu-sf: `ClassicJacobsthal.expn_add`. -/
 theorem jpow_add {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
     ∀ t' : OTree.{u}, jpow s (add t t') ≈ jmul (jpow s t) (jpow s t')
   | mk ι f => by
     have ih := fun i => jpow_add hs t (f i)
     have h₁ : succ zero ≤ jpow s t := succ_le_of_lt (zero_lt_jpow s t)
-    -- Left side.
     have e₁ : jpow s (add t (mk ι f)) ≈
         max (jpow s t) (sup fun i => jmul (jmul (jpow s t) (jpow s (f i))) s) := by
       refine Equiv.trans (jpow_congr_right s (add_mk t ι f)) (Equiv.trans (jpow_max s _ _) ?_)
@@ -332,7 +297,6 @@ theorem jpow_add {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
       refine Equiv.trans (max_assoc _ _ _).symm (max_congr ?_ ?_)
       · exact Equiv.trans (max_comm _ _) (max_equiv_of_le h₁)
       · exact sup_congr fun i => Equiv.trans (jpow_succ hs _) (jmul_congr_left (ih i) s)
-    -- Right side.
     have e₂ : jmul (jpow s t) (jpow s (mk ι f)) ≈
         max (jpow s t) (sup fun i => jmul (jpow s t) (jmul (jpow s (f i)) s)) := by
       refine Equiv.trans (jmul_congr_right (jpow_mk s ι f) _) (Equiv.trans (jmul_max _ _ _) ?_)
@@ -340,8 +304,7 @@ theorem jpow_add {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
     exact Equiv.trans e₁ (Equiv.trans
       (max_congr (Equiv.refl _) (sup_congr fun i => jmul_assoc _ _ _)) e₂.symm)
 
-/-- The Jacobsthal power of a standard product is a power of a power
-(snu-sf: `ClassicJacobsthal.expn_mult`). -/
+/-- snu-sf: `ClassicJacobsthal.expn_mult`. -/
 theorem jpow_mul {s : OTree.{u}} (hs : zero < s) (t : OTree.{u}) :
     ∀ t' : OTree.{u}, jpow s (mul t t') ≈ jpow (jpow s t) t'
   | mk ι f => by

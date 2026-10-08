@@ -7,8 +7,8 @@ module
 
 public import Iris.Instances.UPred.Transfinite
 
-/-! Tests for the existential property `SIdxLarge SI X`. The instances are hypotheses, so the
-tests hold for every step-index type. -/
+/-! Tests of `SIdxLarge SI X`. The instances are hypotheses, so the tests hold for every
+step-index type. -/
 
 @[expose] public section
 
@@ -52,12 +52,10 @@ example {X : Type v} [SIdxLarge SI X] {P : ULift.{7} X → UPred M}
     (h : satisfiable iprop(∃ x, P x)) : ∃ x, satisfiable (P x) :=
   satisfiable_exists h
 
-/-- The property for `ULift X` gives it for `X`. -/
 example {X : Type v} [SIdxLarge SI (ULift.{w} X)] : SIdxLarge SI X :=
   SIdxLarge.of_ulift.{_, _, w}
 
-/-- The rule of the `Satisfiable` class. (The class has the universe parameters `w` and `v` of its
-quantifiers, so the statement gives them.) -/
+/-- The rule of the `Satisfiable` class. The statement gives its universe parameters. -/
 example {X : Type v} [SIdxLarge SI X] {P : X → UPred M}
     (h : Satisfiable.satisfiable.{0, v} iprop(∃ x, P x)) :
     ∃ x, Satisfiable.satisfiable.{0, v} (P x) :=

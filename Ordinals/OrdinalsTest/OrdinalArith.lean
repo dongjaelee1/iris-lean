@@ -2,7 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the arithmetic of the quotient layer: the laws are equalities, so `rw` works. -/
+/-! Tests for the arithmetic of ordinals. The laws are equalities, so `rw` works. -/
 
 open Ordinals Ordinal
 

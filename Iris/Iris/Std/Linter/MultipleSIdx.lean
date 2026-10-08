@@ -16,20 +16,15 @@ namespace Iris.Std.Linter
 /-!
 ### `multipleSIdx` linter
 
-`Iris.SIdx` (the class of step-index types) has an `outParam`: instance search for `SIdx ?I`
-returns *one* instance — the most recently declared local instance, or else a global one — and
-never backtracks to another one. So as soon as two `SIdx` instances are visible, every
-step-indexed notion (`OFE α`, `≡{n}≡`, `CMRA α`, …) silently uses that one, and code meant for the
-other index type fails to elaborate (or needs its instance passed explicitly, e.g. via a non-class
-wrapper structure).
+`Iris.SIdx` has an `outParam`, so instance search for `SIdx ?I` returns one instance (the last
+local instance, else a global one) and never backtracks. With two visible `SIdx` instances, every
+step-indexed notion (`OFE α`, `≡{n}≡`, …) uses the same one, and code for the other index type
+fails to elaborate.
 
 The linter warns
-1. at a declaration whose signature has two or more binders of type `SIdx _` (note that in Lean
-   every local of class type is an instance, also explicit `(i : SIdx I)` binders), and
-2. at a non-`scoped`/non-`local` `SIdx` instance declared while another `SIdx` instance is active.
-
-One local `[SIdx SI]` together with a visible global instance (say `SIdx Nat`) is fine: local
-instances take precedence, so the linter does not warn about it.
+1. at a declaration with two or more binders of type `SIdx _` (explicit binders of class type
+   are instances too), and
+2. at a global `SIdx` instance declared while another `SIdx` instance is active.
 -/
 
 /-- Warn when more than one `SIdx` (step-index) instance is visible; see `Iris.SIdx`. -/

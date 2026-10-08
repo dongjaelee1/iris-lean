@@ -11,15 +11,8 @@ public import Ordinals.Tree.WfRel
 /-!
 # Ordinals of well-founded relations
 
-For a well-founded relation `R` on `A : Type u`:
-
-- `Ordinal.ofWf hwf a`: the rank of `a` (snu-sf: `Ord.from_wf`);
-- `Ordinal.type hwf`: the strict supremum of all ranks (snu-sf: `Ord.from_wf_set`);
-- `Ordinal.hartogs A`: the strict supremum of the types of all well-founded relations on `A`
-  (snu-sf: `Ord.hartogs`).
-
-Each ordinal is the type of a well-founded relation (`exists_type_eq`), and snu-sf's `large` is
-`univ` (`large_eq_univ`).
+Ranks, order types and Hartogs ordinals: the trees of `Ordinals.Tree.WellFounded` under the
+quotient.
 -/
 
 @[expose] public section
@@ -44,7 +37,6 @@ def type (hwf : WellFounded R) : Ordinal.{u} :=
 theorem ofWf_lt_ofWf (hwf : WellFounded R) {a b : A} (h : R a b) : ofWf hwf a < ofWf hwf b :=
   OTree.ofWf_lt_ofWf hwf h
 
-/-- The rank is the strict supremum of the ranks of the predecessors. -/
 theorem ofWf_eq_ssup (hwf : WellFounded R) (a : A) :
     ofWf hwf a = ssup fun b : {b // R b a} => ofWf hwf b.1 := by
   show mk (OTree.ofWf hwf a) = ssup fun b : {b // R b a} => mk (OTree.ofWf hwf b.1)
@@ -111,8 +103,7 @@ theorem hartogs_le_iff {c : Ordinal.{u}} :
 
 /-! ## `large` is `univ` -/
 
-/-- snu-sf's `large`: above the types of all well-founded relations on types in `Type u`. It is
-`univ` (`large_eq_univ`). -/
+/-- snu-sf's `large`: above the types of all well-founded relations on types in `Type u`. -/
 def large : Ordinal.{u + 1} :=
   mk OTree.large.{u}
 

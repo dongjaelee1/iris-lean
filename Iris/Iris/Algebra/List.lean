@@ -239,8 +239,7 @@ theorem listComplGo_conv_compl {n : SI} (c : Chain (List α)) :
         exact hxs.symm
       · simp [Chain.map_apply, tailHom_apply, hcn]
 
-/-- The bounded-limit analogue of `listComplGo`: the shape is fixed by the first list `c0` of the
-bounded chain. -/
+/-- The bounded-limit analogue of `listComplGo`. The first list `c0` fixes the shape. -/
 @[rocq_alias list_lbcompl_go]
 def listLbComplGo {n : SI} (hn : SIdx.Limit n) : List α → BChain (List α) n → List α
   | [], _ => []

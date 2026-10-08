@@ -886,14 +886,13 @@ theorem timeless_only0 {P : PROP} [Timeless P] : <only0> P ⊣⊢ P :=
 theorem only0_elim_timeless {P : PROP} [Timeless P] : <only0> P ⊢ P :=
   Timeless.timeless
 
-/-- A timeless proposition `P` gives `▷ P ⊣⊢ ◇ P`: if `P` holds at `n`, it holds at `n + 1`. -/
+/-- If a timeless `P` holds at `n`, it holds at `n + 1`. -/
 @[rocq_alias bi.timeless_except_0]
 theorem timeless_except0 {P : PROP} [Timeless P] : ▷ P ⊣⊢ ◇ P :=
   ⟨later_except0_only0.trans (except0_mono Timeless.timeless),
    or_elim (later_mono false_elim) later_intro⟩
 
-/-- With Löb induction, the two versions of timelessness are equivalent: `<only0> P ⊢ P` (the
-definition of `Timeless`) and `▷ P ⊢ ◇ P`. -/
+/-- With Löb induction, `Timeless P` (`<only0> P ⊢ P`) is equivalent to `▷ P ⊢ ◇ P`. -/
 @[rocq_alias bi.timeless_alt]
 theorem timeless_alt [BILoeb PROP] {P : PROP} : Timeless P ↔ (▷ P ⊢ ◇ P) := by
   refine ⟨fun _ => timeless_except0.mp, fun h => ⟨?_⟩⟩

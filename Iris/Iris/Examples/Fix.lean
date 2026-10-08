@@ -44,8 +44,7 @@ abbrev Dom (Val : Type _) (Err : Type _) [OFE Val] [OFE Err] [IsCOFE Val] [IsCOF
 namespace Dom
 open Iris OFE COFE
 
-/- The fold and unfold maps use the solver of `Iris.Algebra.COFESolver`. This solver needs finite
-step-indices. -/
+/- The solver of `Iris.Algebra.COFESolver` needs finite step indices. -/
 variable [SIdxFinite SI]
 variable [OFE V] [OFE E] [IsCOFE V] [IsCOFE E] [Inhabited E]
 

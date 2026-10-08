@@ -583,9 +583,8 @@ macro_rules
 /-- Split the context `Δ` at a hypothesis `□?p H`, strip `▷` from the two parts, and hand out
 the points-to `P` and a wand that restores the later-stripped context `Δ'`.
 
-The heap tactics split the context first and strip `▷` from each part after. This uses only
-`later_sep_2`. If they strip `▷` from the whole context first, they must split `▷ (Δ'' ∗ P)`,
-which needs `later_sep_1` (and thus finite step-indices). -/
+The split comes first, because it then needs only `later_sep_2`. To strip `▷` first, the tactics
+must split `▷ (Δ'' ∗ P)`, which needs `later_sep_1` (and thus finite step indices). -/
 theorem later_lookup_split [BI PROP] {Δ Δ₀ Δ' Δ'' H P : PROP} [Affine P] {p : Bool}
     (hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H) (hlater : Δ₀ ⊢ ▷ Δ'') (hlaterP : □?p H ⊢ ▷ □?p P)
     (hsplit' : Δ' ⊣⊢ Δ'' ∗ □?p P) : Δ ⊢ ▷ P ∗ ▷ (P -∗ Δ') := by
@@ -613,9 +612,7 @@ theorem wp_exact_of_triple [HeapLangGS hlc GF]
   ipureintro
   rfl
 
-/-! The heap tactics below split the context `Δ` at the points-to hypothesis `H` first
-(`hsplit : Δ ⊣⊢ Δ₀ ∗ □?p H`) and strip `▷` from the two parts after (`hlater : Δ₀ ⊢ ▷ Δ''` and
-`hlaterP : □?p H ⊢ ▷ □?p (l ↦ v)`). Thus they work for every type of step-indices. -/
+/-! The lemmas below split the context first and strip `▷` after (see `later_lookup_split`). -/
 
 /-- Helper lemma for the heap `tac_wp_*` lemmas. -/
 theorem tac_wp_heap_op [ι : HeapLangGS hlc GF] {Δ Δ₀ Δ'' H P P' : IProp GF}
@@ -833,10 +830,9 @@ structure LaterSplit {u : Level} {prop : Q(Type u)} (bi : Q(BI $prop)) (eΔ eΔ'
   pfLater : Q($eΔ₀ ⊢ ▷ $eΔ'')
   pfLaterP : Q(□?$p $H ⊢ ▷ □?$p $P)
 
-/-- Split the original context `hyps` at the hypothesis `vid`, then strip `▷` from the two parts.
-The strip of the rest of the context must give the context `eΔ''` of `lookupPointsTo`, and the
-strip of the hypothesis must give `□?p P`. The tactics split first and strip after, because the
-other order needs `later_sep_1`, which holds only for finite step-indices. -/
+/-- Split the original context `hyps` at the hypothesis `vid`, then strip `▷` from the two parts
+(see `later_lookup_split`). The strip of the rest of the context must give the context `eΔ''` of
+`lookupPointsTo`, and the strip of the hypothesis must give `□?p P`. -/
 meta def splitLater {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {eΔ : Q($prop)}
     (hyps : Hyps bi eΔ) (name : Name) (vid : IVarId) (eΔ'' : Q($prop)) (p : Q(Bool))
     (P : Q($prop)) : ProofModeM (LaterSplit bi eΔ eΔ'' p P) := do
@@ -854,8 +850,7 @@ meta def splitLater {u} {prop : Q(Type u)} {bi : Q(BI $prop)} {eΔ : Q($prop)}
 /-- The goal handed to a heap tactic by `ProofModeM.runTacticHeapWp`: `WpGoal` fields,
 plus the `HeapLangGS` instance `hgs` extracted from the goal's `IrisGS_gen`, and the
 context `hyps'`/`eΔ'` after stripping the WP's step modality, with `pfLater` witnessing
-the strip. The tactics look up a points-to in `hyps'`, then they split the original context
-`hyps` with `splitLater`. -/
+the strip. The tactics look up a points-to in `hyps'`, then split `hyps` with `splitLater`. -/
 structure HeapWpGoal extends WpGoal where
   hgs : Q(HeapLangGS $hlc $GF)
   {eΔ' : Q($prop)}

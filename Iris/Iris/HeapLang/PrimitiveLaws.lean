@@ -102,8 +102,7 @@ theorem state_interp_step [HeapLangGS hlc GF] (σ : State) (ns : Nat)
     stateInterp (GF := GF) σ ns κs nt ⊢@{IProp GF} |==> stateInterp σ (ns + 1) κs nt := bupd_intro
 
 /-- The ghost state of HeapLang. Slot 0 holds the invariant map, which contains `IProp`. The
-other slots hold ghost state in `Type`. These slots use `ULiftOF`, so that they are correct in
-each build (the resources of `IProp` are not in `Type` for all step-index types). -/
+other slots hold ghost state in `Type`, so they use `ULiftOF` (see `ElemG.ofEqLift`). -/
 def HeapLangS : BundledGFunctors.{0}
   | 0 => ⟨InvMapF, by infer_instance⟩
   | 1 => ⟨ULiftOF (constOF CoPsetDisjL), by infer_instance⟩
@@ -741,12 +740,9 @@ theorem wp_resolve {e : Exp} {p : ProphId} {w : Val} {pvs : List (Val × Val)}
 
 /-! ## Rules with the full precondition under one `▷`
 
-In the rules below, the points-to, the value of the location and the continuation are all under
-one `▷`. The step of the operation removes this `▷`. Thus you can open an invariant
-`inv N (∃ v, l ↦ v ∗ R v)` and use the result `▷ (∃ v, l ↦ v ∗ R v)` directly: you do not take
-`∃` and `∗` apart under `▷`, which needs finite step-indices. These rules hold for every type of
-step-indices: before the step, the proofs use only pure facts that they get from the points-to
-under `▷`. -/
+The step of the operation removes this `▷`. Thus you can use an opened invariant
+`▷ (∃ v, l ↦ v ∗ R v)` directly, and you do not take `∃` and `∗` apart under `▷` (this needs
+finite step indices). -/
 
 /-- The value of `l` in the heap, from the points-to (without an update modality). -/
 theorem genHeap_lookup {σ : State} {l : Loc} {dq : DFrac} {v : Option Val} :

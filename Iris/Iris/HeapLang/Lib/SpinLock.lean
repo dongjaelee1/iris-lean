@@ -129,8 +129,7 @@ theorem try_acquire_spec (γ : GName) (lk : Val) (R : IProp GF) :
   subst Heq
   wp_bind cmpXchg(_,_,_)
   iinv Hinv with G1
-  -- The step of `cmpXchg` removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
-  -- under `▷` (this needs finite step-indices).
+  -- The step of `cmpXchg` removes the `▷` from the invariant (see `PrimitiveLaws`).
   iapply wp_cmpXchg_later
   inext
   unfold lockInv

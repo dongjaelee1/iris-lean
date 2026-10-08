@@ -7,20 +7,11 @@ module
 /-!
 # Well-founded trees
 
-An `OTree.{u}` is a tree whose nodes have children indexed by a type in `Type u`. Each tree
-represents an ordinal: its height. The order `s ≤ t` compares heights: each child of `s` is
-below `t`. Two trees are equivalent (`s ≈ t`) if `s ≤ t` and `t ≤ s`. The type
-`Ordinals.Ordinal` is the quotient of `OTree` by this equivalence.
+An `OTree.{u}` is a tree whose children are indexed by types in `Type u`. A tree represents an
+ordinal: its height. `s ≤ t` compares heights, and `s ≈ t` is `s ≤ t ∧ t ≤ s`.
+`Ordinals.Ordinal` is the quotient of `OTree` by `≈`.
 
-This file follows snu-sf/Ordinal (`src/Ordinal.v`, module `Ord`). The names of the Rocq lemmas
-are in the docstrings. The results of this file use no axioms.
-
-## Main definitions
-
-- `OTree.mk ι f`: the tree with children `f i` for `i : ι` (snu-sf: `Ord.build`).
-- `OTree.le`, `OTree.lt`: the order on heights.
-- `OTree.setoid`: the equivalence `s ≈ t ↔ s ≤ t ∧ t ≤ s`.
-- `OTree.lt_wf`: `<` is well-founded.
+This file follows snu-sf/Ordinal (`src/Ordinal.v`, module `Ord`).
 -/
 
 @[expose] public section
@@ -55,13 +46,13 @@ theorem eta (t : OTree.{u}) : mk t.Index t.child = t := by
 
 /-! ## The order -/
 
-/-- `le s t`: the height of `s` is at most the height of `t`. Each child of `s` is at most some
-child of `t` (snu-sf: `Ord.le`). The definition is by structural recursion on `s`. -/
+/-- The height of `s` is at most the height of `t`: each child of `s` is at most some child of
+`t` (snu-sf: `Ord.le`). -/
 protected def le : OTree.{u} → OTree.{u} → Prop
   | mk _ f, mk _ g => ∀ i, ∃ j, OTree.le (f i) (g j)
 
-/-- `lt s t`: the height of `s` is below the height of `t`. Some child of `t` has a height of at
-least the height of `s` (snu-sf: `Ord.lt`). -/
+/-- The height of `s` is below the height of `t`: `s` is at most some child of `t`
+(snu-sf: `Ord.lt`). -/
 protected def lt (s t : OTree.{u}) : Prop :=
   ∃ j, OTree.le s (t.child j)
 
@@ -100,7 +91,7 @@ protected theorem le_trans : ∀ {r s t : OTree.{u}}, r ≤ s → s ≤ t → r 
     let ⟨k, hk⟩ := h₂ j
     ⟨k, OTree.le_trans hj hk⟩
 
-/-- A child is below its tree (snu-sf: `Ord.build_upperbound`). -/
+/-- snu-sf: `Ord.build_upperbound`. -/
 theorem child_lt (t : OTree.{u}) (i : t.Index) : t.child i < t :=
   ⟨i, OTree.le_rfl⟩
 
@@ -113,8 +104,7 @@ protected theorem lt_of_le_of_lt {r s t : OTree.{u}} (h₁ : r ≤ s) (h₂ : s 
   let ⟨j, hj⟩ := h₂
   ⟨j, OTree.le_trans h₁ hj⟩
 
-/-- A tree is at most another tree if and only if each of its children is below it
-(snu-sf: `Ord.build_supremum`, `Ord.le_proj`). -/
+/-- snu-sf: `Ord.build_supremum`, `Ord.le_proj`. -/
 theorem le_iff_forall_child_lt {s t : OTree.{u}} : s ≤ t ↔ ∀ i, s.child i < t := by
   cases s with
   | mk ι f =>

@@ -8,8 +8,7 @@ module
 public import Iris.BI.DerivedLawsLater
 public import Iris.Algebra.IProp
 
-/-! Tests of the Nat build, `SI := Nat`. These tests hold only for this choice file
-(`Iris/StepIndexChoices/nat/`). -/
+/-! Tests of the Nat choice, `SI := Nat`. -/
 
 @[expose] public section
 
@@ -18,10 +17,8 @@ open Iris BI
 
 example : SI = Nat := rfl
 
-/-- The index is finite. -/
 example : SIdxFinite SI := inferInstance
 
-/-- `IProp` is in `Type` for ghost state in `Type`. -/
 example (GF : BundledGFunctors.{0}) : Type := IProp GF
 
 /-- The laws for finite indices apply with no hypothesis. -/

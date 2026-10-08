@@ -2585,9 +2585,8 @@ instance from_option_persistent [BI PROP] {P : PROP} {Ψ : α → PROP} {mx : Op
 
 /-! # Limits -/
 
-/-- Entailment between nonexpansive predicates is preserved by the completion of a chain. This
-holds for every step-index type; `LimitPreserving.entails` (which also covers bounded limits)
-needs finite step indices. -/
+/-- The completion of a chain keeps entailment between nonexpansive predicates. Unlike
+`LimitPreserving.entails`, this holds for every step-index type. -/
 theorem entails_compl [BI PROP] [COFE A] (Φ Ψ : A → PROP) [Φne : OFE.NonExpansive Φ]
     [Ψne : OFE.NonExpansive Ψ] (c : Chain A) (h : ∀ n, Φ (c n) ⊢ Ψ (c n)) :
     Φ (COFE.compl c) ⊢ Ψ (COFE.compl c) := by

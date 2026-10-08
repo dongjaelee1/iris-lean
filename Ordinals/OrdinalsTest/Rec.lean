@@ -2,7 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for transfinite recursion on trees: the main results use no axioms, and examples. -/
+/-! Tests for transfinite recursion on trees. -/
 
 open Ordinals OTree
 
@@ -61,8 +61,7 @@ theorem prop_joinLaws :
   ⟨fun _ h => h, fun _ _ _ h₁ h₂ h => h₂ (h₁ h), fun _ a h => ⟨a, h⟩,
     fun _ _ h ⟨a, ha⟩ => h a ha, fun _ => trivial⟩
 
-/-- Recursion with `base := False` and `next := fun _ => True`: the result is `True` exactly
-on the trees above `zero`. -/
+/-- `trec` is `True` exactly on the trees above `zero`. -/
 example (t : OTree.{u}) : trec False (fun _ => True) (fun A ds => ∃ a : A, ds a) (succ t) :=
   (trec_succ prop_joinLaws ⟨trivial, fun _ => trivial⟩ (fun _ _ => trivial) t).2 trivial
 
@@ -71,7 +70,6 @@ example : ¬trec False (fun _ => True) (fun A ds => ∃ a : A, ds a) zero.{u} :=
 
 /-! ## Recursion into the trees -/
 
-/-- `orec zero succ` keeps the height. -/
 example : orec zero succ omega.{u} ≈ omega :=
   orec_zero_succ omega
 

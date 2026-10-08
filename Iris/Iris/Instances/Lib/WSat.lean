@@ -15,7 +15,6 @@ public import Iris.Std.HeapInstances
 public import Iris.Instances.IProp
 
 @[expose] public noncomputable section
--- (`constOF` of a `Type`), and the universes only agree when the step-index type is in `Type`.
 
 /-! ## World satisfaction
 This file defines the world satisfaction (wsat) predicate for Iris.

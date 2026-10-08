@@ -14,14 +14,9 @@ public import Iris.Algebra.OFE
 
 America and Rutten's construction of a solution `F X ≅ X` for a locally contractive functor `F`.
 
-The file is generic over the step-index type `SI`, but, like the Rocq version (which fixes
-`SI := nat`), the solution requires finite step indices (`SIdxFinite SI`). The tower `A F k` is
-indexed by `Nat` levels `k`, and level `k` only agrees with the solution up to step index
-`SIdx.ofNat k` (`up_down`, `Tower.embed_self`). So the chain defining `unfold` and the proof of the
-isomorphism send a step index `n` to level `SIdx.toNat n`, which is only correct when
-`SIdx.ofNat (SIdx.toNat n) = n`, i.e. when there are no limit indices. For the same reason the
-bounded-limit completions `lbcompl` of the tower are vacuous. The parts that do not need the
-completion of the tower (`up_down`, `Tower.up`, `Tower.embed_self`, ...) hold for any `SIdx`.
+As in Rocq, the solution needs finite step indices (`SIdxFinite SI`): the tower `A F k` has `Nat`
+levels, and level `k` agrees with the solution only up to the index `SIdx.ofNat k`. The parts that
+do not use the completion of the tower hold for every `SIdx`.
 -/
 
 #rocq_ignore solution "Use OFE.iso + Inhabited + COFE"
@@ -29,7 +24,7 @@ completion of the tower (`up_down`, `Tower.up`, `Tower.embed_self`, ...) hold fo
 namespace Iris.SIdx
 
 
-/-- The `k`-th successor of `0`, i.e. the embedding of `Nat` into the step indices. -/
+/-- The `k`-th successor of `0`. -/
 def ofNat : Nat → SI
   | 0 => 0
   | k + 1 => succᵢ (ofNat k)
@@ -314,8 +309,7 @@ instance : Inhabited (Tower F) := ⟨Tower.embed 0 ⟨()⟩⟩
 
 variable [SIdxFinite SI]
 
-/-- A `Nat`-indexed sequence that is Cauchy at the step indices `SIdx.ofNat a`, as a chain:
-for finite step indices, every step index is of this form. -/
+/-- A `Nat`-indexed sequence that is Cauchy at the indices `SIdx.ofNat a`, as a chain. -/
 def natChain [OFE α] (c : Nat → α) (h : ∀ {a b}, a ≤ b → c b ≡{SIdx.ofNat a}≡ c a) :
     Chain α where
   chain n := c (SIdx.toNat n)

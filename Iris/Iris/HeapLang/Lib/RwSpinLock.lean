@@ -228,8 +228,7 @@ theorem tryAcquireReader_spec (γ : GName) (lk : Val) (Φ : Qp → IProp GF) :
   wp_lam
   wp_bind !_
   iinv Hlockinv with HI Hclose
-  -- The steps of the heap operations remove the `▷` from the invariant, so `∃` and `∗` are not
-  -- taken apart under `▷` (this needs finite step-indices).
+  -- The steps of the heap operations remove the `▷` from the invariant (see `PrimitiveLaws`).
   iapply (wp_load_later (dq := DFrac.own 1))
   inext
   icases HI with ⟨%z, Hl, Hz⟩

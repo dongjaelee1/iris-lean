@@ -25,14 +25,11 @@ open BI CMRA OFE Iris Iris.Std LawfulSet Excl COFE ProofMode
 
 /-! # Cancelable Invariants
 
-The cancelable invariant `cinv N γ P` is the invariant `inv N (P ∨ own γ 1)`. The token `own γ p`
-is the ownership of the fraction `p` of the ghost name `γ`. With the full token `own γ 1`, you can
-cancel the invariant and get `▷ P` back (`cancel`).
+`cinv N γ P` is `inv N (P ∨ own γ 1)`, where `own γ p` owns the fraction `p` of `γ`. The full
+token `own γ 1` cancels the invariant and gives `▷ P` back (`cancel`).
 
-This is the representation of Transfinite Iris. All rules hold for every type of step-indices.
-The current Rocq Iris adds an exclusive token to the invariant (`P ∗ cinv_excl γ ∨ cinv_own γ 1`).
-That representation gives the rules `cinv_acc_1` and `cinv_inv`, but its proofs take `∗` apart
-under `▷`, and this needs finite step-indices.
+This is the representation of Transfinite Iris: its rules hold for every step-index type. (The
+representation of Rocq Iris needs finite step indices.)
 -/
 
 abbrev CInvF : OFunctorPre := constOF Qp

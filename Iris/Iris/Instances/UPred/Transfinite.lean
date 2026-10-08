@@ -15,10 +15,10 @@ This file ports the parts of Transfinite Iris's `base_logic/upred.v`, `base_logi
 
 - soundness of the big later `⧍` for transfinite step-indices (`big_later_soundness`,
   `big_laterN_soundness`, `transfinite_soundness`),
-- `▷` commutes with `∗` and `∃` of timeless propositions in the model, for every type of
-  step-indices (`later_sep_timeless`, `later_exist_timeless`),
+- `▷` commutes with `∗` and `∃` of timeless propositions, for every step-index type
+  (`later_sep_timeless`, `later_exist_timeless`),
 - the satisfiability predicate (`UPred.satisfiable`, instance `Satisfiable (UPred M)`), whose
-  existential rule holds for large step-indices (`SIdxLarge SI X`),
+  existential rule holds for large step-indices (`SIdxLarge`),
 - `later_or_is_classical` (`dec_halting`): commuting `▷` with `∨` at a limit index decides a
   halting problem.
 -/
@@ -71,8 +71,8 @@ theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) :
 
 /-! ## Timelessness in the model -/
 
-/-- A timeless proposition that holds at index `0` holds (Transfinite Iris, `timeless_zero`).
-This is now the definition of `Timeless`. -/
+/-- A timeless proposition that holds at index `0` holds. This is the definition of `Timeless`
+(Transfinite Iris: `timeless_zero`). -/
 @[rocq_alias uPred_primitive.timeless_zero]
 theorem timeless_zero (P : UPred M) [Timeless P] : iprop(▷ False → P) ⊢ P := Timeless.timeless
 
@@ -147,8 +147,8 @@ theorem satisfiable_finite_exists {X : Type w} {P : X → UPred M} {Q : X → Pr
       let ⟨y, hy, _, ⟨a, rfl⟩, Ha⟩ := hP n
       ⟨a, hent a n _ Ha, y, hy, Ha⟩)
 
-/-- The existential property of the model. The instance argument comes after `hP`, so that `X`
-is known when the instance search runs. -/
+/-- The existential property of the model. The instance argument comes after `hP` (see
+`SIdxLarge`). -/
 theorem satisfiable_exists {X : Type v} {P : X → UPred M} (hP : satisfiable iprop(∃ x, P x))
     [SIdxLarge SI X] : ∃ x, satisfiable (P x) :=
   SIdxLarge.commute_exists (fun a n => ∃ y, ∃ h : ✓{n} y, P a n ⟨y, h⟩)

@@ -10,9 +10,7 @@ public import Ordinals.Tree.Basic
 # Basic constructions on trees
 
 Zero, successor, joins, binary maximum, natural numbers, `ω`, and the lift to a larger
-universe. Each construction has its order lemmas and a lemma that it respects `≈`.
-This file follows snu-sf/Ordinal (`src/Ordinal.v`, section `OPERATOR`). The results use no
-axioms.
+universe. This file follows snu-sf/Ordinal (`src/Ordinal.v`, section `OPERATOR`).
 -/
 
 @[expose] public section
@@ -39,7 +37,6 @@ theorem not_lt_zero (t : OTree.{u}) : ¬t < zero :=
 theorem le_zero_iff {t : OTree.{u}} : t ≤ zero ↔ t ≈ zero :=
   ⟨fun h => ⟨h, zero_le t⟩, fun h => h.le⟩
 
-/-- A tree is equivalent to `zero` if and only if it has no children. -/
 theorem equiv_zero_iff {t : OTree.{u}} : t ≈ zero ↔ ¬Nonempty t.Index := by
   constructor
   · intro h
@@ -126,8 +123,7 @@ theorem sup_mono {ι : Type u} {f g : ι → OTree.{u}} (h : ∀ i, f i ≤ g i)
 theorem sup_congr {ι : Type u} {f g : ι → OTree.{u}} (h : ∀ i, f i ≈ g i) : sup f ≈ sup g :=
   ⟨sup_mono fun i => (h i).le, sup_mono fun i => (h i).ge⟩
 
-/-- A tree is equivalent to the join of the successors of its children
-(snu-sf: `Ord.build_join_S`). -/
+/-- snu-sf: `Ord.build_join_S`. -/
 theorem mk_equiv_sup_succ {ι : Type u} (f : ι → OTree.{u}) : mk ι f ≈ sup fun i => succ (f i) :=
   ⟨mk_le.mpr fun i => OTree.lt_of_lt_of_le (lt_succ (f i)) (le_sup (fun i => succ (f i)) i),
    sup_le fun i => succ_le_of_lt (child_lt (mk ι f) i)⟩
@@ -143,8 +139,6 @@ theorem mk_congr {ι : Type u} {f g : ι → OTree.{u}} (h : ∀ i, f i ≈ g i)
 theorem sup_le_mk {ι : Type u} (f : ι → OTree.{u}) : sup f ≤ mk ι f :=
   sup_le fun i => OTree.le_of_lt (child_lt (mk ι f) i)
 
-/-- Joins over equivalent index sets: if each member of `f` is at most some member of `g`, then
-`sup f ≤ sup g`. -/
 theorem sup_le_sup_of_forall_exists {ι κ : Type u} {f : ι → OTree.{u}} {g : κ → OTree.{u}}
     (h : ∀ i, ∃ j, f i ≤ g j) : sup f ≤ sup g :=
   sup_le fun i => let ⟨j, hj⟩ := h i; OTree.le_trans hj (le_sup g j)

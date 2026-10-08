@@ -11,53 +11,12 @@ public import Ordinals.Tree.WfRel
 /-!
 # Classical recursion on trees
 
-With excluded middle, the order on trees is total. This file uses totality for these results:
+Results that use excluded middle: least elements, induction with the cases zero, successor and
+limit (`limitInduction`), and `trec` into a type `D` with joins of chains only (`ChainRecLaws`,
+snu-sf: `ClassicOrd.rec`). Then `trec` at the Hartogs ordinal of `D` is a fixed point of an
+expansive `next` (`ChainRecLaws.next_trec_hartogs_le`).
 
-- Each tree below the tree `ofWf hwf a` of a well-founded relation is equivalent to a tree
-  `ofWf hwf b` (`exists_equiv_ofWf_of_lt`).
-- Each inhabited set of trees has a least element (`exists_isMeet`).
-- Each tree is a successor or the join of an open family (`succ_or_limit`). Thus we have an
-  induction principle with the three cases zero, successor and limit (`limitInduction`).
-- The recursion `trec` into a type `D` is monotone if `D` has joins of chains only
-  (`ChainRecLaws`).
-- Fixed-point theorem: if `next` is expansive, then `trec` at the Hartogs ordinal of `D` is a
-  fixed point of `next` (`ChainRecLaws.next_trec_hartogs_le`).
-
-This file follows snu-sf/Ordinal (`src/ClassicalOrdinal.v`, module `ClassicOrd`). The names of
-the Rocq lemmas are in the docstrings. The results of this file use excluded middle
-(`Classical.em`).
-
-## Recursion with joins of chains
-
-snu-sf `ClassicOrd.rec` is `Ord.rec` with other hypotheses on `D`. Here it is `trec` of
-`Ordinals.Tree.Rec`. The lemmas are in the namespace `OTree.ChainRecLaws`. They take a proof
-of `ChainRecLaws dle wf djoin base next`:
-
-- `dle` is a preorder on the elements that satisfy `wf`.
-- `djoin A ds` is a least upper bound of each chain `ds`. `JoinLaws` of `Ordinals.Tree.Rec`
-  has least upper bounds of all families.
-- `base` and `next` keep `wf`.
-- `next` is expansive: `dle d (next d)`.
-- `next` respects the equivalence `dle d₀ d₁ ∧ dle d₁ d₀`. It is possible that `next` is not
-  monotone.
-
-With these laws, `trec` is monotone (`ChainRecLaws.trec_le_trec`). Thus the families that `trec`
-joins are chains. `ChainRecLaws.of_joinLaws` gives these laws from the laws of
-`Ordinals.Tree.Rec`.
-
-The first lemma `rec_all` of snu-sf shows four properties of `trec` together, by well-founded
-induction. The proof here is shorter: a tree `s` below `mk ι f` is at most a child `f i`, thus
-we do not need the case analysis of snu-sf on a tree between `s` and `mk ι f`.
-
-## Main definitions
-
-- `OTree.IsMeet P t`: `t` is a least element of `P` (snu-sf: `ClassicOrd.is_meet`).
-- `OTree.IsChain dle ds`: each two members of `ds` are comparable.
-- `OTree.ChainRecLaws`: the laws of the target type (snu-sf: the hypotheses of section
-  `ClassicOrd.REC`).
-- `OTree.StrictlyIncreasing`: the relation of the values of `trec` that increase strictly
-  (snu-sf: `ClassicOrd.strictly_increasing`).
-- `OTree.NotFixed`: `trec` increases strictly up to a tree (snu-sf: `ClassicOrd.not_fixed`).
+This file follows snu-sf/Ordinal (`src/ClassicalOrdinal.v`, module `ClassicOrd`).
 -/
 
 @[expose] public section
@@ -74,8 +33,7 @@ section WellFounded
 
 variable {A : Type u} {R : A → A → Prop}
 
-/-- Each tree below the tree of an accessible element is equivalent to the tree of an
-accessible element (snu-sf: `ClassicOrd.from_acc_complete`). -/
+/-- snu-sf: `ClassicOrd.from_acc_complete`. -/
 theorem exists_equiv_ofAcc_of_lt {a : A} (h : Acc R a) {t : OTree.{u}} (ht : t < ofAcc h) :
     ∃ b, ∃ hb : Acc R b, t ≈ ofAcc hb := by
   induction h generalizing t with
@@ -85,15 +43,13 @@ theorem exists_equiv_ofAcc_of_lt {a : A} (h : Acc R a) {t : OTree.{u}} (ht : t <
     · exact ih b hb hlt
     · exact ⟨b, _, he⟩
 
-/-- Each tree below `ofWf hwf a` is equivalent to a tree `ofWf hwf b`
-(snu-sf: `ClassicOrd.from_wf_complete`). -/
+/-- snu-sf: `ClassicOrd.from_wf_complete`. -/
 theorem exists_equiv_ofWf_of_lt (hwf : WellFounded R) {a : A} {t : OTree.{u}}
     (ht : t < ofWf hwf a) : ∃ b, t ≈ ofWf hwf b :=
   let ⟨b, _, hb⟩ := exists_equiv_ofAcc_of_lt (hwf.apply a) ht
   ⟨b, hb⟩
 
-/-- Each tree below `ofWfSet hwf` is equivalent to a tree `ofWf hwf a`
-(snu-sf: `ClassicOrd.from_wf_set_complete`). -/
+/-- snu-sf: `ClassicOrd.from_wf_set_complete`. -/
 theorem exists_equiv_ofWf_of_lt_ofWfSet (hwf : WellFounded R) {t : OTree.{u}}
     (ht : t < ofWfSet hwf) : ∃ a, t ≈ ofWf hwf a := by
   obtain ⟨a, ha⟩ := (lt_ofWfSet_iff hwf).mp ht
@@ -101,9 +57,8 @@ theorem exists_equiv_ofWf_of_lt_ofWfSet (hwf : WellFounded R) {t : OTree.{u}}
   · exact exists_equiv_ofWf_of_lt hwf hlt
   · exact ⟨a, he⟩
 
-/-- Let `R₀` be a subrelation of `R₁`. If an element `a₂` has an `R₁`-predecessor, and each
-element with an `R₀`-predecessor is an `R₁`-predecessor of `a₂`, then the tree of `R₀` is below
-the tree of `R₁` (snu-sf: `ClassicOrd.from_wf_set_lt`). -/
+/-- If some `a₂` with an `R₁`-predecessor is `R₁`-above each element with an `R₀`-predecessor,
+then the tree of `R₀` is below the tree of `R₁` (snu-sf: `ClassicOrd.from_wf_set_lt`). -/
 theorem ofWfSet_lt_ofWfSet {R₀ R₁ : A → A → Prop} (H : Subrelation R₀ R₁)
     (hwf₀ : WellFounded R₀) (hwf₁ : WellFounded R₁)
     (htop : ∃ a₂ x, R₁ x a₂ ∧ ∀ a₀ a₁, R₀ a₀ a₁ → R₁ a₁ a₂) :
@@ -130,7 +85,6 @@ theorem exists_isMeet {P : OTree.{u} → Prop} (h : ∃ t, P t) : ∃ t, IsMeet 
   refine lt_wf.induction (C := fun t => ¬P t) t (fun t ih hp => ?_) ht
   exact hn ⟨t, hp, fun s hs => not_lt.mp fun hlt => ih s hlt hs⟩
 
-/-- Two least elements of a set are equivalent. -/
 theorem IsMeet.equiv {P : OTree.{u} → Prop} {s t : OTree.{u}} (hs : IsMeet P s)
     (ht : IsMeet P t) : s ≈ t :=
   ⟨hs.2 t ht.1, ht.2 s hs.1⟩
@@ -153,8 +107,7 @@ theorem succ_or_limit (t : OTree.{u}) :
       exact ⟨f i, mk_le.mpr fun j => lt_succ_iff.mpr (not_lt.mp fun hlt => hi ⟨j, hlt⟩),
         succ_le_of_lt (child_lt (mk ι f) i)⟩
 
-/-- Induction with the three cases zero, successor and limit (snu-sf: `ClassicOrd.ind`). In each
-case, the induction hypothesis also holds for all smaller trees. -/
+/-- Induction with the three cases zero, successor and limit (snu-sf: `ClassicOrd.ind`). -/
 @[elab_as_elim]
 theorem limitInduction {motive : OTree.{u} → Prop} (t : OTree.{u})
     (zero : ∀ t, t ≈ OTree.zero → (∀ s, s < t → motive s) → motive t)
@@ -179,9 +132,7 @@ def IsChain {D : Type v} (dle : D → D → Prop) {A : Type u} (ds : A → D) : 
   ∀ a₀ a₁, dle (ds a₀) (ds a₁) ∨ dle (ds a₁) (ds a₀)
 
 /-- The laws of joins of chains: `dle` is a preorder on the elements that satisfy `wf`, and
-`djoin A ds` is a least upper bound of each chain `ds` (snu-sf: the hypotheses `dle_reflexive`,
-`dle_transitive`, `djoin_upperbound`, `djoin_supremum`, `djoin_wf` of section
-`ClassicOrd.REC`). -/
+`djoin A ds` is a least upper bound of each chain `ds` (snu-sf: hypotheses of `REC`). -/
 structure ChainJoinLaws {D : Type v} (dle : D → D → Prop) (wf : D → Prop)
     (djoin : (A : Type u) → (A → D) → D) : Prop where
   /-- snu-sf: `dle_reflexive`. -/
@@ -197,9 +148,9 @@ structure ChainJoinLaws {D : Type v} (dle : D → D → Prop) (wf : D → Prop)
   /-- snu-sf: `djoin_wf`. -/
   join_wf : ∀ {A : Type u} {ds : A → D}, IsChain dle ds → (∀ a, wf (ds a)) → wf (djoin A ds)
 
-/-- The laws of the target type of the classical recursion (snu-sf: the hypotheses of section
-`ClassicOrd.REC`): joins of chains, `base` and `next` keep `wf`, `next` is expansive, and `next`
-respects the equivalence `dle d₀ d₁ ∧ dle d₁ d₀`. -/
+/-- The laws of the target type of the classical recursion: joins of chains, `base` and `next`
+keep `wf`, and `next` is expansive and respects `dle d₀ d₁ ∧ dle d₁ d₀`, but need not be
+monotone (snu-sf: hypotheses of `REC`). -/
 structure ChainRecLaws {D : Type v} (dle : D → D → Prop) (wf : D → Prop)
     (djoin : (A : Type u) → (A → D) → D) (base : D) (next : D → D) : Prop
     extends ChainJoinLaws dle wf djoin, StepLaws wf base next where
@@ -213,12 +164,9 @@ section Laws
 variable {D : Type v} {dle : D → D → Prop} {wf : D → Prop} {djoin : (A : Type u) → (A → D) → D}
   {base : D} {next : D → D}
 
-/-- The joins of all families are joins of chains. -/
 theorem JoinLaws.toChainJoinLaws (hJ : JoinLaws dle wf djoin) : ChainJoinLaws dle wf djoin :=
   ⟨hJ.le_refl, hJ.le_trans, fun _ => hJ.le_join, fun _ => hJ.join_le, fun _ => hJ.join_wf⟩
 
-/-- The laws of `Ordinals.Tree.Rec` with an expansive `next` give the laws of the classical
-recursion. -/
 theorem ChainRecLaws.of_joinLaws (hJ : JoinLaws dle wf djoin) (hS : StepLaws wf base next)
     (hl : ∀ {d}, wf d → dle d (next d)) (hm : NextMono dle wf next) :
     ChainRecLaws dle wf djoin base next :=
@@ -231,7 +179,6 @@ namespace ChainJoinLaws
 variable (hJ : ChainJoinLaws dle wf djoin)
 include hJ
 
-/-- The family of `dunion` is a chain if its two members are comparable. -/
 theorem isChain_cond {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h : dle d₀ d₁ ∨ dle d₁ d₀) :
     IsChain dle fun b : ULift.{u} Bool => cond b.down d₀ d₁
   | ⟨true⟩, ⟨true⟩ => .inl (hJ.le_refl h₀)
@@ -239,34 +186,32 @@ theorem isChain_cond {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h : dle 
   | ⟨false⟩, ⟨true⟩ => h.symm
   | ⟨false⟩, ⟨false⟩ => .inl (hJ.le_refl h₁)
 
-/-- A lower bound of a member of a chain is a lower bound of the join. -/
 theorem le_join_of_le {A : Type u} {ds : A → D} {d : D} (hc : IsChain dle ds)
     (hds : ∀ a, wf (ds a)) (hd : wf d) (a : A) (h : dle d (ds a)) : dle d (djoin A ds) :=
   hJ.le_trans hd (hds a) (hJ.join_wf hc hds) h (hJ.le_join hc hds a)
 
-/-- snu-sf: the local `dunion_wf` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `dunion_wf`. -/
 theorem dunion_wf {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h : dle d₀ d₁ ∨ dle d₁ d₀) :
     wf (dunion djoin d₀ d₁) :=
   hJ.join_wf (hJ.isChain_cond h₀ h₁ h) (cond_wf h₀ h₁)
 
-/-- snu-sf: the local `dunion_l` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `dunion_l`. -/
 theorem le_dunion_left {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h : dle d₀ d₁ ∨ dle d₁ d₀) :
     dle d₀ (dunion djoin d₀ d₁) :=
   hJ.le_join (hJ.isChain_cond h₀ h₁ h) (cond_wf h₀ h₁) ⟨true⟩
 
-/-- snu-sf: the local `dunion_r` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `dunion_r`. -/
 theorem le_dunion_right {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h : dle d₀ d₁ ∨ dle d₁ d₀) :
     dle d₁ (dunion djoin d₀ d₁) :=
   hJ.le_join (hJ.isChain_cond h₀ h₁ h) (cond_wf h₀ h₁) ⟨false⟩
 
-/-- snu-sf: the local `dunion_supremum` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `dunion_supremum`. -/
 theorem dunion_le {d₀ d₁ d : D} (h₀ : wf d₀) (h₁ : wf d₁) (hd : wf d)
     (h : dle d₀ d₁ ∨ dle d₁ d₀) (l₀ : dle d₀ d) (l₁ : dle d₁ d) : dle (dunion djoin d₀ d₁) d :=
   hJ.join_le (hJ.isChain_cond h₀ h₁ h) (cond_wf h₀ h₁) hd fun
     | ⟨true⟩ => l₀
     | ⟨false⟩ => l₁
 
-/-- A family that is pointwise equivalent to a chain is a chain. -/
 theorem isChain_of_equiv {A : Type u} {ds es : A → D} (hc : IsChain dle es)
     (hds : ∀ a, wf (ds a)) (hes : ∀ a, wf (es a))
     (h : ∀ a, dle (ds a) (es a) ∧ dle (es a) (ds a)) : IsChain dle ds := fun a₀ a₁ =>
@@ -276,7 +221,6 @@ theorem isChain_of_equiv {A : Type u} {ds es : A → D} (hc : IsChain dle es)
     (fun l => hJ.le_trans (hds a₁) (hes a₀) (hds a₀)
       (hJ.le_trans (hds a₁) (hes a₁) (hes a₀) (h a₁).1 l) (h a₀).2)
 
-/-- The joins of pointwise equivalent chains are equivalent. -/
 theorem join_congr {A : Type u} {ds es : A → D} (hc : IsChain dle es)
     (hds : ∀ a, wf (ds a)) (hes : ∀ a, wf (es a))
     (h : ∀ a, dle (ds a) (es a) ∧ dle (es a) (ds a)) :
@@ -285,8 +229,7 @@ theorem join_congr {A : Type u} {ds es : A → D} (hc : IsChain dle es)
   ⟨hJ.join_le hc' hds (hJ.join_wf hc hes) fun a => hJ.le_join_of_le hc hes (hds a) a (h a).1,
     hJ.join_le hc hes (hJ.join_wf hc' hds) fun a => hJ.le_join_of_le hc' hds (hes a) a (h a).2⟩
 
-/-- Transitivity of the equivalence `dle d₀ d₁ ∧ dle d₁ d₀` (snu-sf: the local
-`deq_transitive` of section `ClassicOrd.REC`). -/
+/-- snu-sf: `deq_transitive`. -/
 theorem equiv_trans {d₀ d₁ d₂ : D} (h₀ : wf d₀) (h₁ : wf d₁) (h₂ : wf d₂)
     (e₀ : dle d₀ d₁ ∧ dle d₁ d₀) (e₁ : dle d₁ d₂ ∧ dle d₂ d₁) : dle d₀ d₂ ∧ dle d₂ d₀ :=
   ⟨hJ.le_trans h₀ h₁ h₂ e₀.1 e₁.1, hJ.le_trans h₂ h₁ h₀ e₁.2 e₀.2⟩
@@ -305,8 +248,8 @@ variable {D : Type v} {dle : D → D → Prop} {wf : D → Prop} {djoin : (A : T
   {base : D} {next : D → D} (h : ChainRecLaws dle wf djoin base next)
 include h
 
-/-- The four properties of `trec` that snu-sf `ClassicOrd.rec_all` shows together, by
-well-founded induction. -/
+/-- Four properties of `trec` at once: their proofs use each other on smaller trees
+(snu-sf: `ClassicOrd.rec_all`). -/
 private theorem trec_all (t : OTree.{u}) :
     (∀ s, s ≤ t → dle (trec base next djoin s) (trec base next djoin t)) ∧
       (∀ s, s < t → dle (next (trec base next djoin s)) (trec base next djoin t)) ∧
@@ -318,7 +261,6 @@ private theorem trec_all (t : OTree.{u}) :
       fun s hs => (ih s hs).2.2.1
     have hb : ∀ s, s < OTree.mk ι f → dle base (trec base next djoin s) :=
       fun s hs => (ih s hs).2.2.2
-    -- Below `mk ι f`, `next ∘ trec` is monotone.
     have hnn : ∀ r s, r ≤ s → s < OTree.mk ι f →
         dle (next (trec base next djoin r)) (next (trec base next djoin s)) := by
       intro r s hrs hs
@@ -327,7 +269,6 @@ private theorem trec_all (t : OTree.{u}) :
       · exact h.le_trans (h.next_wf (hw r hr)) (hw s hs) (h.next_wf (hw s hs))
           ((ih s hs).2.1 r hlt) (h.next_le (hw s hs))
       · exact h.next_congr (hw r hr) (hw s hs) ((ih s hs).1 r he.le) ((ih r hr).1 s he.ge)
-    -- The families below `mk ι f` give chains.
     have hc : ∀ {κ : Type u} (g : κ → OTree.{u}), (∀ k, g k < OTree.mk ι f) →
         IsChain dle fun k => next (trec base next djoin (g k)) := by
       intro κ g hg k₀ k₁
@@ -348,7 +289,6 @@ private theorem trec_all (t : OTree.{u}) :
         exact h.le_join_of_le (hc g hg) (hwn g hg) h.base_wf k
           (h.le_trans h.base_wf wk (h.next_wf wk) (hb _ (hg k)) (h.next_le wk))
       · exact h.join_le (hc g hg) (hwn g hg) h.base_wf fun k => (hne ⟨k⟩).elim
-    -- The four properties at `mk ι f`.
     have hf : ∀ i, f i < OTree.mk ι f := child_lt (OTree.mk ι f)
     have wt : wf (trec base next djoin (OTree.mk ι f)) :=
       h.dunion_wf h.base_wf (hjw f hf) (hcb f hf)
@@ -402,13 +342,12 @@ theorem next_trec_le_next_trec {s t : OTree.{u}} (hst : s ≤ t) :
       (h.next_trec_le_trec hlt) (h.next_le (h.trec_wf t))
   · exact h.next_congr (h.trec_wf s) (h.trec_wf t) (h.trec_congr he).1 (h.trec_congr he).2
 
-/-- The values of `trec` on a family are a chain (snu-sf: the local `chain_helper` of section
-`ClassicOrd.REC`). -/
+/-- snu-sf: `chain_helper`. -/
 theorem isChain_trec {ι : Type u} (f : ι → OTree.{u}) :
     IsChain dle fun i => trec base next djoin (f i) := fun i j =>
   (le_total (f i) (f j)).imp h.trec_le_trec h.trec_le_trec
 
-/-- snu-sf: the local `chain_next_helper` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `chain_next_helper`. -/
 theorem isChain_next_trec {ι : Type u} (f : ι → OTree.{u}) :
     IsChain dle fun i => next (trec base next djoin (f i)) := fun i j =>
   (le_total (f i) (f j)).imp h.next_trec_le_next_trec h.next_trec_le_next_trec
@@ -421,7 +360,7 @@ theorem join_next_trec_wf {ι : Type u} (f : ι → OTree.{u}) :
     wf (djoin ι fun i => next (trec base next djoin (f i))) :=
   h.join_wf (h.isChain_next_trec f) fun i => h.next_trec_wf (f i)
 
-/-- snu-sf: the local `BASEJOIN` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `BASEJOIN`. -/
 theorem base_le_join_trec_or {ι : Type u} (f : ι → OTree.{u}) :
     dle base (djoin ι fun i => trec base next djoin (f i)) ∨
       dle (djoin ι fun i => trec base next djoin (f i)) base := by
@@ -431,7 +370,7 @@ theorem base_le_join_trec_or {ι : Type u} (f : ι → OTree.{u}) :
   · exact h.join_le (h.isChain_trec f) (fun i => h.trec_wf (f i)) h.base_wf
       fun i => (hne ⟨i⟩).elim
 
-/-- snu-sf: the local `BASENEXTJOIN` of section `ClassicOrd.REC`. -/
+/-- snu-sf: `BASENEXTJOIN`. -/
 theorem base_le_join_next_trec_or {ι : Type u} (f : ι → OTree.{u}) :
     dle base (djoin ι fun i => next (trec base next djoin (f i))) ∨
       dle (djoin ι fun i => next (trec base next djoin (f i))) base := by
@@ -442,7 +381,7 @@ theorem base_le_join_next_trec_or {ι : Type u} (f : ι → OTree.{u}) :
   · exact h.join_le (h.isChain_next_trec f) (fun i => h.next_trec_wf (f i)) h.base_wf
       fun i => (hne ⟨i⟩).elim
 
-/-- An upper bound of `trec` (as `OTree.orec_le`). -/
+/-- An upper bound of `trec`. -/
 theorem trec_le {t : OTree.{u}} {d : D} (hd : wf d) (hb : dle base d)
     (hn : ∀ s, s < t → dle (next (trec base next djoin s)) d) :
     dle (trec base next djoin t) d := by
@@ -481,7 +420,7 @@ theorem trec_of_equiv_succ {s t : OTree.{u}} (ht : t ≈ succ s) :
   h.equiv_trans (h.trec_wf t) (h.trec_wf _) (h.next_trec_wf s) (h.trec_congr ht)
     (h.trec_succ s)
 
-/-- `trec` on an open family with a member (snu-sf: `ClassicOrd.rec_build`). -/
+/-- `trec` on a nonempty open family (snu-sf: `ClassicOrd.rec_build`). -/
 theorem trec_mk_of_open {ι : Type u} [Nonempty ι] {f : ι → OTree.{u}}
     (hf : ∀ i, ∃ j, f i < f j) :
     dle (trec base next djoin (OTree.mk ι f)) (djoin ι fun i => trec base next djoin (f i)) ∧
@@ -589,7 +528,6 @@ theorem trec_unique (F : OTree.{u} → D) (hw : ∀ t, wf (F t))
     have wjT := h.join_next_trec_wf f
     have hcb := h.base_le_join_next_trec_or f
     have ej := h.join_congr hc wF wT e
-    -- The two `dunion` are equivalent.
     have hcbF : dle base (djoin ι fun i => next (F (f i))) ∨
         dle (djoin ι fun i => next (F (f i))) base :=
       hcb.imp (fun l => h.le_trans h.base_wf wjT wjF l ej.2)
@@ -606,9 +544,8 @@ theorem trec_unique (F : OTree.{u} → D) (hw : ∀ t, wf (F t))
           (h.le_trans wjT wjF wuF ej.2 (h.le_dunion_right h.base_wf wjF hcbF))⟩
     exact h.equiv_trans (hw _) wuF (h.trec_wf _) (hF ι f) eu
 
-/-- `trec` is the only function that satisfies the equations of `trec_of_equiv_zero`,
-`trec_of_equiv_succ` and `trec_of_equiv_sup_of_nonempty` up to equivalence
-(snu-sf: `ClassicOrd.rec_unique`). -/
+/-- `trec` is the only function, up to equivalence, with the equations for zero, successors and
+limits (snu-sf: `ClassicOrd.rec_unique`). -/
 theorem trec_unique_of_zero_succ_limit (F : OTree.{u} → D) (hw : ∀ t, wf (F t))
     (hzero : ∀ t, t ≈ zero → dle (F t) base ∧ dle base (F t))
     (hsucc : ∀ s t, t ≈ succ s → dle (F t) (next (F s)) ∧ dle (next (F s)) (F t))
@@ -635,9 +572,7 @@ theorem trec_unique_of_zero_succ_limit (F : OTree.{u} → D) (hw : ∀ t, wf (F 
       (h.equiv_trans (h.join_wf hcF wF) (h.join_trec_wf f) (h.trec_wf t)
         (h.join_congr (h.isChain_trec f) wF wT ih) ⟨e.2, e.1⟩)
 
-/-- After a fixed point of `next`, `trec` stays at the fixed point
-(snu-sf: `ClassicOrd.fixed_point_after`). The statement holds for all trees `t`, not only for
-the trees `t` above `s`. -/
+/-- `trec` does not go above a fixed point of `next` (snu-sf: `ClassicOrd.fixed_point_after`). -/
 theorem trec_le_of_next_trec_le {s : OTree.{u}}
     (hs : dle (next (trec base next djoin s)) (trec base next djoin s)) (t : OTree.{u}) :
     dle (trec base next djoin t) (trec base next djoin s) := by
@@ -666,8 +601,7 @@ def StrictlyIncreasing (d₀ d₁ : D) : Prop :=
   ∃ s t : OTree.{u}, s < t ∧ ¬dle (trec base next djoin t) (trec base next djoin s) ∧
     trec base next djoin s = d₀ ∧ trec base next djoin t = d₁
 
-/-- `trec` increases strictly up to `t`: the value at `t` is not below the value at each tree
-`s < t` (snu-sf: `ClassicOrd.not_fixed`). -/
+/-- `trec` increases strictly up to `t` (snu-sf: `ClassicOrd.not_fixed`). -/
 def NotFixed (t : OTree.{u}) : Prop :=
   ∀ s, s < t → ¬dle (trec base next djoin t) (trec base next djoin s)
 
@@ -694,8 +628,7 @@ theorem strictlyIncreasing_wf : WellFounded (StrictlyIncreasing dle djoin base n
       exact h.trec_le_trec hts
   exact ⟨fun d => ⟨_, fun d' ⟨s, _, _, _, hs, _⟩ => hs ▸ key s⟩⟩
 
-/-- If `trec` increases strictly up to `t`, then it increases strictly up to each `s ≤ t`
-(snu-sf: the local `end_le_end` of section `ClassicOrd.REC`). -/
+/-- snu-sf: `end_le_end`. -/
 theorem notFixed_of_le {s t : OTree.{u}} (hst : s ≤ t) (ht : NotFixed dle djoin base next t) :
     NotFixed dle djoin base next s := fun r hr hle =>
   ht r (OTree.lt_of_lt_of_le hr hst) <| h.trec_le_of_next_trec_le
@@ -709,9 +642,7 @@ variable {D : Type u} {dle : D → D → Prop} {wf : D → Prop} {djoin : (A : T
   {base : D} {next : D → D} (h : ChainRecLaws dle wf djoin base next)
 include h
 
-/-- If `trec` increases strictly up to `t`, then `t` is at most the tree of `trec t` in the
-relation `StrictlyIncreasing` (snu-sf: the local `least_lt_incr_acc` of section
-`ClassicOrd.REC`). -/
+/-- snu-sf: `least_lt_incr_acc`. -/
 theorem le_ofWf_strictlyIncreasing :
     ∀ {t : OTree.{u}}, NotFixed dle djoin base next t →
       t ≤ ofWf h.strictlyIncreasing_wf (trec base next djoin t)
@@ -720,15 +651,13 @@ theorem le_ofWf_strictlyIncreasing :
     OTree.lt_of_le_of_lt (le_ofWf_strictlyIncreasing (h.notFixed_of_le (OTree.le_of_lt hi) ht))
       (ofWf_lt_ofWf _ ⟨f i, OTree.mk ι f, hi, ht (f i) hi, rfl, rfl⟩)
 
-/-- `trec` does not increase strictly up to the Hartogs ordinal of `D` (snu-sf: the local
-`hartogs_fixed` of section `ClassicOrd.REC`). -/
+/-- snu-sf: `hartogs_fixed`. -/
 theorem not_notFixed_hartogs : ¬NotFixed dle djoin base next (hartogs D) := fun ht =>
   OTree.lt_irrefl _ <| OTree.lt_of_le_of_lt (h.le_ofWf_strictlyIncreasing ht)
     (OTree.lt_trans (ofWf_lt_ofWfSet _ _) (ofWfSet_lt_hartogs h.strictlyIncreasing_wf))
 
 /-- The fixed-point theorem: `trec` at the Hartogs ordinal of `D` is a fixed point of `next`
-(snu-sf: `ClassicOrd._fixpoint_theorem`, `fixpoint_theorem_le`). With `next_le`, the two values
-are equivalent (`Ordinals.Tree.Fixpoint`). -/
+(snu-sf: `ClassicOrd._fixpoint_theorem`, `fixpoint_theorem_le`). -/
 theorem next_trec_hartogs_le :
     dle (next (trec base next djoin (hartogs D))) (trec base next djoin (hartogs D)) := by
   refine Classical.byContradiction fun hn => h.not_notFixed_hartogs ?_

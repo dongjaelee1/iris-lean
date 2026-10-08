@@ -105,8 +105,7 @@ theorem spawn_spec (Ψ : Val → IProp GF) (f : Val) :
   wp_apply wp_wand $$ Hf with %v HΨ
   wp_pures
   iinv Hinv with Hpt
-  -- The step of the store removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
-  -- under `▷` (this needs finite step-indices).
+  -- The step of the store removes the `▷` from the invariant (see `PrimitiveLaws`).
   iapply wp_store_later
   inext
   unfold spawnInv

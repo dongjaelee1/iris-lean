@@ -10,13 +10,9 @@ public import Ordinals.Tree.Rec
 /-!
 # Transfinite recursion on ordinals
 
-`Ordinal.orec base next` is the function `F` with `F a = max base (sup over b < a of
-next (F b))` (snu-sf: `Ord.orec`). It is the tree recursion `OTree.orec` of
-`Ordinals.Tree.Rec`, applied to representatives. The equations hold if `next` is monotone
-(`hm : ∀ {a b}, a ≤ b → next a ≤ next b`); some need also that `next` is expansive
-(`hl : ∀ a, a ≤ next a`).
-
-The standard sum is `orec a succ` (`orec_succ_eq_add`).
+`orec base next` is the function `F` with `F a = max base (sup over b < a of next (F b))`: the
+tree recursion `OTree.orec` of `Ordinals.Tree.Rec` on representatives. The equations need a
+monotone `next` (`hm`), and `orec_succ` also needs `a ≤ next a` (`hl`).
 -/
 
 @[expose] public section
@@ -27,8 +23,7 @@ universe u
 
 namespace Ordinal
 
-/-- The tree function of a function on ordinals: it maps a tree to a representative of the
-image of its ordinal. -/
+/-- `F` on trees: it maps `t` to a representative of `F (mk t)`. -/
 noncomputable def treeFun (F : Ordinal.{u} → Ordinal.{u}) (t : OTree.{u}) : OTree.{u} :=
   (F (mk t)).out
 
@@ -126,7 +121,7 @@ theorem orec_sup_of_nonempty {ι : Type u} [Nonempty ι] (f : ι → Ordinal.{u}
   exact sound (OTree.orec_sup_of_nonempty (treeFun_mono hm) g)
 
 include hm in
-/-- `orec` on a strict supremum (snu-sf: `Ord.orec_build`). -/
+/-- snu-sf: `Ord.orec_build`. -/
 theorem orec_ssup {ι : Type u} (f : ι → Ordinal.{u}) :
     orec base next (ssup f) = max base (sup fun i => next (orec base next (f i))) := by
   obtain ⟨g, rfl⟩ := exists_eq_mk_comp f
@@ -158,7 +153,7 @@ theorem orec_le {a c : Ordinal.{u}} (hb : base ≤ c) (h : ∀ b, b < a → next
       exact this
 
 include hm in
-/-- `orec` with `succ` adds the base (snu-sf: `OrdArith.add` is `orec o succ`). -/
+/-- `orec` is the only function that satisfies its defining equation (snu-sf: `Ord.orec_unique`). -/
 theorem orec_eq_iff_forall {F : Ordinal.{u} → Ordinal.{u}}
     (hF : ∀ (ι : Type u) (f : ι → Ordinal.{u}), F (ssup f) = max base (sup fun i => next (F (f i))))
     (a : Ordinal.{u}) : F a = orec base next a := by
@@ -177,14 +172,14 @@ theorem orec_eq_iff_forall {F : Ordinal.{u} → Ordinal.{u}}
 
 end Orec
 
-/-- Recursion with `0` and `succ` is the identity (snu-sf: `Ord.orec_of_S`). -/
+/-- snu-sf: `Ord.orec_of_S`. -/
 theorem orec_zero_succ (a : Ordinal.{u}) : orec 0 succ a = a := by
   refine (orec_eq_iff_forall (fun h => succ_le_succ h) (F := id) (fun ι f => ?_) a).symm
   show ssup f = max 0 (sup fun i => succ (f i))
   rw [ssup_eq_sup_succ]
   exact (Ordinal.max_eq_right (Ordinal.zero_le _)).symm
 
-/-- The standard sum is the recursion with `succ` from the first summand. -/
+/-- snu-sf: `OrdArith.add` is `orec o succ`. -/
 theorem orec_succ_eq_add (a b : Ordinal.{u}) : orec a succ b = a + b := by
   refine (orec_eq_iff_forall (fun h => succ_le_succ h) (F := (a + ·)) (fun ι f => ?_) b).symm
   show a + ssup f = max a (sup fun i => succ (a + f i))

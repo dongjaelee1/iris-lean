@@ -169,9 +169,8 @@ nonrec theorem inv_alloc {p : NaInvPoolName} {E : CoPset} {N : Namespace} {P : I
   · ipureintro; assumption
   · iassumption
 
-/-- This rule takes `∗` apart under `▷`, thus it needs finite step-indices. For every type of
-step-indices, see `inv_acc_open`, `inv_acc_open_timeless` and
-`inv_acc_open_timeless_weakening`. -/
+/-- This rule takes `∗` apart under `▷`, so it needs finite step indices. For every step-index
+type, see `inv_acc_open`, `inv_acc_open_timeless` and `inv_acc_open_timeless_weakening`. -/
 @[rocq_alias na_inv_acc]
 nonrec theorem inv_acc [SIdxFinite SI] {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
@@ -226,7 +225,7 @@ nonrec theorem inv_acc [SIdxFinite SI] {p : NaInvPoolName} {E F : CoPset} {N : N
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
 /-- Close the invariant `inv p N P` that was opened with the token `own p {i}`. This is the
-closing part of the accessors below. It holds for every type of step-indices. -/
+closing part of the accessors below. -/
 private theorem inv_close {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     {i : Pos} (Hin : i ∈ (↑N : CoPset)) (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
     ⊢ Iris.inv N iprop(P ∗ iOwn (E := W.inv) p (.valid ∅, .valid {i}) ∨ own p {i}) -∗
@@ -266,8 +265,7 @@ private theorem inv_close {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P 
     · iexact HtokN_new
     · iexact HtokFret
 
-/-- Open a non-atomic invariant. All the results are under `▷`. This rule holds for every type of
-step-indices. -/
+/-- Open a non-atomic invariant. All the results are under `▷`. -/
 @[rocq_alias na_inv_acc_open]
 nonrec theorem inv_acc_open {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
@@ -300,8 +298,7 @@ nonrec theorem inv_acc_open {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {
     icases Hbad with %Hbad
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
-/-- Open a non-atomic invariant and get a timeless `Q` that `P` gives. `Q` is not under `▷`. This
-rule holds for every type of step-indices. -/
+/-- Open a non-atomic invariant and get a timeless `Q` that `P` gives. `Q` is not under `▷`. -/
 @[rocq_alias na_inv_acc_open_timeless_weakening]
 nonrec theorem inv_acc_open_timeless_weakening {p : NaInvPoolName} {E F : CoPset} {N : Namespace}
     {P Q : IProp GF} [Timeless Q] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :
@@ -340,8 +337,7 @@ nonrec theorem inv_acc_open_timeless_weakening {p : NaInvPoolName} {E F : CoPset
     icases Hbad with %Hbad
     exact Hbad i ⟨mem_singleton.mpr rfl, mem_singleton.mpr rfl⟩ |>.elim
 
-/-- Open a non-atomic invariant with a timeless `P`. `P` is not under `▷`. This rule holds for every
-type of step-indices. -/
+/-- Open a non-atomic invariant with a timeless `P`. `P` is not under `▷`. -/
 @[rocq_alias na_inv_acc_open_timeless]
 theorem inv_acc_open_timeless {p : NaInvPoolName} {E F : CoPset} {N : Namespace} {P : IProp GF}
     [Timeless P] (HNE : ↑N ⊆ E) (HNF : ↑N ⊆ F) :

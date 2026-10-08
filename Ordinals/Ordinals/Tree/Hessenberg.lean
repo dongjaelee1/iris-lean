@@ -9,57 +9,10 @@ public import Ordinals.Tree.Constructions
 /-!
 # The natural (Hessenberg) sum of trees
 
-The natural sum `nadd s t` is the least tree above `nadd s' t` for all `s' < s` and above
-`nadd s t'` for all `t' < t`. It is commutative, associative, and strictly monotone in both
-arguments. The standard ordinal sum does not have these properties.
+`nadd s t` is the least tree above `nadd s' t` for all `s' < s` and above `nadd s t'` for all
+`t' < t`. It is commutative, associative and strictly monotone in both arguments.
 
-This file follows snu-sf/Ordinal (`src/Hessenberg.v`, module `Hessenberg`, section `ADD`). The
-names of the Rocq lemmas are in the docstrings. The results of this file use no axioms.
-
-## Main definitions and results
-
-- `OTree.nadd s t`: the natural sum (snu-sf: `Hessenberg.add`).
-- `OTree.nadd_lt_nadd_left`, `OTree.nadd_lt_nadd_right`: strict monotonicity.
-- `OTree.nadd_comm`, `OTree.nadd_assoc`, `OTree.nadd_zero`, `OTree.nadd_succ`.
-- `OTree.nadd_congr`: `nadd` respects `≈`.
-- `OTree.induction₂`: induction on two trees (snu-sf: `double_well_founded_induction`).
-
-## Implementation notes
-
-The natural sum is a recursion on two trees at once. For `s = mk ι f` and `t = mk κ g`:
-```
-nadd s t = max (mk κ fun j => nadd s (g j)) (mk ι fun i => nadd (f i) t)
-```
-The first recursive calls have a smaller second argument, and the second recursive calls have a
-smaller first argument. snu-sf uses `Fix` on pairs of trees with a product relation, and proves
-the unfolding equation only up to `≈`.
-
-Here `nadd` is a nested structural recursion. The outer recursion is on the first tree. The inner
-recursion `naddAux` is on the second tree, and it gets the outer recursive calls
-`fun i => nadd (f i)` as an argument. We use this form and not `WellFounded.fix` on a product
-order for these reasons:
-
-- The unfolding equation `nadd_mk_mk` is a definitional equality (`rfl`), not only an
-  equivalence. With `WellFounded.fix`, the definition is irreducible, and the unfolding lemma
-  needs `WellFounded.fix_eq`.
-- The definition uses no axioms, and it computes.
-
-The proofs use the induction principle `induction₂` on `<` for two trees.
-
-## Other files
-
-These lemmas of snu-sf `Hessenberg.v` use the standard sum `OrdArith.add`. They are in the file
-`Ordinals.Tree.HessenbergArith`:
-
-- `Hessenberg.arith_add_larger`: `OrdArith.add o0 o1 ≤ add o0 o1` (`add_le_nadd`).
-- `Hessenberg.arith_add_from_nat`: `add o n == OrdArith.add o n` for a natural number `n`
-  (`nadd_ofNat_equiv_add`).
-
-snu-sf proves `Hessenberg.add_lt_l` and `Hessenberg.add_lt_r` with `arith_add_larger`. Here
-`lt_nadd_of_pos_right` and `lt_nadd_of_pos_left` have direct proofs.
-
-The module `Jacobsthal` of `Hessenberg.v` (Jacobsthal product and power) is in the file
-`Ordinals.Tree.Jacobsthal`.
+This file follows snu-sf/Ordinal (`src/Hessenberg.v`, module `Hessenberg`, section `ADD`).
 -/
 
 @[expose] public section
@@ -72,8 +25,7 @@ namespace OTree
 
 /-! ## Induction on two trees -/
 
-/-- Induction on two trees. To prove `P s t`, use `P s' t` for all `s' < s` and `P s t'` for all
-`t' < t` (snu-sf: `double_well_founded_induction`). -/
+/-- Induction on two trees (snu-sf: `double_well_founded_induction`). -/
 theorem induction₂ {P : OTree.{u} → OTree.{u} → Prop}
     (h : ∀ s t, (∀ s', s' < s → P s' t) → (∀ t', t' < t → P s t') → P s t)
     (s t : OTree.{u}) : P s t := by
@@ -90,13 +42,13 @@ def naddAux {ι : Type u} (f : ι → OTree.{u}) (r : ι → OTree.{u} → OTree
     OTree.{u} → OTree.{u}
   | mk κ g => max (mk κ fun j => naddAux f r (g j)) (mk ι fun i => r i (mk κ g))
 
-/-- The natural (Hessenberg) sum of two trees (snu-sf: `Hessenberg.add`). Its children are the
-natural sums `nadd s (t.child j)` and `nadd (s.child i) t`. -/
+/-- The natural (Hessenberg) sum: its children are `nadd s (t.child j)` and `nadd (s.child i) t`.
+It is a nested structural recursion, not `WellFounded.fix`, so that `nadd_mk_mk` is `rfl`
+(snu-sf: `Hessenberg.add`). -/
 def nadd : OTree.{u} → OTree.{u} → OTree.{u}
   | mk _ f => naddAux f fun i => nadd (f i)
 
-/-- The unfolding equation of `nadd` (snu-sf: `Hessenberg.add_red`). snu-sf proves it only up
-to `≈`. -/
+/-- The unfolding equation of `nadd` (snu-sf: `Hessenberg.add_red`). -/
 theorem nadd_mk_mk {ι κ : Type u} (f : ι → OTree.{u}) (g : κ → OTree.{u}) :
     nadd (mk ι f) (mk κ g) =
       max (mk κ fun j => nadd (mk ι f) (g j)) (mk ι fun i => nadd (f i) (mk κ g)) :=
@@ -314,7 +266,7 @@ theorem nadd_succ (s t : OTree.{u}) : nadd s (succ t) ≈ succ (nadd s t) := by
 theorem succ_nadd (s t : OTree.{u}) : nadd (succ s) t ≈ succ (nadd s t) :=
   (nadd_comm (succ s) t).trans ((nadd_succ t s).trans (succ_congr (nadd_comm t s)))
 
-/-- The natural sum of natural numbers is their sum (snu-sf: `Hessenberg.add_from_nat`). -/
+/-- snu-sf: `Hessenberg.add_from_nat`. -/
 theorem nadd_ofNat (m n : Nat) : nadd (ofNat.{u} m) (ofNat n) ≈ ofNat (m + n) := by
   induction n with
   | zero => exact nadd_zero _
@@ -329,7 +281,6 @@ theorem lt_lift_iff_exists_lt {s : OTree.{max u v}} {t : OTree.{u}} :
     exact ⟨fun ⟨j, hj⟩ => ⟨f j.down, child_lt (mk ι f) j.down, hj⟩,
       fun ⟨_, ht', hs⟩ => OTree.lt_of_le_of_lt hs (lift_lt_lift_iff.mpr ht')⟩
 
-/-- The lift of a natural sum is the natural sum of the lifts. -/
 theorem lift_nadd (s t : OTree.{u}) :
     lift.{u, v} (nadd s t) ≈ nadd (lift.{u, v} s) (lift.{u, v} t) := by
   induction s, t using induction₂ with

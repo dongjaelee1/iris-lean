@@ -50,8 +50,7 @@ variable {GF : BundledGFunctors} [HeapLangGS hlc GF]
 
 /-- The shared counter invariant: the location holds `n`, tracked by the ghost state `A n`.
 
-The proofs below take the invariant apart with a `>` pattern, so they need a timeless `A n`. This
-works for every type of step-indices (an `∃` under `▷` needs finite step-indices). -/
+The proofs need a timeless `A n`, because they take the invariant apart with a `>` pattern. -/
 abbrev counterInv (A : Nat → IProp GF) (l : Loc) : IProp GF := iprop%
   ∃ n : Nat, A n ∗ l ↦ some hl_val(#n)
 

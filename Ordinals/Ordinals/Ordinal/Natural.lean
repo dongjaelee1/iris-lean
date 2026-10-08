@@ -10,9 +10,8 @@ public import Ordinals.Tree.Hessenberg
 /-!
 # The natural (Hessenberg) sum of ordinals
 
-`a +ₕ b` (scoped notation) is the natural sum of `Ordinals.Tree.Hessenberg` (snu-sf
-`Hessenberg.add`) under the quotient. It is commutative, associative, strictly monotone in both
-arguments, and cancellative. Transfinite Iris uses it as the operation of its ordinal camera.
+The natural sum `a +ₕ b` of `Ordinals.Tree.Hessenberg` under the quotient. Unlike `+`, it is
+commutative. Transfinite Iris uses it as the operation of its ordinal camera.
 
 `NatOrdinal` is a type synonym of `Ordinal` whose `+` is the natural sum.
 -/
@@ -83,7 +82,6 @@ theorem nadd_le_nadd_iff_left (a : Ordinal.{u}) {b c : Ordinal.{u}} : a +ₕ b �
   ⟨fun h => Ordinal.not_lt.mp fun h' => Ordinal.not_le_of_lt (nadd_lt_nadd_left h' a) h,
    fun h => nadd_le_nadd Ordinal.le_rfl h⟩
 
-/-- The natural sum is cancellative. -/
 theorem nadd_left_cancel (a : Ordinal.{u}) {b c : Ordinal.{u}} (h : a +ₕ b = a +ₕ c) : b = c :=
   Ordinal.le_antisymm ((nadd_le_nadd_iff_left a).mp (Ordinal.le_of_eq h))
     ((nadd_le_nadd_iff_left a).mp (Ordinal.le_of_eq h.symm))
@@ -96,8 +94,8 @@ theorem lt_nadd_of_pos_right (a : Ordinal.{u}) {b : Ordinal.{u}} (h : 0 < b) : a
   | _ s => induction b using Ordinal.ind with
     | _ t => exact OTree.lt_nadd_of_pos_right s h
 
-/-- The characterization of the natural sum: the least ordinal above `a' +ₕ b` for `a' < a` and
-above `a +ₕ b'` for `b' < b` (snu-sf: `Hessenberg.add_spec`). -/
+/-- `a +ₕ b` is the least ordinal above `a' +ₕ b` for `a' < a` and above `a +ₕ b'` for `b' < b`
+(snu-sf: `Hessenberg.add_spec`). -/
 theorem nadd_le_iff {a b c : Ordinal.{u}} :
     a +ₕ b ≤ c ↔ (∀ a', a' < a → a' +ₕ b < c) ∧ (∀ b', b' < b → a +ₕ b' < c) := by
   constructor

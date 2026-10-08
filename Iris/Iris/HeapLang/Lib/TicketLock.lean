@@ -194,8 +194,7 @@ theorem waitLoop_spec (γ : GName) (lk : Val) (x : Nat) (R : IProp GF) :
   wp_pures
   wp_bind !_
   iinv Hinv with HI Hclose
-  -- The step of the load removes the `▷` from the invariant, so `∃` and `∗` are not taken apart
-  -- under `▷` (this needs finite step-indices).
+  -- The step of the load removes the `▷` from the invariant (see `PrimitiveLaws`).
   iapply (wp_load_later (dq := DFrac.own 1))
   inext
   icases HI with ⟨%o, %n, Hlo, Hln, Hauth, Hstate⟩

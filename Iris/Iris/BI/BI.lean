@@ -77,16 +77,16 @@ class BI (PROP : Type _) extends COFE PROP, BI.BIBase PROP where
   later_intro {P : PROP} : P ⊢ ▷ P
 
   later_sForall_2 {Φ : PROP → Prop} : (∀ p, ⌜Φ p⌝ → ▷ p) ⊢ ▷ sForall Φ
-  /-- `<only0>` (that is, `▷ False → ·`) commutes with existential quantification. This law holds
-  for every type of step-indices (Rocq Iris MR !1256, `bi_mixin_later_false_impl_exist`). -/
+  /-- `<only0>` (that is, `▷ False → ·`) commutes with `∃`. This law holds for every step-index
+  type (Rocq Iris: `bi_mixin_later_false_impl_exist`). -/
   later_false_impl_sExists {Φ : PROP → Prop} :
     (▷ False → sExists Φ) ⊢ ∃ p, ⌜Φ p⌝ ∧ (▷ False → p)
   /-- Commuting `▷` with existential quantification only holds for finite step-indices
   (Transfinite Iris, `sbi_mixin_later_exist_false`). -/
   later_sExists_false [SIdxFinite SI] {Φ : PROP → Prop} :
     (▷ sExists Φ) ⊢ ▷ False ∨ ∃ p, ⌜Φ p⌝ ∧ ▷ p
-  /-- `<only0>` (that is, `▷ False → ·`) distributes over `∗`. This law holds for every type of
-  step-indices (Rocq Iris MR !1256, `bi_mixin_later_false_impl_sep`). -/
+  /-- `<only0>` (that is, `▷ False → ·`) distributes over `∗`. This law holds for every step-index
+  type (Rocq Iris: `bi_mixin_later_false_impl_sep`). -/
   later_false_impl_sep {P Q : PROP} : (▷ False → P ∗ Q) ⊢ (▷ False → P) ∗ (▷ False → Q)
   /-- Splitting `▷` over `∗` only holds for finite step-indices
   (Transfinite Iris, `sbi_mixin_later_sep_1`). -/

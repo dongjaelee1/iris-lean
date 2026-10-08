@@ -1,18 +1,11 @@
 #!/bin/sh
 # Select the step-index type of the Iris build.
 #
-#   scripts/stepindex.sh nat        SI := Nat (as upstream Iris-Lean)
-#   scripts/stepindex.sh ordinal    SI := Ordinals.Ordinal.{3}
-#   scripts/stepindex.sh check      print the active choice; fail if the active files are not
-#                                   equal to a stored choice (CI runs this)
+#   scripts/stepindex.sh nat | ordinal   copy a stored choice into the build
+#   scripts/stepindex.sh check           fail if the active files differ from all stored choices
 #
-# A choice is a directory Iris/StepIndexChoices/<name>/ with two files. The script copies them:
-#
-#   StepIndexChoice.lean      ->  Iris/Iris/Algebra/StepIndexChoice.lean
-#   StepIndexChoiceTest.lean  ->  Iris/IrisTest/StepIndexChoice.lean
-#
-# After a change, run `lake build` in Iris/; Lake rebuilds the modules that use the index.
-# To change a choice, edit its stored files and run the script again.
+# A stored choice is Iris/StepIndexChoices/<name>/. Its StepIndexChoice.lean goes to
+# Iris/Iris/Algebra/, and its StepIndexChoiceTest.lean to Iris/IrisTest/StepIndexChoice.lean.
 
 set -eu
 

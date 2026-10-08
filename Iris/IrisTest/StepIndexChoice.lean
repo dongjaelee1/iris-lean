@@ -8,8 +8,7 @@ module
 public import Iris.Instances.UPred.Transfinite
 public import Iris.Algebra.IProp
 
-/-! Tests of the ordinal build, `SI := Ordinals.Ordinal.{3}`. These tests hold only for this
-choice file (`Iris/StepIndexChoices/ordinal/`). -/
+/-! Tests of the ordinal choice, `SI := Ordinals.Ordinal.{3}`. -/
 
 @[expose] public section
 
@@ -18,11 +17,10 @@ open Iris Ordinals Ordinal UPred
 
 example : SI = Ordinal.{3} := rfl
 
-/-- `IProp` is in `Type 4` for ghost state in `Type 0`. -/
 example (GF : BundledGFunctors.{0}) : Type 4 := IProp GF
 
-/-! Three levels of ordinals below the step index. For each level `k`, the lift of `univ.{k}` is
-above all lifted ordinals of `Ordinal.{k}`. -/
+/-! For each level `k < 3`, the lift of `univ.{k}` is above the lifted ordinals of
+`Ordinal.{k}`. -/
 
 example (a : Ordinal.{2}) : (lift.{2, 3} a : SI) < (univ.{2} : SI) :=
   lift_lt_univ a
@@ -35,7 +33,7 @@ example (a : Ordinal.{0}) : (lift.{0, 3} a : SI) < (lift.{1, 3} univ.{0} : SI) :
   have h := (lift_lt_lift_iff.{_, 3}).mpr (lift_lt_univ a)
   rwa [lift_lift] at h
 
-/-! The existential property for quantifiers over each of the three levels, with no annotation. -/
+/-! The existential property at each level, with no universe annotation. -/
 
 section
 variable {M : Type} [UCMRA M]

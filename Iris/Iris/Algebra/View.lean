@@ -19,8 +19,7 @@ public import Iris.Algebra.LocalUpdates
 
 open Iris
 
-/-- A step-indexed relation between authoritative elements and fragments. The step-index type is
-determined by the ambient `SIdx` instance. -/
+/-- A step-indexed relation between authoritative elements and fragments. -/
 abbrev ViewRel (A B : Type _) := SI → A → B → Prop
 
 @[rocq_alias view_rel]

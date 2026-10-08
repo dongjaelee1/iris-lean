@@ -10,13 +10,9 @@ public import Ordinals.Ordinal.Natural
 /-!
 # The ordinal camera
 
-The ordinals with the natural (Hessenberg) sum are a discrete, unital, cancelable camera:
-`Ordinals.NatOrdinal`, where `a + b` is the natural sum `a +ₕ b`, the unit is `0`, and every
-element is valid. This is the camera of Transfinite Iris (`algebra/ordinals.v`, `ordR`), for
-example for ghost state that counts down along the ordinals in termination proofs.
-
-The natural sum, and not the standard sum, is necessary: the camera operation must be
-commutative and cancelable.
+`Ordinals.NatOrdinal` with the natural (Hessenberg) sum is a discrete, unital, cancelable camera
+in which all elements are valid (Transfinite Iris: `algebra/ordinals.v`). The camera operation
+must be commutative and cancelable, so it is the natural sum and not the standard sum.
 -/
 
 @[expose] public noncomputable section
@@ -46,7 +42,6 @@ instance {a : NatOrdinal.{u}} : CMRA.Cancelable a := CommMonoidLike.instCancelab
 theorem NatOrdinal.op_eq (a b : NatOrdinal.{u}) : a • b = a + b :=
   rfl
 
-/-- Each element is valid. -/
 theorem NatOrdinal.valid (a : NatOrdinal.{u}) : ✓ a :=
   CMRA.valid_iff_validN.mpr fun _ => trivial
 

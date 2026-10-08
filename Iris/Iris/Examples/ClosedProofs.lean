@@ -31,9 +31,7 @@ invariant map, which makes `IProp` self-referential), slots 1–2 carry the inva
 mask bookkeeping, and slot 3 carries later credits. Additional user resources can be
 added at higher indices together with a matching `GpreS` instance.
 
-The ghost state of slots 1–3 is in `Type`. These slots use `ULiftOF` and `ElemG.ofEqLift`, so
-that they are correct in each build (the resources of `IProp` are not in `Type` for all
-step-index types).
+Slots 1–3 hold ghost state in `Type`, so they use `ULiftOF` and `ElemG.ofEqLift`.
 
 `pure_soundness` converts a proof of `⊢ ⌜P⌝` in the Iris logic into the plain Lean
 proposition `P`. The `step_fupdN_soundness_no_lc'` wrapper accounts for the fancy
@@ -61,8 +59,6 @@ noncomputable instance : InvGpreS GF where
   toWsatGpreS := inferInstance
   toLcGpreS := inferInstance
 
-/- The statement does not mention the step index, so it is bound explicitly; a client obtains
-the closed fact by instantiating it with any finite step-index type. -/
 example : True := by
   apply pure_soundness (PROP := IProp (GF))
   iapply step_fupdN_soundness_close (hlc := .hasNoLC) (m := 0) (n := 1)

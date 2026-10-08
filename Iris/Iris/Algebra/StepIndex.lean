@@ -518,8 +518,8 @@ end SIdx
 
 /-! ## The natural numbers as step indices -/
 
-/-- The step-index structure of `Nat`. It is a `def` and not an instance, so that `Iris.SI` is the
-only type with an `SIdx` instance (see `Iris/Algebra/StepIndexChoice.lean`). -/
+/-- The step-index structure of `Nat`. A `def`, not an instance, so that `Iris.SI` is the only
+type with an `SIdx` instance. -/
 @[reducible, rocq_alias natSI, rocq_alias nat_sidx_mixin]
 def natSIdx : SIdx Nat where
   zero := 0

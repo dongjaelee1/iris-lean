@@ -9,49 +9,12 @@ public import Ordinals.Tree.Constructions
 /-!
 # Transfinite recursion on trees
 
-`trec base next djoin t` is the transfinite recursion along the tree `t` into a type `D`. It
-starts at `base`, applies `next` at each successor step and uses the join `djoin` at each node:
-`trec (mk ι f) = dunion base (djoin ι fun i => next (trec (f i)))`. The binary join `dunion` is
-the join of a family with two members. `orec base next` is the recursion into the trees, with
-`sup` as the join.
+`trec base next djoin t` is the transfinite recursion along `t` into a type `D`:
+`trec (mk ι f) = dunion base (djoin ι fun i => next (trec (f i)))`. `orec base next` is `trec`
+into the trees, with `sup` as the join. The laws of `D` are hypotheses of the lemmas.
 
 This file follows snu-sf/Ordinal (`src/Ordinal.v`, sections `REC`, `REC2`, `OREC`, `OREC2`).
-The names of the Rocq lemmas are in the docstrings. The name `OTree.rec` is the recursor of the
-inductive type. Thus snu-sf `Ord.rec` is `OTree.trec` here.
-
-## Laws of the target type
-
-snu-sf states the laws of `D` as section hypotheses. Here they are hypotheses of the lemmas:
-
-- `JoinLaws dle wf djoin`: `dle` is a preorder on the elements that satisfy `wf`, and
-  `djoin A ds` is a least upper bound of `ds` for each family `ds` of such elements. The index
-  types `A` are in `Type u`, the universe of the trees.
-- `StepLaws wf base next`: `base` and `next` keep `wf`.
-- `NextMono dle wf next`: `next` is monotone.
-- `∀ d, wf d → dle d (next d)`: `next` is expansive.
-
-Each lemma takes only the laws that its proof needs. In snu-sf most lemmas of a section use all
-section hypotheses. For example, `trec_zero` needs only `JoinLaws` and `StepLaws`. Only
-`trec_succ`, `trec_of_equiv_succ` and `trec_mk_of_open` need that `next` is expansive.
-
-For `orec`, `wf` is always `True`. The lemmas take the hypotheses
-`hm : ∀ {s t}, s ≤ t → next s ≤ next t` (monotone) and `hl : ∀ s, s ≤ next s` (expansive) if
-they need them. The hypothesis `inhabited A` of snu-sf is `[Nonempty ι]` here.
-
-The equivalence of two elements `d₀`, `d₁` of `D` (snu-sf: the local `deq`) is
-`dle d₀ d₁ ∧ dle d₁ d₀`. On trees it is `≈`.
-
-snu-sf states some lemmas with the predicates `is_O`, `is_S`, `is_join` and `open`. Here the
-first three are equivalences to `zero`, `succ s` and `sup f`. The family `f` is open if each
-member is below some other member: `∀ i, ∃ j, f i < f j`.
-
-## Main definitions
-
-- `OTree.dunion`: the binary join (snu-sf: the local `dunion` of section `REC`).
-- `OTree.trec`: transfinite recursion into `D` (snu-sf: `Ord.rec`).
-- `OTree.orec`: transfinite recursion into the trees (snu-sf: `Ord.orec`).
-
-The results of this file use no axioms.
+snu-sf `Ord.rec` is `trec` here, because `OTree.rec` is the recursor of `OTree`.
 -/
 
 @[expose] public section
@@ -64,10 +27,8 @@ namespace OTree
 
 /-! ## Laws of the target type -/
 
-/-- The laws of the target type of `trec`: `dle` is a preorder on the elements that satisfy
-`wf`, and `djoin A ds` is a least upper bound of the family `ds` (snu-sf: the hypotheses
-`dle_reflexive`, `dle_transitive`, `djoin_upperbound`, `djoin_supremum`, `djoin_wf` of section
-`REC`). -/
+/-- The join laws of the target type of `trec`: `dle` is a preorder on the elements that
+satisfy `wf`, and `djoin A ds` is a least upper bound of `ds` (snu-sf: hypotheses of `REC`). -/
 structure JoinLaws {D : Type v} (dle : D → D → Prop) (wf : D → Prop)
     (djoin : (A : Type u) → (A → D) → D) : Prop where
   /-- snu-sf: `dle_reflexive`. -/
@@ -82,21 +43,18 @@ structure JoinLaws {D : Type v} (dle : D → D → Prop) (wf : D → Prop)
   /-- snu-sf: `djoin_wf`. -/
   join_wf : ∀ {A : Type u} {ds : A → D}, (∀ a, wf (ds a)) → wf (djoin A ds)
 
-/-- `base` and `next` keep `wf` (snu-sf: the hypotheses `base_wf`, `next_wf` of section
-`REC`). -/
+/-- `base` and `next` keep `wf` (snu-sf: hypotheses of `REC`). -/
 structure StepLaws {D : Type v} (wf : D → Prop) (base : D) (next : D → D) : Prop where
   /-- snu-sf: `base_wf`. -/
   base_wf : wf base
   /-- snu-sf: `next_wf`. -/
   next_wf : ∀ {d}, wf d → wf (next d)
 
-/-- `next` is monotone on the elements that satisfy `wf` (snu-sf: the hypothesis `next_mon` of
-section `REC`). -/
+/-- `next` is monotone on the elements that satisfy `wf` (snu-sf: `next_mon`). -/
 def NextMono {D : Type v} (dle : D → D → Prop) (wf : D → Prop) (next : D → D) : Prop :=
   ∀ {d₀ d₁}, wf d₀ → wf d₁ → dle d₀ d₁ → dle (next d₀) (next d₁)
 
-/-- The binary join: the join of the family `true ↦ d₀`, `false ↦ d₁` (snu-sf: the local
-`dunion` of section `REC`). -/
+/-- The binary join: the join of the family `true ↦ d₀`, `false ↦ d₁` (snu-sf: `dunion`). -/
 def dunion {D : Type v} (djoin : (A : Type u) → (A → D) → D) (d₀ d₁ : D) : D :=
   djoin (ULift.{u} Bool) fun b => cond b.down d₀ d₁
 
@@ -110,12 +68,11 @@ namespace JoinLaws
 
 variable {D : Type v} {dle : D → D → Prop} {wf : D → Prop} {djoin : (A : Type u) → (A → D) → D}
 
-/-- A lower bound of a member is a lower bound of the join. -/
 theorem le_join_of_le (hJ : JoinLaws dle wf djoin) {A : Type u} {ds : A → D} {d : D}
     (hds : ∀ a, wf (ds a)) (hd : wf d) (a : A) (h : dle d (ds a)) : dle d (djoin A ds) :=
   hJ.le_trans hd (hds a) (hJ.join_wf hds) h (hJ.le_join hds a)
 
-/-- snu-sf: the local `djoin_le` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `djoin_le` (`Arithmetic.v`). -/
 theorem join_mono (hJ : JoinLaws dle wf djoin) {A : Type u} {f g : A → D}
     (hf : ∀ a, wf (f a)) (hg : ∀ a, wf (g a)) (h : ∀ a, dle (f a) (g a)) :
     dle (djoin A f) (djoin A g) :=
@@ -129,29 +86,29 @@ theorem join_le_join_of_forall_exists (hJ : JoinLaws dle wf djoin) {A B : Type u
     let ⟨b, hb⟩ := h a
     hJ.le_join_of_le hg (hf a) b hb
 
-/-- snu-sf: the local `dunion_wf` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_wf` (`Arithmetic.v`). -/
 theorem dunion_wf (hJ : JoinLaws dle wf djoin) {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) :
     wf (dunion djoin d₀ d₁) :=
   hJ.join_wf (cond_wf h₀ h₁)
 
-/-- snu-sf: the local `dunion_l` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_l` (`Arithmetic.v`). -/
 theorem le_dunion_left (hJ : JoinLaws dle wf djoin) {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) :
     dle d₀ (dunion djoin d₀ d₁) :=
   hJ.le_join (cond_wf h₀ h₁) ⟨true⟩
 
-/-- snu-sf: the local `dunion_r` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_r` (`Arithmetic.v`). -/
 theorem le_dunion_right (hJ : JoinLaws dle wf djoin) {d₀ d₁ : D} (h₀ : wf d₀) (h₁ : wf d₁) :
     dle d₁ (dunion djoin d₀ d₁) :=
   hJ.le_join (cond_wf h₀ h₁) ⟨false⟩
 
-/-- snu-sf: the local `dunion_supremum` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_supremum` (`Arithmetic.v`). -/
 theorem dunion_le (hJ : JoinLaws dle wf djoin) {d₀ d₁ d : D} (h₀ : wf d₀) (h₁ : wf d₁)
     (hd : wf d) (l₀ : dle d₀ d) (l₁ : dle d₁ d) : dle (dunion djoin d₀ d₁) d :=
   hJ.join_le (cond_wf h₀ h₁) hd fun
     | ⟨true⟩ => l₀
     | ⟨false⟩ => l₁
 
-/-- snu-sf: the local `dunion_le` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_le` (`Arithmetic.v`). -/
 theorem dunion_mono (hJ : JoinLaws dle wf djoin) {d₀ d₁ e₀ e₁ : D} (h₀ : wf d₀) (h₁ : wf d₁)
     (k₀ : wf e₀) (k₁ : wf e₁) (l₀ : dle d₀ e₀) (l₁ : dle d₁ e₁) :
     dle (dunion djoin d₀ d₁) (dunion djoin e₀ e₁) :=
@@ -159,20 +116,19 @@ theorem dunion_mono (hJ : JoinLaws dle wf djoin) {d₀ d₁ e₀ e₁ : D} (h₀
     | ⟨true⟩ => l₀
     | ⟨false⟩ => l₁
 
-/-- Transitivity of the equivalence `dle d₀ d₁ ∧ dle d₁ d₀` (snu-sf: the local
-`deq_transitive` of section `RECAPP` in `Arithmetic.v`). -/
+/-- snu-sf: `deq_transitive` (`Arithmetic.v`). -/
 theorem equiv_trans (hJ : JoinLaws dle wf djoin) {d₀ d₁ d₂ : D} (h₀ : wf d₀) (h₁ : wf d₁)
     (h₂ : wf d₂) (e₀ : dle d₀ d₁ ∧ dle d₁ d₀) (e₁ : dle d₁ d₂ ∧ dle d₂ d₁) :
     dle d₀ d₂ ∧ dle d₂ d₀ :=
   ⟨hJ.le_trans h₀ h₁ h₂ e₀.1 e₁.1, hJ.le_trans h₂ h₁ h₀ e₁.2 e₀.2⟩
 
-/-- snu-sf: the local `djoin_eq` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `djoin_eq` (`Arithmetic.v`). -/
 theorem join_congr (hJ : JoinLaws dle wf djoin) {A : Type u} {f g : A → D}
     (hf : ∀ a, wf (f a)) (hg : ∀ a, wf (g a)) (h : ∀ a, dle (f a) (g a) ∧ dle (g a) (f a)) :
     dle (djoin A f) (djoin A g) ∧ dle (djoin A g) (djoin A f) :=
   ⟨hJ.join_mono hf hg fun a => (h a).1, hJ.join_mono hg hf fun a => (h a).2⟩
 
-/-- snu-sf: the local `dunion_eq` of section `RECAPP` in `Arithmetic.v`. -/
+/-- snu-sf: `dunion_eq` (`Arithmetic.v`). -/
 theorem dunion_congr (hJ : JoinLaws dle wf djoin) {d₀ d₁ e₀ e₁ : D} (h₀ : wf d₀) (h₁ : wf d₁)
     (k₀ : wf e₀) (k₁ : wf e₁) (l₀ : dle d₀ e₀ ∧ dle e₀ d₀) (l₁ : dle d₁ e₁ ∧ dle e₁ d₁) :
     dle (dunion djoin d₀ d₁) (dunion djoin e₀ e₁) ∧
@@ -183,7 +139,6 @@ end JoinLaws
 
 /-! ## Transfinite recursion -/
 
-/-- `max` is the join of a family with two members. -/
 theorem max_equiv_sup_cond (s t : OTree.{u}) :
     max s t ≈ sup fun b : ULift.{u} Bool => cond b.down s t :=
   ⟨max_le (le_sup (fun b : ULift.{u} Bool => cond b.down s t) ⟨true⟩)
@@ -217,12 +172,10 @@ theorem trec_wf : ∀ t : OTree.{u}, wf (trec base next djoin t)
   | mk _ f => hJ.dunion_wf hS.base_wf (hJ.join_wf fun i => hS.next_wf (trec_wf (f i)))
 
 include hJ hS in
-/-- The members of the join in `trec_mk` satisfy `wf`. -/
 theorem next_trec_wf (t : OTree.{u}) : wf (next (trec base next djoin t)) :=
   hS.next_wf (trec_wf hJ hS t)
 
 include hJ hS in
-/-- The join in `trec_mk` satisfies `wf`. -/
 theorem join_next_trec_wf {ι : Type u} (f : ι → OTree.{u}) :
     wf (djoin ι fun i => next (trec base next djoin (f i))) :=
   hJ.join_wf fun i => next_trec_wf hJ hS (f i)
@@ -318,7 +271,8 @@ theorem trec_of_equiv_succ (hl : ∀ {d}, wf d → dle d (next d)) {s t : OTree.
       (trec_succ hJ hS hl s).2 (trec_le_trec hJ hS hm h.ge)⟩
 
 include hJ hS hm in
-/-- `trec` on an open family with a member (snu-sf: `Ord.rec_build`). -/
+/-- `trec` on a nonempty open family, where each member is below another member
+(snu-sf: `Ord.rec_build`). -/
 theorem trec_mk_of_open (hl : ∀ {d}, wf d → dle d (next d)) {ι : Type u} [Nonempty ι]
     {f : ι → OTree.{u}} (hf : ∀ i, ∃ j, f i < f j) :
     dle (trec base next djoin (mk ι f)) (djoin ι fun i => trec base next djoin (f i)) ∧
@@ -462,18 +416,15 @@ theorem sup_joinLaws : JoinLaws (D := OTree.{u}) (· ≤ ·) (fun _ => True) fun
   ⟨fun _ => OTree.le_rfl, fun _ _ _ => OTree.le_trans, fun _ a => le_sup _ a,
     fun _ _ h => sup_le h, fun _ => trivial⟩
 
-/-- On the trees, `wf` is always `True`. -/
 theorem stepLaws_true (base : OTree.{u}) (next : OTree.{u} → OTree.{u}) :
     StepLaws (fun _ : OTree.{u} => True) base next :=
   ⟨trivial, fun _ => trivial⟩
 
-/-- A monotone function on the trees satisfies `NextMono`. -/
 theorem nextMono_of_mono {next : OTree.{u} → OTree.{u}}
     (hm : ∀ {s t : OTree.{u}}, s ≤ t → next s ≤ next t) :
     NextMono (· ≤ ·) (fun _ : OTree.{u} => True) next :=
   fun _ _ h => hm h
 
-/-- The binary join of the trees is `max`. -/
 theorem dunion_sup_equiv_max (s t : OTree.{u}) : dunion (fun _ => sup) s t ≈ max s t :=
   (max_equiv_sup_cond s t).symm
 
@@ -567,7 +518,7 @@ theorem orec_of_equiv_sup_of_nonempty {ι : Type u} [Nonempty ι] {f : ι → OT
   Equiv.trans (orec_congr hm h) (orec_sup_of_nonempty hm f)
 
 include hm in
-/-- `orec` on an open family with a member (snu-sf: `Ord.rec_build` for `orec`). -/
+/-- `orec` on a nonempty open family (snu-sf: `Ord.rec_build` for `orec`). -/
 theorem orec_mk_of_open (hl : ∀ s, s ≤ next s) {ι : Type u} [Nonempty ι]
     {f : ι → OTree.{u}} (hf : ∀ i, ∃ j, f i < f j) :
     orec base next (mk ι f) ≈ sup fun i => orec base next (f i) :=
@@ -607,7 +558,7 @@ theorem orec_congr_step {base₀ base₁ : OTree.{u}} {next₀ next₁ : OTree.{
     orec base₀ next₀ t ≈ orec base₁ next₁ t :=
   ⟨orec_mono hb.le hn₀ t, orec_mono hb.ge hn₁ t⟩
 
-/-- Recursion with `zero` and `succ` gives a tree of the same height (snu-sf: `Ord.orec_of_S`). -/
+/-- snu-sf: `Ord.orec_of_S`. -/
 theorem orec_zero_succ (t : OTree.{u}) : orec zero succ t ≈ t :=
   (orec_unique succ_le_succ id
     (fun _ f => Equiv.trans (mk_equiv_sup_succ f) (max_equiv_of_le (zero_le _)).symm) t).symm

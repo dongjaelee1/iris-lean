@@ -17,9 +17,8 @@ open Iris.BI Iris.Instances.Data Iris.Std
 
 /- Instance of `BIBase` and `BI` for classical (non-affine) separation logic.
 
-The logic is not step-indexed, thus `▷ P` is `True`. This is the canonical choice for a logic
-without step-indices (Rocq, `bi_later_mixin_True`). With `▷ P := P`, the law
-`later_false_impl_sExists` is false. -/
+The logic is not step-indexed, so `▷ P` is `True` (Rocq: `bi_later_mixin_True`). With
+`▷ P := P`, the law `later_false_impl_sExists` is false. -/
 
 abbrev HeapProp (Val : Type _) := State Val → Prop
 

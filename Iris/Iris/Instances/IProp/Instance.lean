@@ -61,11 +61,9 @@ section ElemG
 
 /-- `ElemG FF F` embeds the ghost state of the functor `F` in the slot `τ` of `FF` (Rocq: `inG`).
 
-The embedding is an isomorphism of cameras at `IProp FF`. The class does not require that the
-slot is equal to `F`, so `F` can be in a smaller universe than the slot. Use `ElemG.ofEq` when the
-slot is `F`. Use `ElemG.ofEqLift` when the slot is `ULiftOF F`: this is necessary for ghost state
-in `Type` when the resources of `IProp` are not in `Type` (for example, for ordinal step
-indices). -/
+The embedding is an isomorphism of cameras at `IProp FF`. The slot need not be equal to `F`, so
+`F` can be in a smaller universe than the slot. Use `ElemG.ofEq` when the slot is `F`, and
+`ElemG.ofEqLift` when the slot is `ULiftOF F`. -/
 @[rocq_alias inG]
 class ElemG (FF : BundledGFunctors) (F : OFunctorPre) [RFunctorContractive F] where
   τ : GType
@@ -158,12 +156,9 @@ theorem ElemG.bundle_unit [RFunctorContractive F] (E : ElemG GF F) {ε : F.ap (I
      _ = E.bundle ε := by rfl
 
 omit I in
-/-- The embedding of `F` that the embedding `E` of `ULiftOF F` gives.
-
-The results of `F` can be in each universe. Use this constructor when the slot of `GF` is
-`ULiftOF F` and `F` is not in `Type` (for example, ghost state that contains ordinals): use
-`(ElemG.ofEq τ h).ofLift`. If the results of `F` are not in `Type`, Lean cannot always find the
-universe of `ULiftOF` in the slot. Then write it explicitly in the definition of `GF`. -/
+/-- The embedding of `F` that the embedding `E` of `ULiftOF F` gives. The results of `F` can be
+in each universe. When they are not in `Type`, use `(ElemG.ofEq τ h).ofLift`, and write the
+universe of `ULiftOF` in the definition of `GF` if Lean cannot find it. -/
 @[instance_reducible] def ElemG.ofLift {F : OFunctorPre} [RFunctorContractive F]
     (E : ElemG GF (ULiftOF.{w} F)) : ElemG GF F where
   τ := E.τ
@@ -182,11 +177,9 @@ universe of `ULiftOF` in the slot. Then write it explicitly in the definition of
   unbundleF_validN H := E.unbundleF_validN H
 
 omit I in
-/-- The embedding of `F` in the slot `τ` of `GF`, when the slot is `ULiftOF F`.
-
-The results of `F` are in `Type`. Use this constructor for ghost state in `Type` (for example,
-`constOF CoPsetDisjL`). It is correct in each build, because `ULiftOF F` lifts the results of `F`
-to the universe of the slot. -/
+/-- The embedding of `F` in the slot `τ` of `GF`, when the slot is `ULiftOF F` and the results of
+`F` are in `Type`. Use it for ghost state in `Type`: the resources of `IProp` are not in `Type` for
+all step-index types, and `ULiftOF F` lifts the results of `F` to the universe of the slot. -/
 @[instance_reducible] def ElemG.ofEqLift {F : OFunctorPre.{_, _, 0}} [RFunctorContractive F]
     (τ : GType) (h : GF τ = ⟨ULiftOF F, inferInstance⟩) : ElemG GF F :=
   (ElemG.ofEq τ h).ofLift
@@ -197,7 +190,7 @@ section Fold
 
 open Iris COFE Iris.UPred
 
-/-! Everything from here on is about `IProp`, the solution of the recursive domain equation (see
+/-! The rest of this file is about `IProp`, the solution of the domain equation (see
 `COFESolverTransfinite`). -/
 variable {FF : BundledGFunctors}
 

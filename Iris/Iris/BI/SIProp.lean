@@ -17,14 +17,11 @@ public import Iris.Algebra.CMRA
 /-!
 # Step-Indexed Propositions (siProp)
 
-The type `SiProp` defines "plain" step-indexed propositions over the step-index type `SI`,
-on which we define the usual connectives of higher-order logic and prove that these satisfy the
-axioms of BI.
+The type `SiProp` defines "plain" step-indexed propositions, on which we define the
+usual connectives of higher-order logic and prove that these satisfy the axioms of BI.
 
-Everything here works for every step-index type. The `BI` law `later_sExists_false` fails at
-limit indices, so it takes the hypothesis `SIdxFinite SI`, as in the `BI` class. Later is the
-transfinite one: `▷ P` holds at `n` iff `P` holds at every `m < n` (for `Nat`: `True` at `0` and
-`P n` at `n + 1`).
+Everything here works for every step-index type, except the law `later_sExists_false` (see
+`instBI`).
 -/
 
 namespace Iris
@@ -133,8 +130,8 @@ instance : OFE (SiProp) where
 #rocq_ignore siProp_dist "Inlined in the `OFE` construction."
 #rocq_ignore siProp_ofe_mixin "Not needed in Lean."
 
-/-- The limit of a chain `c` holds at `n` iff `c n` does. The limit of a chain `c` bounded by a
-limit index `n` holds at `m` iff `c m'` holds at `m'` for every `m' ≤ m` below `n`. -/
+/-- `compl c` holds at `n` iff `c n` does. For a chain `c` bounded by a limit index `n`,
+`lbcompl c` holds at `m` iff `c m'` holds at `m'` for every `m' ≤ m`. -/
 @[rocq_alias siProp_cofe]
 instance : IsCOFE (SiProp) where
   compl c := {
@@ -185,9 +182,9 @@ instance siPropPreorder : Std.IsPreorder (SiProp) where
 
 /-! ## BI instance -/
 
-/-- `SiProp` is a BI for every step-index type. Only the law `later_sExists_false` uses its
-`SIdxFinite SI` hypothesis: at a limit index `n`, `▷ ∃ x, Φ x` holds when there is a witness below
-each `m < n`, but `▷ False` fails and `∃ x, ▷ Φ x` needs one witness for all `m < n`. -/
+/-- `SiProp` is a BI for every step-index type. Only `later_sExists_false` needs `SIdxFinite SI`:
+at a limit index `n`, `▷ ∃ x, Φ x` can have a different witness at each `m < n`, but `▷ False`
+fails and `∃ x, ▷ Φ x` needs one witness for all `m < n`. -/
 @[rocq_alias siPropI]
 instance instBI : BI (SiProp) where
   entails_refl := siPropPreorder.le_refl _

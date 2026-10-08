@@ -26,7 +26,7 @@ The tactic `sbi_unfold` works for goals of the shape `⊢ P`, `P ⊢ Q`, `P ⊣�
 Here, `P` and `Q` should be in the "plain" subset of propositions, i.e. `⌜_⌝`,
 `<si_pure>`, `✓`, `≡`, `≼`, closed under `∧`, `∨`, `→`, `↔`, `∀`, `∃`, and `▷`.
 The separating connectives `∗`/`-∗`/`∗-∗` are translated to `∧`/`→`/`↔`, and
-`▷ P` is translated to `∀ m < n, _` (the step-index-generic form of later).
+`▷ P` to `∀ m < n, _`.
 
 The tactic attempts to minimize the number of "down closures" `∀ n' ≤ n, _` due
 to the use of nested implications. For example, given
@@ -312,8 +312,7 @@ instance sbiUnfold_exists {A : Sort _} {Φ : A → PROP} {Φi : A → SI → Pro
   · exact fun ⟨x, hx⟩ => ⟨x, hx n SIdx.le_refl⟩
   · exact fun ⟨x, hx⟩ => ⟨x, fun _ hm => (h x).closed rfl hx hm⟩
 
-/-- `▷ P` holds at `n` iff `P` holds at every `m < n`. The interpretation is always down
-closed, whatever `clo` is; for `Nat` it is `True` at `0` and `Pi m` at `m + 1`. -/
+/-- `▷ P` holds at `n` iff `P` holds at every `m < n`. This is down closed for every `clo`. -/
 @[rocq_alias sbi_unfold_later]
 instance sbiUnfold_later [hP : SbiUnfold clo P Pi] :
     SbiUnfold clo iprop(▷ P) (fun n => ∀ m, m < n → Pi m) where

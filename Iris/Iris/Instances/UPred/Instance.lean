@@ -13,9 +13,6 @@ public import Iris.Algebra.Updates
 public import Iris.BI.Lib.BUpdPlain
 
 @[expose] public section
--- A named universe: with `Type _`, instance-search results mentioning the universe metavariable
--- of `SI` leak into later declarations ("unknown universe metavariable").
-universe s
 
 section UPredInstance
 

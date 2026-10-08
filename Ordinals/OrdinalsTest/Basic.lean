@@ -2,7 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the tree layer: the main results use no axioms. -/
+/-! Tests for the tree layer. -/
 
 open Ordinals
 

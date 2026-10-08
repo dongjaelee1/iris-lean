@@ -2,7 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for ordinal arithmetic on trees: the main results use no axioms, and examples. -/
+/-! Tests for the arithmetic on trees. -/
 
 open Ordinals OTree
 
@@ -67,17 +67,14 @@ example : mul (ofNat.{u} 2) (ofNat 3) ≈ ofNat 6 :=
 example : pow (ofNat.{u} 2) (ofNat 3) ≈ ofNat 8 :=
   (ofNat_pow (Nat.zero_lt_succ 1) 3).symm
 
-/-- `ω + 1` is above `ω`. -/
 example : omega.{u} < add omega (succ zero) :=
   OTree.lt_add_of_pos_right omega (zero_lt_succ zero)
 
-/-- `1 + ω` is `ω`. -/
 example : add (succ zero) omega.{u} ≈ omega := by
   refine ⟨?_, OTree.le_add_left _ _⟩
   refine OTree.le_trans (add_sup_of_nonempty _ _).le (sup_le fun n => ?_)
   exact OTree.le_trans (ofNat_add 1 n.down).ge (OTree.le_of_lt (ofNat_lt_omega (1 + n.down)))
 
-/-- `2 * ω` is `ω`. -/
 example : mul (ofNat.{u} 2) omega ≈ omega := by
   refine ⟨?_, ?_⟩
   · refine OTree.le_trans (mul_sup _ _).le (sup_le fun n => ?_)

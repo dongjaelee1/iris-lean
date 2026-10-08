@@ -18,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      # The active step-index choice must be equal to a stored choice in Iris/StepIndexChoices/.
       - name: Check the step-index choice
         run: scripts/stepindex.sh check
       - uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1
@@ -30,8 +29,6 @@ jobs:
       - name: Check Iris.lean, Init.lean and other entry-point module imports
         working-directory: Iris
         run: lake exe check-imports Iris
-      # The Ordinals package is a path dependency of Iris, so the Iris build above has already
-      # built most of it. This step builds the rest and runs its tests (a few seconds).
       - name: Build and test the Ordinals library
         working-directory: Ordinals
         run: |

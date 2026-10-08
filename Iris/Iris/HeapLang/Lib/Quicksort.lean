@@ -296,8 +296,6 @@ theorem sortAndCheck_spec [HeapLangGS hlc GF] (l : List Int) :
   · itrivial
   iapply HΦ $$ [//]
 
-/- The statement does not mention the step index, so it is included explicitly; a client obtains
-the closed fact by instantiating it with any finite step-index type. -/
 /-- Full application of adequacy: sortAndCheck is safe in any state and only ever return true. -/
 theorem sortAndCheckAdequate (l : List Int) (σ : State) :
     adequate .NotStuck (sortAndCheck l) σ (fun v _ => v = hl_val(#true)) := by

@@ -2,8 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the natural sum of trees (`Ordinals.Tree.Hessenberg`): the main results use no
-axioms. -/
+/-! Tests for the natural sum of trees (`Ordinals.Tree.Hessenberg`). -/
 
 open Ordinals
 
@@ -18,16 +17,14 @@ example (s t : OTree.{u}) :
         (OTree.mk PUnit fun _ => OTree.nadd s (OTree.succ t)) :=
   rfl
 
-/-- `2 +ₕ 3 = 5` on trees. -/
 example : OTree.nadd (OTree.ofNat.{u} 2) (OTree.ofNat 3) ≈ OTree.ofNat 5 :=
   OTree.nadd_ofNat 2 3
 
-/-- Strict monotonicity in both arguments. -/
 example {s s' t t' : OTree.{u}} (hs : s < s') (ht : t < t') :
     OTree.nadd s t < OTree.nadd s' t' :=
   OTree.lt_trans (OTree.nadd_lt_nadd_right hs t) (OTree.nadd_lt_nadd_left ht s')
 
-/-- `1 +ₕ ω` is the successor of `ω`, unlike the standard sum `1 + ω = ω`. -/
+/-- The natural sum `1 +ₕ ω` is `succ ω`, but the standard sum `1 + ω` is `ω`. -/
 example : OTree.nadd (OTree.ofNat.{u} 1) OTree.omega ≈ OTree.succ OTree.omega :=
   (OTree.succ_nadd _ _).trans (OTree.succ_congr (OTree.zero_nadd _))
 

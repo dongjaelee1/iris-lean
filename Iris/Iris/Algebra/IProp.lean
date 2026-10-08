@@ -24,7 +24,7 @@ open COFE
 abbrev GType := Nat
 
 /-- A camera functor for ghost state. Its arguments and results are in `TypeSI u`, the universe
-of the solution of the domain equation of `IProp`. -/
+of `IProp`. -/
 @[rocq_alias gFunctor]
 abbrev GFunctor :=
   Σ F : (∀ (α β : TypeSI u) [COFE α] [COFE β], TypeSI u), RFunctorContractive F

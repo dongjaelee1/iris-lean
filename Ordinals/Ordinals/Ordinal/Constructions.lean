@@ -9,10 +9,8 @@ public import Ordinals.Ordinal.Basic
 /-!
 # Basic constructions on ordinals
 
-Zero, successor, suprema, strict suprema, maximum and minimum, natural numbers, `ω`, limit
-ordinals, and the case analysis zero / successor / limit. The constructions are the tree
-constructions of `Ordinals.Tree.Constructions` under the quotient. Suprema of families choose
-representatives (`Ordinal.out`), so they are noncomputable.
+The tree constructions of `Ordinals.Tree.Constructions` under the quotient, and limit ordinals.
+Suprema of families choose representatives (`Ordinal.out`), so they are noncomputable.
 -/
 
 @[expose] public section
@@ -192,7 +190,7 @@ theorem lt_ssup_iff {ι : Type u} {f : ι → Ordinal.{u}} {a : Ordinal.{u}} :
     exact Ordinal.not_le_of_lt h (ssup_le fun i => Ordinal.not_le.mp fun hi => h' ⟨i, hi⟩)
   · exact fun ⟨i, hi⟩ => Ordinal.lt_of_le_of_lt hi (lt_ssup f i)
 
-/-- The strict supremum is the supremum of the successors (snu-sf: `Ord.build_join_S`). -/
+/-- snu-sf: `Ord.build_join_S`. -/
 theorem ssup_eq_sup_succ {ι : Type u} (f : ι → Ordinal.{u}) : ssup f = sup fun i => succ (f i) :=
   Ordinal.le_antisymm
     (ssup_le fun i => Ordinal.lt_of_lt_of_le (lt_succ (f i)) (le_sup (fun i => succ (f i)) i))
@@ -352,7 +350,6 @@ theorem isLimit_omega : IsLimit (ω : Ordinal.{u}) := by
   obtain ⟨n, rfl⟩ := lt_omega_iff.mp hb
   exact ofNat_lt_omega (n + 1)
 
-/-- Each ordinal is zero, a successor, or a limit (classical). -/
 theorem zero_or_succ_or_limit (a : Ordinal.{u}) :
     a = 0 ∨ (∃ b, a = succ b) ∨ IsLimit a := by
   refine (Classical.em (a = 0)).elim .inl fun h₀ => .inr ?_

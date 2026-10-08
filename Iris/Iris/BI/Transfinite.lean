@@ -18,7 +18,7 @@ public import Iris.Algebra.StepIndexTransfinite
 - The *satisfiability* predicate (Transfinite Iris, `bi/satisfiable.v`), which connects truth
   inside the logic with truth outside of it. Its rule for existential quantification
   (`Satisfiable.exists_`) is the *existential property* that requires transfinite step-indices
-  (`SIdxLarge SI X` for the type `X` of the quantifier).
+  (`SIdxLarge`).
 -/
 
 @[expose] public section
@@ -107,9 +107,7 @@ end BigLaterPlain
 
 The rules for existential quantification require properties of the step-index type:
 `finite_exists` holds for every type of step-indices (Lean is classical, so Transfinite Iris's
-`FiniteExistential` is always available), while `exists_` requires `SIdxLarge SI X` for the type
-`X` of the quantifier. The instance argument of `exists_` comes after the hypothesis, so that `X`
-is known when the instance search runs. -/
+`FiniteExistential` is always available), while `exists_` requires `SIdxLarge SI X`. -/
 @[rocq_alias Satisfiable]
 class Satisfiable.{w, v} (PROP : Type _)
     [outParam (Sbi PROP)] [outParam (BIUpdate PROP)] where

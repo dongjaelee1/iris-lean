@@ -9,34 +9,9 @@ public import Ordinals.Tree.ClassicalRec
 /-!
 # Fixed points
 
-The fixed-point theorem of Bourbaki and Witt: let `D` have joins of chains, and let `next` be
-expansive. Then `trec base next djoin` at the Hartogs ordinal of `D` is a fixed point of `next`,
-up to equivalence (`ChainRecLaws.next_trec_hartogs_equiv`).
-
-An application: the least and the greatest fixed points of a monotone function `f` on the
-predicates `A → Prop` (`mu`, `nu`). Inclusion is the order on the predicates. The recursion
-stops at the Hartogs ordinal of `A → Prop`.
-
-This file follows snu-sf/Ordinal (`src/Fixedpoint.v`). The names of the Rocq lemmas are in the
-docstrings. snu-sf `fixpoint_theorem_le` is `ChainRecLaws.next_trec_hartogs_le` of
-`Ordinals.Tree.ClassicalRec`. The fixed-point theorem uses excluded middle (through
-`Ordinals.Tree.ClassicalRec`), thus `map_mu_le_mu`, `map_mu`, `nu_le_map_nu` and `map_nu` use
-it too. The other results of this file use no axioms.
-
-## Main definitions
-
-- `OTree.mu f`: the least fixed point of a monotone function `f` on predicates
-  (snu-sf: `mu`).
-- `OTree.nu f`: the greatest fixed point of a monotone function `f` on predicates
-  (snu-sf: `nu`).
-
-## Main results
-
-- `OTree.ChainRecLaws.next_trec_hartogs_equiv`: the fixed-point theorem.
-- `OTree.ChainRecLaws.trec_le_trec_hartogs`: after the Hartogs ordinal, `trec` stays at the
-  fixed point.
-- `OTree.map_mu`, `OTree.mu_le`: `mu f` is the least fixed point of `f`.
-- `OTree.map_nu`, `OTree.le_nu`: `nu f` is the greatest fixed point of `f`.
+The fixed-point theorem of Bourbaki and Witt (`ChainRecLaws.next_trec_hartogs_equiv`), and the
+least and greatest fixed points `mu f`, `nu f` of a monotone function `f` on the predicates
+`A → Prop`. This file follows snu-sf/Ordinal (`src/Fixedpoint.v`).
 -/
 
 @[expose] public section
@@ -58,7 +33,7 @@ theorem ChainRecLaws.next_trec_hartogs_equiv {D : Type u} {dle : D → D → Pro
       dle (trec base next djoin (hartogs D)) (next (trec base next djoin (hartogs D))) :=
   ⟨h.next_trec_hartogs_le, h.next_le (h.trec_wf _)⟩
 
-/-- `trec` does not increase after the Hartogs ordinal of `D` (not in snu-sf). -/
+/-- `trec` does not increase after the Hartogs ordinal of `D`. -/
 theorem ChainRecLaws.trec_le_trec_hartogs {D : Type u} {dle : D → D → Prop}
     {wf : D → Prop} {djoin : (A : Type u) → (A → D) → D} {base : D} {next : D → D}
     (h : ChainRecLaws dle wf djoin base next) (t : OTree.{u}) :
@@ -71,8 +46,7 @@ section Predicates
 
 variable {A : Type u}
 
-/-- Unions are joins for the inclusion of predicates, on each set of predicates that is closed
-under unions. -/
+/-- Unions are joins for inclusion, on each set of predicates that is closed under unions. -/
 theorem union_joinLaws {wf : (A → Prop) → Prop}
     (hwf : ∀ (X : Type u) (Ps : X → A → Prop), (∀ x, wf (Ps x)) → wf fun a => ∃ x, Ps x a) :
     JoinLaws (fun P Q : A → Prop => ∀ a, P a → Q a) wf
@@ -80,8 +54,8 @@ theorem union_joinLaws {wf : (A → Prop) → Prop}
   ⟨fun _ _ h => h, fun _ _ _ h₁ h₂ a h => h₂ a (h₁ a h), fun _ x _ h => ⟨x, h⟩,
     fun _ _ h a ⟨x, hx⟩ => h x a hx, fun hds => hwf _ _ hds⟩
 
-/-- Intersections are joins for the reverse inclusion of predicates, on each set of predicates
-that is closed under intersections. -/
+/-- Intersections are joins for reverse inclusion, on each set of predicates that is closed
+under intersections. -/
 theorem inter_joinLaws {wf : (A → Prop) → Prop}
     (hwf : ∀ (X : Type u) (Ps : X → A → Prop), (∀ x, wf (Ps x)) → wf fun a => ∀ x, Ps x a) :
     JoinLaws (fun P Q : A → Prop => ∀ a, Q a → P a) wf
@@ -89,15 +63,13 @@ theorem inter_joinLaws {wf : (A → Prop) → Prop}
   ⟨fun _ _ h => h, fun _ _ _ h₁ h₂ a h => h₁ a (h₂ a h), fun _ x _ h => h x,
     fun _ _ h a hd x => h x a hd, fun hds => hwf _ _ hds⟩
 
-/-- The least fixed point of a monotone function `f` on predicates: the recursion from the
-empty predicate, with `f` at successors and unions at limits, up to the Hartogs ordinal of
-`A → Prop` (snu-sf: `mu`). -/
+/-- The least fixed point of a monotone `f`: the recursion from the empty predicate, with `f`
+and unions, up to the Hartogs ordinal of `A → Prop` (snu-sf: `mu`). -/
 def mu (f : (A → Prop) → A → Prop) : A → Prop :=
   trec (fun _ => False) f (fun (X : Type u) Ps a => ∃ x : X, Ps x a) (hartogs (A → Prop))
 
-/-- The greatest fixed point of a monotone function `f` on predicates: the recursion from the
-full predicate, with `f` at successors and intersections at limits, up to the Hartogs ordinal
-of `A → Prop` (snu-sf: `nu`). -/
+/-- The greatest fixed point of a monotone `f`: the recursion from the full predicate, with `f`
+and intersections, up to the Hartogs ordinal of `A → Prop` (snu-sf: `nu`). -/
 def nu (f : (A → Prop) → A → Prop) : A → Prop :=
   trec (fun _ => True) f (fun (X : Type u) Ps a => ∀ x : X, Ps x a) (hartogs (A → Prop))
 
@@ -114,7 +86,6 @@ theorem mu_joinLaws :
 theorem mu_stepLaws : StepLaws (fun P : A → Prop => ∀ a, P a → f P a) (fun _ => False) f :=
   ⟨fun _ h => h.elim, fun hP => hf _ _ hP⟩
 
-/-- The laws of the classical recursion for `mu`. -/
 theorem mu_chainRecLaws :
     ChainRecLaws (fun P Q : A → Prop => ∀ a, P a → Q a) (fun P => ∀ a, P a → f P a)
       (fun (X : Type u) Ps a => ∃ x : X, Ps x a) (fun _ => False) f :=
@@ -131,7 +102,6 @@ theorem nu_joinLaws :
 theorem nu_stepLaws : StepLaws (fun P : A → Prop => ∀ a, f P a → P a) (fun _ => True) f :=
   ⟨fun _ _ => trivial, fun hP => hf _ _ hP⟩
 
-/-- The laws of the classical recursion for `nu`. -/
 theorem nu_chainRecLaws :
     ChainRecLaws (fun P Q : A → Prop => ∀ a, Q a → P a) (fun P => ∀ a, f P a → P a)
       (fun (X : Type u) Ps a => ∀ x : X, Ps x a) (fun _ => True) f :=

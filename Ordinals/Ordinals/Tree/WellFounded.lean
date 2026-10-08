@@ -9,41 +9,11 @@ public import Ordinals.Tree.Constructions
 /-!
 # The ordinal of a well-founded relation, Hartogs ordinals
 
-Let `R` be a well-founded relation on a type `A`. Each element `a : A` has an ordinal: the tree
-whose children are the trees of the elements `b` with `R b a`. The strict join of these trees
-is the ordinal of the relation. This file defines these trees, the Hartogs ordinal `hartogs A` of a
-type `A` (above the ordinals of all well-founded relations on `A`), and the tree `large`
-(above the ordinals of all well-founded relations on all types in `Type u`).
-
-This file follows snu-sf/Ordinal (`src/Ordinal.v`, section `FROMWF` and the end of the module
-`Ord`). The names of the Rocq lemmas are in the docstrings. The results of this file use no
-axioms.
-
-## Main definitions
-
-- `OTree.ofAcc h`: the tree of an accessible element (snu-sf: `Ord.from_acc`).
-- `OTree.ofWf hwf a`: the tree of an element of a well-founded relation (snu-sf: `Ord.from_wf`).
-- `OTree.ofWfSet hwf`: the tree of a well-founded relation (snu-sf: `Ord.from_wf_set`).
-- `OTree.hartogs A`: the Hartogs ordinal of `A` (snu-sf: `Ord.hartogs`).
-- `OTree.large`: a tree in `OTree.{u+1}` above the ordinals of all well-founded relations on
-  types in `Type u` (snu-sf: `Ord.large`).
-
-## Main results
-
-- `OTree.ofWf_le_iff`, `OTree.lt_ofWf_iff`, `OTree.ofWf_lt_ofWf`: the order on `ofWf`.
-- `OTree.omega_equiv_ofWfSet`: `ω` is the tree of `<` on the natural numbers.
-- `OTree.equiv_ofWfSet_pos` (not in snu-sf): each tree is equivalent to the tree of a
-  well-founded relation. Thus `lift t < large` for each tree `t` (`OTree.lift_lt_large`).
-
-## Implementation notes
-
-`ofAcc` is a recursion on the accessibility proof. Lean does not accept structural recursion on
-`Acc` for a definition into `Type`, thus we use the recursor `Acc.rec` directly. The unfolding
-lemma `ofAcc_eq` is a definitional equality after a case analysis on the proof.
-
-`Acc R a` is a proposition, thus two proofs `h₀ h₁ : Acc R a` are equal by definition, and
-`ofAcc h₀ = ofAcc h₁` holds by `rfl`. snu-sf proves this fact (`Ord.same_acc_le`,
-`Ord.same_acc_eq`) by induction.
+For a well-founded relation `R` on `A`, the tree `ofWf hwf a` has the trees of the `b` with
+`R b a` as children, and `ofWfSet hwf` is the strict join of all these trees. `hartogs A` is
+above the trees of all well-founded relations on `A`, and `large` is above those on all types in
+`Type u`. This file follows snu-sf/Ordinal (`src/Ordinal.v`, section `FROMWF` and the end of
+module `Ord`).
 -/
 
 @[expose] public section
@@ -60,8 +30,9 @@ section Acc
 
 variable {A : Type u} {R : A → A → Prop}
 
-/-- The tree of an accessible element `a`. Its children are the trees of the elements `b` with
-`R b a` (snu-sf: `Ord.from_acc`). -/
+/-- The tree of an accessible element `a`: its children are the trees of the `b` with `R b a`.
+It uses `Acc.rec`, because Lean does not accept structural recursion on `Acc` into `Type`
+(snu-sf: `Ord.from_acc`). -/
 def ofAcc {a : A} (h : Acc R a) : OTree.{u} :=
   Acc.rec (motive := fun _ _ => OTree.{u}) (fun a _ ih => mk {b // R b a} fun b => ih b.1 b.2) h
 
@@ -70,8 +41,7 @@ theorem ofAcc_eq {a : A} (h : Acc R a) :
     ofAcc h = mk {b // R b a} fun b => ofAcc (h.inv b.2) := by
   cases h; rfl
 
-/-- The tree of an accessible element does not depend on the accessibility proof
-(snu-sf: `Ord.same_acc_le`, `Ord.same_acc_eq`). -/
+/-- snu-sf: `Ord.same_acc_le`, `Ord.same_acc_eq`. -/
 theorem ofAcc_proof_irrel {a : A} (h₀ h₁ : Acc R a) : ofAcc h₀ = ofAcc h₁ :=
   rfl
 
@@ -103,8 +73,7 @@ section WellFounded
 
 variable {A : Type u} {R : A → A → Prop}
 
-/-- The tree of an element `a` of a well-founded relation. Its children are the trees of the
-elements `b` with `R b a` (snu-sf: `Ord.from_wf`). -/
+/-- The tree of an element `a` of a well-founded relation (snu-sf: `Ord.from_wf`). -/
 def ofWf (hwf : WellFounded R) (a : A) : OTree.{u} :=
   ofAcc (hwf.apply a)
 
@@ -116,8 +85,7 @@ theorem ofWf_eq (hwf : WellFounded R) (a : A) :
 theorem ofWf_eq_ofAcc (hwf : WellFounded R) {a : A} (h : Acc R a) : ofWf hwf a = ofAcc h :=
   rfl
 
-/-- The tree of an element does not depend on the proof of well-foundedness
-(snu-sf: `Ord.same_wf_le`, `Ord.same_wf_eq`). -/
+/-- snu-sf: `Ord.same_wf_le`, `Ord.same_wf_eq`. -/
 theorem ofWf_proof_irrel (hwf₀ hwf₁ : WellFounded R) (a : A) : ofWf hwf₀ a = ofWf hwf₁ a :=
   rfl
 
@@ -144,8 +112,7 @@ theorem ofWf_le_of_forall_lt (hwf : WellFounded R) {a : A} {t : OTree.{u}}
 def ofWfSet (hwf : WellFounded R) : OTree.{u} :=
   mk A (ofWf hwf)
 
-/-- The tree of a well-founded relation does not depend on the proof of well-foundedness
-(snu-sf: `Ord.same_wf_set_le`, `Ord.same_wf_set_eq`). -/
+/-- snu-sf: `Ord.same_wf_set_le`, `Ord.same_wf_set_eq`. -/
 theorem ofWfSet_proof_irrel (hwf₀ hwf₁ : WellFounded R) : ofWfSet hwf₀ = ofWfSet hwf₁ :=
   rfl
 
@@ -170,12 +137,10 @@ end WellFounded
 
 /-! ## Natural numbers and `ω` -/
 
-/-- The order `<` on `ULift Nat` is well-founded. -/
 theorem ulift_nat_lt_wf : WellFounded (α := ULift.{u} Nat) (fun m n => m.down < n.down) :=
   InvImage.wf ULift.down Nat.lt_wfRel.wf
 
-/-- The natural number `n` is the tree of `n` in the order `<` on the natural numbers
-(snu-sf: `Ord.from_nat_from_peano_lt`). -/
+/-- snu-sf: `Ord.from_nat_from_peano_lt`. -/
 theorem ofNat_equiv_ofWf (n : Nat) : ofNat.{u} n ≈ ofWf ulift_nat_lt_wf ⟨n⟩ := by
   induction n with
   | zero =>
@@ -187,8 +152,7 @@ theorem ofNat_equiv_ofWf (n : Nat) : ofNat.{u} n ≈ ofWf ulift_nat_lt_wf ⟨n�
     | inl h => exact OTree.le_of_lt (ofWf_lt_ofWf _ h)
     | inr h => cases h; exact OTree.le_rfl
 
-/-- `ω` is the tree of the order `<` on the natural numbers
-(snu-sf: `Ord.omega_from_peano_lt_set`). -/
+/-- `ω` is the tree of `<` on the natural numbers (snu-sf: `Ord.omega_from_peano_lt_set`). -/
 theorem omega_equiv_ofWfSet : omega.{u} ≈ ofWfSet ulift_nat_lt_wf.{u} :=
   ⟨sup_le fun n => OTree.le_of_lt <|
       OTree.lt_of_le_of_lt (ofNat_equiv_ofWf n.down).le (ofWf_lt_ofWfSet _ _),
@@ -264,9 +228,7 @@ end Large
 
 /-! ## Each tree is the tree of a well-founded relation
 
-This section is not in snu-sf. The proper subtrees of a tree `t` have positions `Pos t`. The
-order `<` of the subtrees is a well-founded relation on `Pos t`, and its tree is equivalent to
-`t`. Thus `lift t < large` for each tree `t`. -/
+The relation is `<` on the proper subtrees of `t`, at the positions `Pos t`. -/
 
 /-- The positions of the proper subtrees of a tree. The position `⟨i, none⟩` is the child `i`,
 and the position `⟨i, some p⟩` is the position `p` in the child `i`. -/
@@ -278,16 +240,13 @@ def Pos.tree : {t : OTree.{u}} → Pos t → OTree.{u}
   | mk _ f, ⟨i, none⟩ => f i
   | mk _ f, ⟨i, some p⟩ => Pos.tree (t := f i) p
 
-/-- A proper subtree is below the tree. -/
 theorem Pos.tree_lt : ∀ {t : OTree.{u}} (p : Pos t), p.tree < t
   | mk ι f, ⟨i, none⟩ => child_lt (mk ι f) i
   | mk ι f, ⟨i, some p⟩ => OTree.lt_trans (Pos.tree_lt (t := f i) p) (child_lt (mk ι f) i)
 
-/-- Each child of `t` has a position. -/
 theorem Pos.exists_tree_eq_child : ∀ (t : OTree.{u}) (k : t.Index), ∃ q : Pos t, q.tree = t.child k
   | mk _ _, k => ⟨⟨k, none⟩, rfl⟩
 
-/-- Each child of a proper subtree has a position. -/
 theorem Pos.exists_tree_eq_tree_child :
     ∀ {t : OTree.{u}} (p : Pos t) (k : p.tree.Index), ∃ q : Pos t, q.tree = p.tree.child k
   | mk _ f, ⟨i, none⟩, k =>
@@ -304,7 +263,6 @@ def Pos.Rel (t : OTree.{u}) : Pos t → Pos t → Prop :=
 theorem Pos.rel_wf (t : OTree.{u}) : WellFounded (Pos.Rel t) :=
   InvImage.wf Pos.tree lt_wf
 
-/-- The tree of a position in the subtree order is equivalent to the subtree. -/
 theorem ofWf_pos_equiv {t : OTree.{u}} (p : Pos t) : ofWf (Pos.rel_wf t) p ≈ p.tree := by
   induction p using (Pos.rel_wf t).induction with
   | _ p ih =>
@@ -315,8 +273,7 @@ theorem ofWf_pos_equiv {t : OTree.{u}} (p : Pos t) : ofWf (Pos.rel_wf t) p ≈ p
       have hqp : Pos.Rel t q p := show q.tree < p.tree from hq ▸ child_lt p.tree k
       exact hq ▸ OTree.lt_of_le_of_lt (ih q hqp).ge (ofWf_lt_ofWf _ hqp)
 
-/-- Each tree is equivalent to the tree of a well-founded relation: the order of its proper
-subtrees. -/
+/-- Each tree is the tree of a well-founded relation: the order of its proper subtrees. -/
 theorem equiv_ofWfSet_pos (t : OTree.{u}) : t ≈ ofWfSet (Pos.rel_wf t) := by
   constructor
   · refine le_iff_forall_child_lt.mpr fun k => ?_
@@ -325,7 +282,6 @@ theorem equiv_ofWfSet_pos (t : OTree.{u}) : t ≈ ofWfSet (Pos.rel_wf t) := by
   · exact ofWfSet_le_of_forall_lt _ fun p =>
       OTree.lt_of_le_of_lt (ofWf_pos_equiv p).le (Pos.tree_lt p)
 
-/-- Each tree is below the Hartogs ordinal of the positions of its proper subtrees. -/
 theorem lt_hartogs_pos (t : OTree.{u}) : t < hartogs (Pos t) :=
   OTree.lt_of_le_of_lt (equiv_ofWfSet_pos t).le (ofWfSet_lt_hartogs _)
 

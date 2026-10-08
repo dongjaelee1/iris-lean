@@ -17,7 +17,7 @@ public import Iris
 
 @[expose] public section
 
--- The COFEs below are noncomputable when the step-index instance is (the ordinal build).
+-- The COFEs below are noncomputable if the step-index instance is (as for ordinals).
 noncomputable section
 
 universe usi

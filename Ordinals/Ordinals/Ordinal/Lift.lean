@@ -9,14 +9,9 @@ public import Ordinals.Ordinal.Constructions
 /-!
 # Ordinals in different universes
 
-Lean has no cumulative universes, so `Ordinal.{u}` is not a part of `Ordinal.{u+1}`. This file
-gives the maps between the universes:
-
-- `Ordinal.lift.{v} : Ordinal.{u} → Ordinal.{max u v}` keeps the order and the constructions,
-  and its image is an initial segment (`lt_lift_iff`).
-- `Ordinal.univ.{u} : Ordinal.{u+1}` is the strict supremum of all lifted ordinals of
-  `Ordinal.{u}`: it is above each of them (`lift_lt_univ`), and each ordinal below it is a
-  lifted ordinal (`lt_univ_iff`).
+Lean has no cumulative universes, so `Ordinal.{u}` is not a part of `Ordinal.{u+1}`. `lift`
+moves an ordinal to a larger universe, and `univ.{u} : Ordinal.{u+1}` is the order type of
+`Ordinal.{u}`.
 -/
 
 @[expose] public section
@@ -63,9 +58,7 @@ def lift : Ordinal.{u} → Ordinal.{max u v} :=
   · rw [Ordinal.max_eq_right h, Ordinal.max_eq_right (lift_le_lift_iff.mpr h)]
   · rw [Ordinal.max_eq_left h, Ordinal.max_eq_left (lift_le_lift_iff.mpr h)]
 
-/-- Each ordinal at most a lifted ordinal is a lifted ordinal (classical). The proof is an
-induction on a tree of `b`: if `a` is at most the lift of a child, use that child; if not, each
-lifted child is below `a`, so `a` is the lift of `b`. -/
+/-- Each ordinal at most a lifted ordinal is a lifted ordinal. -/
 theorem exists_eq_lift_of_le {a : Ordinal.{max u v}} {b : Ordinal.{u}} (h : a ≤ lift.{u, v} b) :
     ∃ c, a = lift.{u, v} c := by
   induction b using Ordinal.ind with
@@ -148,8 +141,7 @@ theorem lift_omega : lift.{u, v} (ω : Ordinal.{u}) = ω := by
 
 /-! ## An ordinal above all ordinals of a universe -/
 
-/-- The strict supremum of all ordinals of `Ordinal.{u}`, in `Ordinal.{u+1}`. It is the order
-type of `Ordinal.{u}`. -/
+/-- The order type of `Ordinal.{u}`: the strict supremum of all its lifted ordinals. -/
 noncomputable def univ : Ordinal.{u + 1} :=
   ssup fun a : Ordinal.{u} => lift.{u, u + 1} a
 

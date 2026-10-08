@@ -145,8 +145,7 @@ theorem box_alloc {M : Type _ → Type _} [LawfulFiniteMap M SliceName] (N : Nam
   iexists (fun _ => iprop(True))
   simp only [bigSepM_empty.to_eq]; itrivial
 
-/-! The rules below take `∗` and `∃` apart under `▷` (in `▷?q box N f P`). Thus they need finite
-step-indices, as in Transfinite Iris. -/
+/-! The rules below take `∗` and `∃` apart under `▷`, so they need finite step indices. -/
 
 @[rocq_alias slice_insert_empty]
 theorem slice_insert_empty [SIdxFinite SI] {M : Type _ → Type _} [LawfulFiniteMap M SliceName]

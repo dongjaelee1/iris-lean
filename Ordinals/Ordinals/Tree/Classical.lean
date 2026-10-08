@@ -9,9 +9,8 @@ public import Ordinals.Tree.Constructions
 /-!
 # Classical facts about trees
 
-With excluded middle, the order on trees is total: `s ≤ t ∨ t < s`. Totality is equivalent to
-excluded middle (snu-sf: `Totalness.v`), so the results of this file use `Classical.em`.
-This file follows snu-sf/Ordinal (`src/ClassicalOrdinal.v`, `ClassicOrd.total`).
+With excluded middle, the order on trees is total: `s ≤ t ∨ t < s`. Totality needs excluded
+middle (snu-sf: `Totalness.v`). This file follows snu-sf/Ordinal (`src/ClassicalOrdinal.v`).
 -/
 
 @[expose] public section
@@ -22,21 +21,18 @@ universe u
 
 namespace OTree
 
-/-- Totality in both directions at once. The proof is a nested induction: on `s`, and for each
-`s` on `t`. Each step uses excluded middle once. -/
+/-- Both directions at once: the proof of each direction uses the other on smaller trees. -/
 private theorem total_aux : ∀ (s t : OTree.{u}), (s ≤ t ∨ t < s) ∧ (t ≤ s ∨ s < t)
   | mk ι f, t => by
     induction t with
     | mk κ g ih =>
       constructor
-      · -- `s ≤ t`, or a child of `s` is at least `t`.
-        refine (Classical.em (∃ i, mk κ g ≤ f i)).elim
+      · refine (Classical.em (∃ i, mk κ g ≤ f i)).elim
           (fun ⟨i, hi⟩ => .inr ⟨i, hi⟩) (fun h => .inl fun i => ?_)
         rcases (total_aux (f i) (mk κ g)).2 with hle | hlt
         · exact (h ⟨i, hle⟩).elim
         · exact hlt
-      · -- `t ≤ s`, or a child of `t` is at least `s`.
-        refine (Classical.em (∃ j, mk ι f ≤ g j)).elim
+      · refine (Classical.em (∃ j, mk ι f ≤ g j)).elim
           (fun ⟨j, hj⟩ => .inr ⟨j, hj⟩) (fun h => .inl fun j => ?_)
         rcases (ih j).1 with hle | hlt
         · exact (h ⟨j, hle⟩).elim

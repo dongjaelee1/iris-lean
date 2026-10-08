@@ -2,8 +2,7 @@ module
 
 public import Ordinals
 
-/-! Tests for the classical recursion on trees (`Ordinals.Tree.ClassicalRec`): the axioms of the
-main results, and examples. -/
+/-! Tests for the classical recursion on trees (`Ordinals.Tree.ClassicalRec`). -/
 
 open Ordinals OTree
 
@@ -53,7 +52,6 @@ universe u
 
 /-! ## Least elements and limits -/
 
-/-- The trees above `ω` have a least element. -/
 example : ∃ t, IsMeet (fun t => omega.{u} < t) t :=
   exists_isMeet ⟨succ omega, lt_succ omega⟩
 
@@ -66,14 +64,12 @@ example (t : OTree.{u}) : zero ≤ t := by
 
 /-! ## A `next` that is not monotone
 
-`jump` maps `zero` to `5` and keeps the other trees. Thus it is expansive and respects `≈`, but
-it is not monotone: `zero ≤ 1`, but `jump zero ≈ 5` is not below `jump 1 = 1`. The classical
+`jump` is expansive and respects `≈`, but it is not monotone (`not_jump_mono`). The classical
 recursion still gives a monotone `trec`. -/
 
 namespace ClassicalRecTest
 
 open Classical in
-/-- `5` at `zero`, else the identity. -/
 noncomputable def jump (t : OTree.{u}) : OTree.{u} :=
   if t ≈ zero then ofNat 5 else t
 
@@ -107,7 +103,6 @@ theorem not_jump_mono : ¬∀ s t : OTree.{u}, s ≤ t → jump s ≤ jump t := 
   rw [h₀, h₁] at this
   exact absurd (ofNat_le_ofNat_iff.mp this) (by decide)
 
-/-- `trec` with `jump` is monotone. -/
 example (s t : OTree.{u}) (h : s ≤ t) :
     trec zero jump (fun _ => sup) s ≤ trec zero jump (fun _ => sup) t :=
   jump_chainRecLaws.trec_le_trec h

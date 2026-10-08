@@ -21,8 +21,7 @@ namespace IrisTest
 open Iris BI OFE CMRA
 
 
-/-- The interpretation `sbi_unfold` gives to `▷` (`SiProp`'s later). Only used to state the
-expected goals below. -/
+/-- The interpretation that `sbi_unfold` gives to `▷`, for the expected goals below. -/
 private def laterP (φ : SI → Prop) (n : SI) : Prop := ∀ m, m < n → φ m
 
 section RocqTests

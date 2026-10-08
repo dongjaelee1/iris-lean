@@ -41,14 +41,13 @@ instance is in scope.
   match siExt.getState (← getEnv) with
   | .anonymous =>
     -- `SIdx` has an outParam, so the step index type is whatever the `SIdx` instance in scope
-    -- is about. A local instance (the usual `[SIdx SI]` binder) is read off directly: this is
-    -- cheaper than instance search and creates no universe metavariables (instance-search results
-    -- are cached across the elaborator's backtracking, e.g. in overloaded notation).
+    -- is about. Read a local instance directly: instance search would create universe
+    -- metavariables, and its cache keeps them across backtracking.
     for li in (← Meta.getLocalInstances).reverse do
       if li.className == `Iris.SIdx then
         let ty ← instantiateMVars (← Meta.inferType li.fvar)
         if ty.isAppOfArity `Iris.SIdx 1 then return ty.appArg!
-    -- Otherwise ask instance search (a global instance) rather than leaving a hole.
+    -- Otherwise ask instance search for a global instance.
     let u ← Meta.mkFreshLevelMVar
     let I ← Meta.mkFreshExprMVar (mkSort (.succ u))
     match ← Meta.trySynthInstance (mkApp (.const `Iris.SIdx [u]) I) with

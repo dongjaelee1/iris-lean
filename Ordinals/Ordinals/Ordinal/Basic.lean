@@ -9,16 +9,8 @@ public import Ordinals.Tree.Classical
 /-!
 # Ordinals
 
-`Ordinal.{u}` is the quotient of `OTree.{u}` by `≈` (same height). Equality of ordinals is
-Leibniz equality: `⟦s⟧ = ⟦t⟧ ↔ s ≈ t`. The quotient needs only `propext` and `Quot.sound`. The
-linear order (totality, trichotomy, decidability, `min`) needs excluded middle.
-
-## Main definitions
-
-- `Ordinal.{u} : Type (u+1)`, with `≤`, `<`, and the instances `Std.IsLinearOrder`,
-  `Std.LawfulOrderLT` (so `grind` can use the order) and `WellFoundedRelation`.
-- `Ordinal.mk t` (notation `⟦t⟧`): the ordinal of a tree; `Ordinal.out a`: a representative.
-- Classical facts: `le_total`, `lt_trichotomy`, `not_le`, `not_lt`.
+`Ordinal.{u}` is the quotient of `OTree.{u}` by `≈` (same height), so `mk s = mk t ↔ s ≈ t`.
+The instances `Std.IsLinearOrder` and `Std.LawfulOrderLT` let `grind` use the order.
 -/
 
 @[expose] public section
@@ -69,7 +61,7 @@ protected theorem inductionOn₃ {motive : Ordinal.{u} → Ordinal.{u} → Ordin
 theorem exists_mk (a : Ordinal.{u}) : ∃ t, mk t = a :=
   Quotient.exists_rep a
 
-/-- A representative of an ordinal (chosen with `Classical.choose`). -/
+/-- A representative of an ordinal. -/
 noncomputable def out (a : Ordinal.{u}) : OTree.{u} :=
   Classical.choose (exists_mk a)
 
@@ -132,7 +124,6 @@ protected theorem not_lt_of_le {a b : Ordinal.{u}} : a ≤ b → ¬b < a :=
 protected theorem not_le_of_lt {a b : Ordinal.{u}} : a < b → ¬b ≤ a :=
   Ordinal.inductionOn₂ a b fun _ _ => OTree.not_le_of_lt
 
-/-- `<` is well-founded. -/
 protected theorem lt_wf : WellFounded (α := Ordinal.{u}) (· < ·) := by
   refine ⟨fun a => Ordinal.inductionOn a fun t => ?_⟩
   induction t using OTree.lt_wf.induction with

@@ -10,16 +10,8 @@ public import Iris.Algebra.StepIndexTransfinite
 /-!
 # The ordinals as step indices
 
-The step-index structures of `Ordinals.Ordinal.{u}` (the ordinals library of this repository), for
-each universe `u`:
-
-- `ordinalSIdx`: `SIdx`,
-- `ordinalSIdxTransfinite`: `SIdxTransfinite`,
-- `ordinalSIdxLarge`: the existential property for quantifiers over types in `Type u`.
-
-They are `def`s and theorems, not instances. The ordinal choice file
-(`Iris/StepIndexChoices/ordinal/StepIndexChoice.lean`) makes them the instances of `Iris.SI`.
-Every build compiles this file, also when the build uses another index.
+The step-index structures of `Ordinals.Ordinal.{u}`, for each universe `u`. They are not
+instances: the ordinal choice file makes them the instances of `Iris.SI`.
 -/
 
 @[expose] public section

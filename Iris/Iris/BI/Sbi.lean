@@ -23,8 +23,7 @@ The SBI interface describes BIs with a step-indexed structure. An SBI has an ope
 step-index, and `siEmpValid : PROP → SiProp` that expresses that a proposition is valid
 (under assumption `emp`) at a given step-index.
 
-The interface, its `SiProp` instances and the lemmas about an arbitrary `Sbi PROP` do not
-need finite step-indices. Some proofs do the `SiProp` reasoning directly in the model.
+Nothing here needs finite step indices.
 -/
 
 namespace Iris
@@ -119,7 +118,7 @@ instance : SiPure (SiProp) where
 instance : SiEmpValid (SiProp) where
   siEmpValid := id
 
-/-- `SiProp` is an SBI when it is a BI, i.e. when `SI` has no limit indices. -/
+/-- `SiProp` is an SBI for every step-index type. -/
 @[rocq_alias siprop_sbi]
 instance instSbiSiProp : Sbi (SiProp) where
   siPure_ne := id_ne
@@ -487,7 +486,7 @@ theorem siEmpValid_except0 [Sbi PROP] {P : PROP} :
     have hl : (iprop(▷ <si_emp_valid> P) : SiProp).holds n :=
       siEmpValid_later.mp n (siEmpValid_mono except0_into_later n h)
     by_cases h0 : (0 : SI) < n
-    · -- `▷ False → <si_emp_valid> P` holds at `n`: `▷ False` only holds at `0 < n`.
+    · -- `▷ False → <si_emp_valid> P` holds at `n`: `▷ False` holds only at `0`, and `0 < n`.
       have himp : (iprop(▷ False → <si_emp_valid> P) : SiProp).holds n := fun _ _ hF =>
         (siEmpValid P).closed (hl 0 h0) (SIdx.le_ngt.mpr (hF 0))
       refine .inr <| siEmpValid_mono ?_ n <|
@@ -530,14 +529,13 @@ theorem only0_intuitionistically [Sbi PROP] [Timeless (PROP := PROP) emp]
     {P : PROP} : <only0> □ P ⊣⊢ □ <only0> P :=
   only0_affinely.trans (affinely_congr only0_persistently)
 
-/-- `<pers>` keeps timelessness (Rocq Iris MR !1256: `persistently_timeless` in `sbi.v`). The
-proof writes `▷ False` as `<si_pure> (▷ False)` and uses the law `persistently_imp_siPure`. -/
+/-- `<pers>` keeps timelessness (Rocq Iris: `persistently_timeless`). -/
 @[rocq_alias bi.persistently_timeless]
 instance persistently_timeless [Sbi PROP] {P : PROP} [Timeless P] :
     Timeless iprop(<pers> P) where
   timeless := only0_persistently.mp.trans (persistently_mono Timeless.timeless)
 
-/-- `□` keeps timelessness (Rocq Iris MR !1256: `intuitionistically_timeless` in `sbi.v`). -/
+/-- `□` keeps timelessness (Rocq Iris: `intuitionistically_timeless`). -/
 @[rocq_alias bi.intuitionistically_timeless]
 instance intuitionistically_timeless [Sbi PROP] [Timeless (PROP := PROP) emp] {P : PROP}
     [Timeless P] : Timeless iprop(□ P) where
