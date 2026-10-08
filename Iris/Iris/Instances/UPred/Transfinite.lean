@@ -18,7 +18,7 @@ This file ports the parts of Transfinite Iris's `base_logic/upred.v`, `base_logi
 - `▷` commutes with `∗` and `∃` of timeless propositions in the model, for every type of
   step-indices (`later_sep_timeless`, `later_exist_timeless`),
 - the satisfiability predicate (`UPred.satisfiable`, instance `Satisfiable (UPred M)`), whose
-  existential rule holds for large step-indices (`SIdxLarge`),
+  existential rule holds for large step-indices (`SIdxLarge SI X`),
 - `later_or_is_classical` (`dec_halting`): commuting `▷` with `∨` at a limit index decides a
   halting problem.
 -/
@@ -147,8 +147,10 @@ theorem satisfiable_finite_exists {X : Type w} {P : X → UPred M} {Q : X → Pr
       let ⟨y, hy, _, ⟨a, rfl⟩, Ha⟩ := hP n
       ⟨a, hent a n _ Ha, y, hy, Ha⟩)
 
-theorem satisfiable_exists [SIdxLarge.{v} SI] {X : Type v} {P : X → UPred M}
-    (hP : satisfiable iprop(∃ x, P x)) : ∃ x, satisfiable (P x) :=
+/-- The existential property of the model. The instance argument comes after `hP`, so that `X`
+is known when the instance search runs. -/
+theorem satisfiable_exists {X : Type v} {P : X → UPred M} (hP : satisfiable iprop(∃ x, P x))
+    [SIdxLarge SI X] : ∃ x, satisfiable (P x) :=
   SIdxLarge.commute_exists (fun a n => ∃ y, ∃ h : ✓{n} y, P a n ⟨y, h⟩)
     (fun _ _ _ hab ⟨y, hy, H⟩ =>
       ⟨y, validN_of_le (SIdx.lt_le_incl hab) hy, UPred.mono _ H (incN_refl _) (SIdx.lt_le_incl hab)⟩)
