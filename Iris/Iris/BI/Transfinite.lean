@@ -17,8 +17,8 @@ public import Iris.Algebra.StepIndexTransfinite
   that `P` holds after finitely many, but an unbounded number of, steps.
 - The *satisfiability* predicate (Transfinite Iris, `bi/satisfiable.v`), which connects truth
   inside the logic with truth outside of it. Its rule for existential quantification
-  (`Satisfiable.exists`) is the *existential property* that requires transfinite step-indices
-  (`SIdxLarge`).
+  (`Satisfiable.exists_`) is the *existential property* that requires transfinite step-indices
+  (`SIdxLarge SI X` for the type `X` of the quantifier).
 -/
 
 @[expose] public section
@@ -107,7 +107,9 @@ end BigLaterPlain
 
 The rules for existential quantification require properties of the step-index type:
 `finite_exists` holds for every type of step-indices (Lean is classical, so Transfinite Iris's
-`FiniteExistential` is always available), while `exists` requires `SIdxLarge`. -/
+`FiniteExistential` is always available), while `exists_` requires `SIdxLarge SI X` for the type
+`X` of the quantifier. The instance argument of `exists_` comes after the hypothesis, so that `X`
+is known when the instance search runs. -/
 @[rocq_alias Satisfiable]
 class Satisfiable.{w, v} (PROP : Type _)
     [outParam (Sbi PROP)] [outParam (BIUpdate PROP)] where
@@ -118,8 +120,8 @@ class Satisfiable.{w, v} (PROP : Type _)
   later {P : PROP} : satisfiable iprop(▷ P) → satisfiable P
   finite_exists {X : Type w} {P : X → PROP} {Q : X → Prop} (l : List X) :
     (∀ x, Q x → x ∈ l) → (∀ x, P x ⊢ ⌜Q x⌝) → satisfiable iprop(∃ x, P x) → ∃ x, satisfiable (P x)
-  exists_ [SIdxLarge.{v} SI] {X : Type v} {P : X → PROP} :
-    satisfiable iprop(∃ x, P x) → ∃ x, satisfiable (P x)
+  exists_ {X : Type v} {P : X → PROP} (h : satisfiable iprop(∃ x, P x)) [SIdxLarge SI X] :
+    ∃ x, satisfiable (P x)
   bupd {P : PROP} : satisfiable iprop(|==> P) → satisfiable P
 
 namespace Satisfiable
