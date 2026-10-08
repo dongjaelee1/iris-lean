@@ -12,10 +12,17 @@ public meta import Iris.Std.RocqPorting
 /-!
 # The step-index type of this build: ordinals
 
-This version of the choice file is for the ordinal build. It sets `SI := Ordinals.Ordinal.{1}`
-(the ordinals library of this repository; no Mathlib), so `SI : Type 2`. It gives the instances
-`SIdx SI`, `SIdxTransfinite SI` and `SIdxLarge.{v} SI` for `v ≤ 1`. There is no `SIdxFinite SI`
-instance. `TypeSI u` expands to `Type (max u 2)`.
+This version of the choice file is for the ordinal build. It sets `SI := Ordinals.Ordinal.{3}`
+(the ordinals library of this repository; no Mathlib), so `SI : Type 4`. It gives the instances
+`SIdx SI`, `SIdxTransfinite SI` and `SIdxLarge.{v} SI` for `v ≤ 3`. There is no `SIdxFinite SI`
+instance. `TypeSI u` expands to `Type (max u 4)`.
+
+The universe level 3 gives three levels of ordinals below the step index: `Ordinal.{0}`,
+`Ordinal.{1}` and `Ordinal.{2}`. For each level `k`, `Ordinal.lift.{k, 3}` maps `Ordinal.{k}` onto
+an initial segment of `SI`, and the lift of `Ordinal.univ.{k}` is above this segment. The
+existential property `SIdxLarge.{3} SI` applies to quantifiers over types in `Type 3`, which
+include `Ordinal.{2}`. To change the level, change `Ordinal.{3}`, `ULift.{3}`, `SIdxLarge.{3}`,
+`Type 4` and the two macros together.
 -/
 
 @[expose] public section
@@ -26,9 +33,9 @@ namespace Iris
 
 open Ordinals
 
-/-- The step-index structure of `Ordinal.{1}`. It is a `def`, so that `SI` has the only `SIdx`
+/-- The step-index structure of `Ordinal.{3}`. It is a `def`, so that `SI` has the only `SIdx`
 instance. -/
-@[reducible] def ordinalSIdx : SIdx Ordinal.{1} where
+@[reducible] def ordinalSIdx : SIdx Ordinal.{3} where
   succ := Ordinal.succ
   lt_trans := Ordinal.lt_trans
   lt_wf := Ordinal.lt_wf
@@ -47,34 +54,36 @@ instance. -/
       ⟨Ordinal.succ_le_of_lt hm, fun e => h ⟨m, e.symm⟩⟩
 
 /-- The upper limit of `m` is the strict supremum of the finite successors of `m`. -/
-@[reducible] def ordinalSIdxTransfinite : @SIdxTransfinite Ordinal.{1} ordinalSIdx :=
+@[reducible] def ordinalSIdxTransfinite : @SIdxTransfinite Ordinal.{3} ordinalSIdx :=
   letI := ordinalSIdx
-  { upperLimit m := Ordinal.ssup fun n : ULift.{1} Nat => Nat.repeat Ordinal.succ n.down m
+  { upperLimit m := Ordinal.ssup fun n : ULift.{3} Nat => Nat.repeat Ordinal.succ n.down m
     iter_succ_lt_upperLimit n m :=
-      Ordinal.lt_ssup (fun n : ULift.{1} Nat => Nat.repeat Ordinal.succ n.down m) ⟨n⟩ }
+      Ordinal.lt_ssup (fun n : ULift.{3} Nat => Nat.repeat Ordinal.succ n.down m) ⟨n⟩ }
 
-/-- The existential property for families indexed by types in `Type 1`. -/
-theorem ordinalSIdxLarge : @SIdxLarge.{1} Ordinal.{1} ordinalSIdx :=
+/-- The existential property for families indexed by types in `Type 3`. -/
+theorem ordinalSIdxLarge : @SIdxLarge.{3} Ordinal.{3} ordinalSIdx :=
   letI := ordinalSIdx
   { commute_exists {X} P hmono hex := by
       refine Classical.byContradiction fun hne => ?_
       have h : ∀ x, ∃ a, ¬P x a := fun x => Classical.not_forall.mp fun h => hne ⟨x, h⟩
-      let f : X → Ordinal.{1} := fun x => Classical.choose (h x)
+      let f : X → Ordinal.{3} := fun x => Classical.choose (h x)
       obtain ⟨x, hx⟩ := hex (Ordinal.ssup f)
       exact Classical.choose_spec (h x) (hmono x _ _ (Ordinal.lt_ssup f x) hx) }
 
 /-- The step-index type of this build. -/
-def SI : Type 2 := Ordinal.{1}
+def SI : Type 4 := Ordinal.{3}
 
 instance instSIdxSI : SIdx SI := ordinalSIdx
 instance instSIdxTransfiniteSI : SIdxTransfinite SI := ordinalSIdxTransfinite
-instance instSIdxLargeSI : SIdxLarge.{1} SI := ordinalSIdxLarge
-instance instSIdxLargeSI0 : SIdxLarge.{0} SI := SIdxLarge.down.{0, 1}
+instance instSIdxLargeSI : SIdxLarge.{3} SI := ordinalSIdxLarge
+instance instSIdxLargeSI2 : SIdxLarge.{2} SI := SIdxLarge.down.{2, 3} (h := instSIdxLargeSI)
+instance instSIdxLargeSI1 : SIdxLarge.{1} SI := SIdxLarge.down.{1, 3} (h := instSIdxLargeSI)
+instance instSIdxLargeSI0 : SIdxLarge.{0} SI := SIdxLarge.down.{0, 3} (h := instSIdxLargeSI)
 
-/-- `SI : Type 2`, so `TypeSI u` is `Type (max u 2)`. See the `Nat` choice file. -/
-macro "TypeSI " u:level : term => `(Type (max $u 2))
+/-- `SI : Type 4`, so `TypeSI u` is `Type (max u 4)`. See the `Nat` choice file. -/
+macro "TypeSI " u:level : term => `(Type (max $u 4))
 
-/-- `levelSI% u` is the level of `TypeSI u`: `max u 2`. See the `Nat` choice file. -/
-macro "levelSI% " u:term:max : term => `(Lean.Level.max $u 2)
+/-- `levelSI% u` is the level of `TypeSI u`: `max u 4`. See the `Nat` choice file. -/
+macro "levelSI% " u:term:max : term => `(Lean.Level.max $u 4)
 
 end Iris
