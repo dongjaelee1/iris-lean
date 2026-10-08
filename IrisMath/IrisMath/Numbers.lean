@@ -16,6 +16,10 @@ public import Iris
 -/
 
 @[expose] public section
+
+-- The COFEs below are noncomputable when the step-index instance is (the ordinal build).
+noncomputable section
+
 universe usi
 
 /-- Relationship between Mathlib's AddZeroClass to the Stdlib Std.LawfulLeftIdentity on Add. -/
