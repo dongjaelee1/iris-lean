@@ -516,4 +516,31 @@ theorem forall_lt_or {P Q : I → Prop} {n : I}
 
 end SIdx
 
+/-! ## The natural numbers as step indices -/
+
+/-- The step-index structure of `Nat`. It is a `def` and not an instance, so that `Iris.SI` is the
+only type with an `SIdx` instance (see `Iris/Algebra/StepIndexChoice.lean`). -/
+@[reducible, rocq_alias natSI, rocq_alias nat_sidx_mixin]
+def natSIdx : SIdx Nat where
+  zero := 0
+  succ := Nat.succ
+  lt_trans := Nat.lt_trans
+  lt_wf := Nat.lt_wfRel.wf
+  lt_trichotomyT n m :=
+    if h : n < m then .inl h
+    else if he : n = m then .inr <| .inl he
+    else .inr <| .inr (by omega)
+  le_lteq {_ _} := Nat.le_iff_lt_or_eq
+  not_lt_zero n := by simp
+  lt_succ_self n := by simp
+  succ_le_of_lt h := h
+  weak_case
+    | 0 => .inr (by omega)
+    | m + 1 => .inl ⟨_, rfl⟩
+
+@[rocq_alias nat_sidx_finite]
+theorem natSIdxFinite : @SIdxFinite Nat natSIdx :=
+  letI := natSIdx
+  { finite_index := fun | 0 => .inl rfl | n + 1 => .inr ⟨n, rfl⟩ }
+
 end Iris

@@ -3825,7 +3825,8 @@ example [CInvG GF] {γ : GName} {p1 p2 : Qp} {P : IProp GF} :
   iexact HP
 
 /-- Tests `iinv` with `elimInv_acc_with_close`, `elimModal_fupd_fupd` and `intoAcc_na`. -/
-example {t : NaInvPoolName} [NaInvG GF] {E1 E2 : CoPset} {P : IProp GF} (h : ↑N ⊆ E1) :
+example {t : NaInvPoolName} [NaInvG GF] [SIdxFinite SI] {E1 E2 : CoPset} {P : IProp GF}
+    (h : ↑N ⊆ E1) :
     NonAtomicInvariant.inv t N iprop(<pers> P) ∗ own t E1 ∗ own t E2
     ={⊤}=∗ own t E1 ∗ own t E2 ∗ ▷ P := by
   iintro ⟨#Hinv, Hown1, Hown2⟩
@@ -3839,7 +3840,7 @@ example {t : NaInvPoolName} [NaInvG GF] {E1 E2 : CoPset} {P : IProp GF} (h : ↑
     iexact HP
 
 /-- Tests the robustness of `iinv` in presence of other invariants. -/
-example {t : NaInvPoolName} [NaInvG GF] {N1 N2 N3 : Namespace} {E1 E2 : CoPset}
+example {t : NaInvPoolName} [NaInvG GF] [SIdxFinite SI] {N1 N2 N3 : Namespace} {E1 E2 : CoPset}
     {P : IProp GF} (h : ↑N3 ⊆ E1) :
     inv N1 P ∗ NonAtomicInvariant.inv t N3 iprop(<pers> P) ∗ inv N2 P ∗ own t E1 ∗ own t E2
     ={⊤}=∗ own t E1 ∗ own t E2 ∗ ▷ P := by
@@ -3858,7 +3859,7 @@ example {t : NaInvPoolName} [NaInvG GF] {N1 N2 N3 : Namespace} {E1 E2 : CoPset}
   Tests `iinv` with two invariant hypotheses using the same `Namespace` value.
   The last hypothesis in the context with this `Namespace` value gets chosen.
 -/
-example {t : NaInvPoolName} [NaInvG GF] {N : Namespace} {E1 E2 : CoPset}
+example {t : NaInvPoolName} [NaInvG GF] [SIdxFinite SI] {N : Namespace} {E1 E2 : CoPset}
     {P Q : IProp GF} (h : ↑N ⊆ E1) :
     NonAtomicInvariant.inv t N iprop(<pers> Q) ∗
     NonAtomicInvariant.inv t N iprop(<pers> P) ∗

@@ -9,7 +9,7 @@ public import Iris.Instances.UPred.Transfinite
 public import Iris.Algebra.IProp
 
 /-! Tests of the ordinal build, `SI := Ordinals.Ordinal.{3}`. These tests hold only for this
-choice file. -/
+choice file (`Iris/StepIndexChoices/ordinal/`). -/
 
 @[expose] public section
 
