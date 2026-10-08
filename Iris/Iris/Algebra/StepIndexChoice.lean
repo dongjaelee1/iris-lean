@@ -14,15 +14,16 @@ public meta import Iris.Std.RocqPorting
 
 This version of the choice file is for the ordinal build. It sets `SI := Ordinals.Ordinal.{3}`
 (the ordinals library of this repository; no Mathlib), so `SI : Type 4`. It gives the instances
-`SIdx SI`, `SIdxTransfinite SI` and `SIdxLarge.{v} SI` for `v ≤ 3`. There is no `SIdxFinite SI`
-instance. `TypeSI u` expands to `Type (max u 4)`.
+`SIdx SI`, `SIdxTransfinite SI` and `SIdxLarge SI X` for each type `X` in `Type v`, `v ≤ 3`. There
+is no `SIdxFinite SI` instance. `TypeSI u` expands to `Type (max u 4)`.
 
 The universe level 3 gives three levels of ordinals below the step index: `Ordinal.{0}`,
 `Ordinal.{1}` and `Ordinal.{2}`. For each level `k`, `Ordinal.lift.{k, 3}` maps `Ordinal.{k}` onto
 an initial segment of `SI`, and the lift of `Ordinal.univ.{k}` is above this segment. The
-existential property `SIdxLarge.{3} SI` applies to quantifiers over types in `Type 3`, which
-include `Ordinal.{2}`. To change the level, change `Ordinal.{3}`, `ULift.{3}`, `SIdxLarge.{3}`,
-`Type 4` and the two macros together.
+existential property applies to quantifiers over types in `Type 3` (and smaller universes), which
+include `Ordinal.{2}`. With the instance `SIdxLarge.ulift`, it also applies to `ULift X` for these
+types `X`. To change the level, change `Ordinal.{3}`, `ULift.{3}`, `Type 3`, `Type 4`, the
+instances and the two macros together.
 -/
 
 @[expose] public section
@@ -61,9 +62,9 @@ instance. -/
       Ordinal.lt_ssup (fun n : ULift.{3} Nat => Nat.repeat Ordinal.succ n.down m) ⟨n⟩ }
 
 /-- The existential property for families indexed by types in `Type 3`. -/
-theorem ordinalSIdxLarge : @SIdxLarge.{3} Ordinal.{3} ordinalSIdx :=
+theorem ordinalSIdxLarge {X : Type 3} : @SIdxLarge Ordinal.{3} ordinalSIdx X :=
   letI := ordinalSIdx
-  { commute_exists {X} P hmono hex := by
+  { commute_exists P hmono hex := by
       refine Classical.byContradiction fun hne => ?_
       have h : ∀ x, ∃ a, ¬P x a := fun x => Classical.not_forall.mp fun h => hne ⟨x, h⟩
       let f : X → Ordinal.{3} := fun x => Classical.choose (h x)
@@ -75,10 +76,13 @@ def SI : Type 4 := Ordinal.{3}
 
 instance instSIdxSI : SIdx SI := ordinalSIdx
 instance instSIdxTransfiniteSI : SIdxTransfinite SI := ordinalSIdxTransfinite
-instance instSIdxLargeSI : SIdxLarge.{3} SI := ordinalSIdxLarge
-instance instSIdxLargeSI2 : SIdxLarge.{2} SI := SIdxLarge.down.{2, 3} (h := instSIdxLargeSI)
-instance instSIdxLargeSI1 : SIdxLarge.{1} SI := SIdxLarge.down.{1, 3} (h := instSIdxLargeSI)
-instance instSIdxLargeSI0 : SIdxLarge.{0} SI := SIdxLarge.down.{0, 3} (h := instSIdxLargeSI)
+instance instSIdxLargeSI3 {X : Type 3} : SIdxLarge SI X := ordinalSIdxLarge
+instance instSIdxLargeSI2 {X : Type 2} : SIdxLarge SI X :=
+  SIdxLarge.of_ulift.{_, _, 3} (h := instSIdxLargeSI3)
+instance instSIdxLargeSI1 {X : Type 1} : SIdxLarge SI X :=
+  SIdxLarge.of_ulift.{_, _, 3} (h := instSIdxLargeSI3)
+instance instSIdxLargeSI0 {X : Type 0} : SIdxLarge SI X :=
+  SIdxLarge.of_ulift.{_, _, 3} (h := instSIdxLargeSI3)
 
 /-- `SI : Type 4`, so `TypeSI u` is `Type (max u 4)`. See the `Nat` choice file. -/
 macro "TypeSI " u:level : term => `(Type (max $u 4))
