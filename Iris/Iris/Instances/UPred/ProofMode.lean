@@ -6,6 +6,7 @@ module
 
 public import Iris.Algebra.IsOp
 public import Iris.Instances.UPred.Instance
+public import Iris.Instances.UPred.Transfinite
 public import Iris.ProofMode.Classes
 
 @[expose] public section
@@ -48,6 +49,32 @@ instance intoAnd_ownM (p : Bool) {a b1 b2 : M} [h : IsOp .split a b1 b2] :
 instance intoSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :
     IntoSep (ownM a) (ownM b1) (ownM b2) where
   into_sep := by rw [h.is_op]; exact (ownM_op ..).mp
+
+/-! ### `▷` over a timeless or persistent body, at every step index
+
+The generic instances `intoSep_later` and `intoExists_later` need `[SIdxFinite SI]`: at a limit
+index a later does not commute with `∗` or `∃` in general.  These fallbacks (lower priority, so the
+generic ones are tried first where they apply, and `ipm_backtrack` on every one, since the IPM
+search moves on only from an instance so marked; Transfinite Iris's priority-100 instances) use
+the model-level laws of `Iris.Instances.UPred.Transfinite`: both parts timeless, one part
+persistent, or a timeless existential body. -/
+
+@[ipm_backtrack] instance (priority := 20) intoSep_later_timeless (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+    [Timeless Q1] [Timeless Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
+  into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_timeless Q1 Q2).1
+
+@[ipm_backtrack] instance (priority := 10) intoSep_later_persistent_l (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+    [Persistent Q1] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
+  into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_l Q1 Q2)
+
+@[ipm_backtrack] instance (priority := 10) intoSep_later_persistent_r (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+    [Persistent Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
+  into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_r Q1 Q2)
+
+@[ipm_backtrack] instance (priority := 20) intoExists_later_timeless [Inhabited α] (P : UPred M) (Φ : α → UPred M)
+    [h : IntoExists P Φ] [∀ a, Timeless (Φ a)] :
+    IntoExists iprop(▷ P) (fun a => iprop(▷ Φ a)) where
+  into_exists := (later_mono h.1).trans (Iris.UPred.later_exists_timeless Φ)
 
 end UPred
 

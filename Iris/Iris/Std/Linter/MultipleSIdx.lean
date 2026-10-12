@@ -37,9 +37,12 @@ namespace MultipleSIdxLinter
 
 open Lean Parser Elab Command Meta Lean.Linter
 
-/-- Number of binders of type `Iris.SIdx _` in the leading `∀`s of `ty`. -/
+/-- Number of binders of type `Iris.SIdx _` in the leading `∀`s of `ty`.  The telescope is taken
+without reducing: `forallTelescopeReducing` would unfold the statement's head (an entailment of
+the model is a `∀` over indices and resources) and overflow the recursion limit on a large
+statement; a `SIdx` binder is always written as an explicit `∀`/instance binder. -/
 def countSIdxBinders (ty : Expr) : MetaM Nat :=
-  forallTelescopeReducing ty fun xs _ => do
+  forallTelescope ty fun xs _ => do
     let mut k := 0
     for x in xs do
       if (← instantiateMVars (← inferType x)).isAppOf `Iris.SIdx then k := k + 1
@@ -76,7 +79,7 @@ def multipleSIdx : Linter where run := withSetOptionIn fun stx ↦ do
     -- a new global `SIdx` instance next to an already active one
     let isSIdxInst ← liftTermElabM do
       if !(← isInstance declName) then return false
-      forallTelescopeReducing ci.type fun _ b => return b.isAppOf `Iris.SIdx
+      forallTelescope ci.type fun _ b => return b.isAppOf `Iris.SIdx
     if isSIdxInst && !isScopedOrLocalInstance stx then
       let others := (← liftTermElabM activeSIdxInstances).filter (· != declName)
       unless others.isEmpty do
