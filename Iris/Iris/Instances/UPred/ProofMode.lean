@@ -53,25 +53,26 @@ instance intoSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :
 /-! ### `▷` over a timeless or persistent body, at every step index
 
 The generic instances `intoSep_later` and `intoExists_later` need `[SIdxFinite SI]`: at a limit
-index a later does not commute with `∗` or `∃` in general.  These fallbacks (lower priority, so the
-generic ones are tried first where they apply, and `ipm_backtrack` on every one, since the IPM
-search moves on only from an instance so marked; Transfinite Iris's priority-100 instances) use
-the model-level laws of `Iris.Instances.UPred.Transfinite`: both parts timeless, one part
+index a later does not commute with `∗` or `∃` in general.  These fallbacks use the model-level laws
+of `Iris.Instances.UPred.Transfinite`; their priorities put them after the generic instances and
+`intoSepFractional` but before `intoSepFractionalHalf`, which matches any `IntoSep` goal and does
+not backtrack (the IPM search moves on only from an instance marked `ipm_backtrack`, as these are;
+Transfinite Iris's priority-100 instances); the cases are of `Iris.Instances.UPred.Transfinite`: both parts timeless, one part
 persistent, or a timeless existential body. -/
 
-@[ipm_backtrack] instance (priority := 20) intoSep_later_timeless (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+@[ipm_backtrack] instance (priority := default - 20) intoSep_later_timeless (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Timeless Q1] [Timeless Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_timeless Q1 Q2).1
 
-@[ipm_backtrack] instance (priority := 10) intoSep_later_persistent_l (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_l (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Persistent Q1] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_l Q1 Q2)
 
-@[ipm_backtrack] instance (priority := 10) intoSep_later_persistent_r (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_r (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Persistent Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_r Q1 Q2)
 
-@[ipm_backtrack] instance (priority := 20) intoExists_later_timeless [Inhabited α] (P : UPred M) (Φ : α → UPred M)
+@[ipm_backtrack] instance (priority := default - 20) intoExists_later_timeless [Inhabited α] (P : UPred M) (Φ : α → UPred M)
     [h : IntoExists P Φ] [∀ a, Timeless (Φ a)] :
     IntoExists iprop(▷ P) (fun a => iprop(▷ Φ a)) where
   into_exists := (later_mono h.1).trans (Iris.UPred.later_exists_timeless Φ)
