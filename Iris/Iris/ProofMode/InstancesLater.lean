@@ -167,7 +167,9 @@ instance intoAnd_except0 [BI PROP] [BIPersistentlyExist PROP]
 
 /-! ### IntoSep -/
 
-@[rocq_alias into_sep_later]
+-- `ipm_backtrack`: `[SIdxFinite SI]` fails at a transfinite step-index choice; the search then
+-- moves on to the `UPred`-level fallbacks of `Iris.Instances.UPred.ProofMode`.
+@[ipm_backtrack, rocq_alias into_sep_later]
 instance intoSep_later [SIdxFinite SI] [BI PROP] (P Q1 Q2 : PROP)
     [h : IntoSep P Q1 Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans later_sep_1
@@ -183,7 +185,9 @@ instance intoSep_except0 [BI PROP] (P Q1 Q2 : PROP)
   into_sep := (except0_mono h.1).trans except0_sep.1
 
 /- FIXME: This instance is overly specific, generalize it. -/
-@[rocq_alias into_sep_affinely_later]
+-- `ipm_backtrack`: `[SIdxFinite SI]` fails at a transfinite step-index choice; the search then
+-- moves on to the `UPred`-level fallbacks of `Iris.Instances.UPred.ProofMode`.
+@[ipm_backtrack, rocq_alias into_sep_affinely_later]
 instance intoSep_affinely_later [SIdxFinite SI] [BI PROP] [Timeless (emp : PROP)]
     (P Q1 Q2 : PROP) [inst : IntoSep P Q1 Q2] [Affine Q1] [Affine Q2] :
     IntoSep iprop(<affine> ▷ P) iprop(<affine> ▷ Q1) iprop(<affine> ▷ Q2) where
@@ -257,7 +261,9 @@ instance fromExists_except0 [BI PROP] (P : PROP) (Φ : α → PROP)
 
 /-! ### IntoExists -/
 
-@[rocq_alias into_exist_later]
+-- `ipm_backtrack`: `[SIdxFinite SI]` fails at a transfinite step-index choice; the search then
+-- moves on to the `UPred`-level fallbacks of `Iris.Instances.UPred.ProofMode`.
+@[ipm_backtrack, rocq_alias into_exist_later]
 instance intoExists_later [SIdxFinite SI] [BI PROP] [Inhabited α] (P : PROP) (Φ : α → PROP)
     [h : IntoExists P Φ] : IntoExists iprop(▷ P) (fun a => iprop(▷ Φ a)) where
   into_exists := (later_mono h.1).trans later_exists.2

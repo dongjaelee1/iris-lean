@@ -108,6 +108,30 @@ theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless 
   · obtain ⟨_, ⟨a, rfl⟩, Ha⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
     exact .inr ⟨_, ⟨a, rfl⟩, fun m _ => holds_of_zero Ha (incN_refl _)⟩
 
+/-- `later_exist_timeless` without the `▷ False` escape: an inhabitant covers the index `0`. -/
+theorem later_exists_timeless {A : Sort _} [Inhabited A] (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
+    iprop(▷ ∃ a, Ψ a) ⊢ iprop(∃ a, ▷ Ψ a) :=
+  (later_exist_timeless Ψ).trans <|
+    or_elim ((later_mono false_elim).trans (exists_intro (Ψ := fun a => iprop(▷ Ψ a)) default)) .rfl
+
+/-- `▷` distributes over `∗` when the left conjunct is persistent, for every step-index type:
+the persistent part holds at the core, and `core x • x = x` splits `x` at every index at once
+(Transfinite Iris's `into_sep_later_persistent`). -/
+theorem later_sep_persistent_l (P Q : UPred M) [Persistent P] :
+    iprop(▷ (P ∗ Q)) ⊢ iprop(▷ P ∗ ▷ Q) := by
+  intro n x H
+  refine ⟨core x.val, x.val, (core_op x.val).symm.dist, fun m hm => ?_, fun m hm => ?_⟩
+  · obtain ⟨x1, x2, Hx, HP, _⟩ := H m hm
+    have HPc := Persistent.persistent (P := P) m _ HP
+    exact UPred.mono _ HPc (core_incN_core ⟨x2, Hx⟩) SIdx.le_refl
+  · obtain ⟨x1, x2, Hx, _, HQ⟩ := H m hm
+    exact UPred.mono _ HQ ⟨x1, Hx.trans comm.dist⟩ SIdx.le_refl
+
+/-- `later_sep_persistent_l` for the right conjunct. -/
+theorem later_sep_persistent_r (P Q : UPred M) [Persistent Q] :
+    iprop(▷ (P ∗ Q)) ⊢ iprop(▷ P ∗ ▷ Q) :=
+  (later_mono sep_comm.1).trans <| (later_sep_persistent_l Q P).trans sep_comm.1
+
 /-! ## Satisfiability -/
 
 /-- A proposition of the model is satisfiable if at every index it holds for some valid resource
