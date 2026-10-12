@@ -53,12 +53,12 @@ instance intoSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :
 /-! ### `▷` over a timeless or persistent body, at every step index
 
 The generic instances `intoSep_later` and `intoExists_later` need `[SIdxFinite SI]`: at a limit
-index a later does not commute with `∗` or `∃` in general.  These fallbacks use the model-level laws
-of `Iris.Instances.UPred.Transfinite`; their priorities put them after the generic instances and
-`intoSepFractional` but before `intoSepFractionalHalf`, which matches any `IntoSep` goal and does
-not backtrack (the IPM search moves on only from an instance marked `ipm_backtrack`, as these are;
-Transfinite Iris's priority-100 instances); the cases are of `Iris.Instances.UPred.Transfinite`: both parts timeless, one part
-persistent, or a timeless existential body. -/
+index a later does not commute with `∗` or `∃` in general.  These fallbacks (Transfinite Iris's
+priority-100 instances) use the model-level laws of `Iris.Instances.UPred.Transfinite` for the
+cases where it does: both conjuncts timeless, one conjunct persistent, a timeless existential body.
+Their priorities place them after the generic instances and `intoSepFractional` but before
+`intoSepFractionalHalf`, which matches any `IntoSep` goal and does not backtrack; the IPM search
+moves on from an instance only when it is marked `ipm_backtrack`, as these are. -/
 
 @[ipm_backtrack] instance (priority := default - 20) intoSep_later_timeless (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Timeless Q1] [Timeless Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
