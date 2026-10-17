@@ -14,7 +14,7 @@ universe usi
 
 namespace Iris
 
-open Iris.Std PartialMap LawfulPartialMap LawfulSet Iris.Algebra CMRA BI ProofMode
+open Iris.Std PartialMap LawfulPartialMap LawfulSet Iris.Algebra ORA BI ProofMode
 
 /-! This file defines prophecy-variable bookkeeping.
 A prophecy map associates to each (used) prophecy `p : P` the list of values it

@@ -104,18 +104,16 @@ theorem state_interp_step [HeapLangGS hlc GF] (σ : State) (ns : Nat)
 /-- The ghost state of HeapLang. Slot 0 holds the invariant map, which contains `IProp`. The
 other slots hold ghost state in `Type`, so they use `ULiftOF` (see `ElemG.ofEqLift`). -/
 def HeapLangS : BundledGFunctors.{0}
-  | 0 => ⟨InvMapF, by infer_instance⟩
-  | 1 => ⟨ULiftOF (constOF CoPsetDisjL), by infer_instance⟩
-  | 2 => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet)), by infer_instance⟩
-  | 3 => ⟨ULiftOF (Auth.AuthURF (constOF Credit)), by infer_instance⟩
-  | 4 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO (Option Val))) HeapF)),
-          by infer_instance⟩
-  | 5 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO GName)) HeapF)), by infer_instance⟩
-  | 6 => ⟨ULiftOF (constOF MetaUR), by infer_instance⟩
-  | 7 => ⟨ULiftOF (constOF (HeapView ProphId (Agree (DiscreteO (List (Val × Val)))) ProphMapF)),
-          by infer_instance⟩
-  | 8 => ⟨ULiftOF (constOF (Auth (InvHeapMapUR (Option Val) HeapF))), by infer_instance⟩
-  | _ => ⟨constOFU Unit, by infer_instance⟩
+  | 0 => ⟨InvMapF⟩
+  | 1 => ⟨ULiftOF (constOF CoPsetDisjL)⟩
+  | 2 => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet))⟩
+  | 3 => ⟨ULiftOF (Auth.AuthURF (constOF Credit))⟩
+  | 4 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO (Option Val))) HeapF))⟩
+  | 5 => ⟨ULiftOF (constOF (HeapView Loc (Agree (DiscreteO GName)) HeapF))⟩
+  | 6 => ⟨ULiftOF (constOF MetaUR)⟩
+  | 7 => ⟨ULiftOF (constOF (HeapView ProphId (Agree (DiscreteO (List (Val × Val)))) ProphMapF))⟩
+  | 8 => ⟨ULiftOF (constOF (Auth (InvHeapMapUR (Option Val) HeapF)))⟩
+  | _ => ⟨constOFU Unit⟩
 
 instance instHeapLangGS_HeapLangS : HeapLangGpreS HasLC.hasLC HeapLangS where
   toWsatGpreS := by

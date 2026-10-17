@@ -11,11 +11,11 @@ public import Iris.ProofMode.Classes
 
 @[expose] public section
 
-open Iris BI CMRA ProofMode Std
+open Iris BI ORA ProofMode Std
 
 namespace UPred
 
-variable [UCMRA M]
+variable [UORA M]
 
 @[rocq_alias from_sep_ownM]
 instance fromSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :
@@ -38,12 +38,14 @@ instance fromAnd_ownM_coreId {a b1 b2 : M} [h : IsOp .split a b1 b2]
   from_and := by
     rw [h.is_op]
     refine .trans ?_ (ownM_op ..).mpr
-    cases (inferInstance : TCOr (CoreId b1) (CoreId b2)) <;> exact persistent_and_sep.mp
+    cases (inferInstance : TCOr (CoreId b1) (CoreId b2)) <;> exact persistent_and_sep_mp
 
 @[rocq_alias into_and_ownM]
-instance intoAnd_ownM (p : Bool) {a b1 b2 : M} [h : IsOp .split a b1 b2] :
-    IntoAnd p (ownM a) (ownM b1) (ownM b2) where
-  into_and := intuitionisticallyIf_mono <| by rw [h.is_op]; exact (ownM_op ..).mp.trans sep_and
+instance intoAnd_ownM (p : Bool) {a b1 b2 : M} [h : IsOp .split a b1 b2] [Increasing b1]
+    [Increasing b2] : IntoAnd p (ownM a) (ownM b1) (ownM b2) where
+  into_and := intuitionisticallyIf_mono <| by
+    rw [h.is_op]
+    exact fun _ _ hx => ⟨(ordN_op_left _ b1 b2).trans hx, (ordN_op_right _ b1 b2).trans hx⟩
 
 @[rocq_alias into_sep_ownM]
 instance intoSep_ownM {a b1 b2 : M} [h : IsOp .split a b1 b2] :
@@ -64,11 +66,13 @@ moves on from an instance only when it is marked `ipm_backtrack`, as these are. 
     [Timeless Q1] [Timeless Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_timeless Q1 Q2).1
 
-@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_l (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_l [IncOrd M]
+    (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Persistent Q1] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_l Q1 Q2)
 
-@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_r (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
+@[ipm_backtrack] instance (priority := default - 25) intoSep_later_persistent_r [IncOrd M]
+    (P Q1 Q2 : UPred M) [h : IntoSep P Q1 Q2]
     [Persistent Q2] : IntoSep iprop(▷ P) iprop(▷ Q1) iprop(▷ Q2) where
   into_sep := (later_mono h.1).trans (Iris.UPred.later_sep_persistent_r Q1 Q2)
 

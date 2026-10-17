@@ -28,9 +28,9 @@ This file ports the parts of Transfinite Iris's `base_logic/upred.v`, `base_logi
 universe w v
 
 namespace Iris.UPred
-open BI CMRA
+open BI ORA
 
-variable {M : Type _} [UCMRA M]
+variable {M : Type _} [UORA M]
 
 /-! ## Big later -/
 
@@ -46,18 +46,17 @@ theorem laterN_holds_iter {P : UPred M} :
   | n + 1, _, x, _, h => laterN_holds_iter n x _ (h _ (SIdx.lt_succ_self _))
 
 @[transfinite_alias uPred_primitive.big_later_soundness]
-theorem big_later_soundness [SIdxTransfinite SI] (P : UPred M) :
-    iprop(True ⊢ ⧍ P) → iprop((True : UPred M) ⊢ P) := by
-  intro H n x _
+theorem big_later_soundness [SIdxTransfinite SI] (P : UPred M) : (⊢ ⧍ P) → ⊢ P := by
+  intro H n x Hx
   obtain ⟨_, ⟨k, rfl⟩, Hk⟩ :=
-    H (SIdxTransfinite.upperLimit n) ⟨unit, unit_validN⟩ trivial
+    H (SIdxTransfinite.upperLimit n) ⟨unit, unit_validN⟩ (ordN_refl unit)
   have Hk' : iprop(▷^[k] P).holds (Nat.repeat SIdx.succ k n) ⟨unit, unit_validN⟩ :=
-    UPred.mono _ Hk (incN_refl _) (SIdx.lt_le_incl (SIdxTransfinite.iter_succ_lt_upperLimit k n))
-  exact UPred.mono _ (laterN_holds_iter k unit unit_validN Hk') incN_unit SIdx.le_refl
+    UPred.mono _ Hk (ordN_refl _) (SIdx.lt_le_incl (SIdxTransfinite.iter_succ_lt_upperLimit k n))
+  exact UPred.mono _ (laterN_holds_iter k unit unit_validN Hk') Hx SIdx.le_refl
 
 @[transfinite_alias uPred_primitive.big_laterN_soundness]
 theorem big_laterN_soundness [SIdxTransfinite SI] (n : Nat) (P : UPred M) :
-    iprop(True ⊢ bigLaterN n P) → iprop((True : UPred M) ⊢ P) := by
+    (⊢ bigLaterN n P) → ⊢ P := by
   induction n generalizing P with
   | zero => exact id
   | succ n ih => exact fun h => ih P (big_later_soundness _ h)
@@ -65,8 +64,7 @@ theorem big_laterN_soundness [SIdxTransfinite SI] (n : Nat) (P : UPred M) :
 /-- Soundness of the big later for pure propositions (Transfinite Iris, `transfinite_soundness`):
 a pure proposition that holds after finitely many steps holds. -/
 @[transfinite_alias uPred.transfinite_soundness]
-theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) :
-    iprop((True : UPred M) ⊢ ⧍ ⌜φ⌝) → φ :=
+theorem transfinite_soundness [SIdxTransfinite SI] (φ : Prop) : (⊢@{UPred M} ⧍ ⌜φ⌝) → φ :=
   fun h => pure_soundness (big_later_soundness _ h)
 
 /-! ## Timelessness in the model -/
@@ -78,11 +76,11 @@ theorem timeless_zero (P : UPred M) [Timeless P] : iprop(▷ False → P) ⊢ P 
 
 /-- `P` holds at index `0` (as a proposition of the model). -/
 private theorem holds_of_zero {P : UPred M} [Timeless P] {n : SI} {x : ValidAt M n} {x0 : M}
-    {hx0 : ✓{0} x0} (H : P 0 ⟨x0, hx0⟩) (hinc : x0 ≼{0} x.val) : P n x :=
+    {hx0 : ✓{0} x0} (H : P 0 ⟨x0, hx0⟩) (hinc : x0 ≼ₒ{0} x.val) : P n x :=
   timeless_zero P n x fun {n'} y hy hle HF => by
     by_cases hn' : n' = 0
     · subst hn'
-      exact UPred.mono _ H (incN_trans hinc (hy.incN)) SIdx.le_refl
+      exact UPred.mono _ H (ordN_trans hinc hy) SIdx.le_refl
     · exact absurd (HF 0 (SIdx.neq_0_lt_0.mp hn')) id
 
 @[transfinite_alias uPred_primitive.later_sep_timeless]
@@ -91,13 +89,15 @@ theorem later_sep_timeless (P Q : UPred M) [Timeless P] [Timeless Q] :
   refine ⟨fun n x H => ?_, later_sep_2⟩
   by_cases hn : n = 0
   · subst hn
-    exact ⟨core x.val, x.val, (core_op x.val).symm.dist, fun m hm => absurd hm (SIdx.not_lt_zero m),
-      fun m hm => absurd hm (SIdx.not_lt_zero m)⟩
-  · obtain ⟨x1, x2, H1, H2, H3⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
-    obtain ⟨y1, y2, Hx, Hy1, Hy2⟩ := extend (validN_of_le SIdx.le_0_l x.property) H1
-    refine ⟨y1, y2, Hx.dist, fun m _ => ?_, fun m _ => ?_⟩
-    · exact holds_of_zero H2 Hy1.symm.to_incN
-    · exact holds_of_zero H3 Hy2.symm.to_incN
+    exact ⟨core x.val, x.val, (core_op x.val).dist.to_ordN,
+      fun m hm => absurd hm (SIdx.not_lt_zero m), fun m hm => absurd hm (SIdx.not_lt_zero m)⟩
+  · have v0 := validN_of_le SIdx.le_0_l x.property
+    obtain ⟨x1, x2, H1, H2, H3⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
+    obtain ⟨z, hz, ez⟩ := ord_extend v0 H1
+    obtain ⟨y1, y2, Hz, Hy1, Hy2⟩ := extend (validN_of_ordN (Ordered.ordN_of_ord 0 hz) v0) ez
+    refine ⟨y1, y2, Hz ▸ Ordered.ordN_of_ord n hz, fun m _ => ?_, fun m _ => ?_⟩
+    · exact holds_of_zero H2 Hy1.symm.to_ordN
+    · exact holds_of_zero H3 Hy2.symm.to_ordN
 
 @[transfinite_alias uPred_primitive.later_exist_timeless]
 theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
@@ -106,7 +106,7 @@ theorem later_exist_timeless {A : Sort _} (Ψ : A → UPred M) [∀ a, Timeless 
   by_cases hn : n = 0
   · subst hn; exact .inl fun m hm => absurd hm (SIdx.not_lt_zero m)
   · obtain ⟨_, ⟨a, rfl⟩, Ha⟩ := H 0 (SIdx.neq_0_lt_0.mp hn)
-    exact .inr ⟨_, ⟨a, rfl⟩, fun m _ => holds_of_zero Ha (incN_refl _)⟩
+    exact .inr ⟨_, ⟨a, rfl⟩, fun m _ => holds_of_zero Ha (ordN_refl _)⟩
 
 /-- `later_exist_timeless` without the `▷ False` escape: an inhabitant covers the index `0`. -/
 theorem later_exists_timeless {A : Sort _} [Inhabited A] (Ψ : A → UPred M) [∀ a, Timeless (Ψ a)] :
@@ -117,18 +117,18 @@ theorem later_exists_timeless {A : Sort _} [Inhabited A] (Ψ : A → UPred M) [�
 /-- `▷` distributes over `∗` when the left conjunct is persistent, for every step-index type:
 the persistent part holds at the core, and `core x • x = x` splits `x` at every index at once
 (Transfinite Iris's `into_sep_later_persistent`). -/
-theorem later_sep_persistent_l (P Q : UPred M) [Persistent P] :
+theorem later_sep_persistent_l [IncOrd M] (P Q : UPred M) [Persistent P] :
     iprop(▷ (P ∗ Q)) ⊢ iprop(▷ P ∗ ▷ Q) := by
   intro n x H
-  refine ⟨core x.val, x.val, (core_op x.val).symm.dist, fun m hm => ?_, fun m hm => ?_⟩
+  refine ⟨core x.val, x.val, (core_op x.val).dist.to_ordN, fun m hm => ?_, fun m hm => ?_⟩
   · obtain ⟨x1, x2, Hx, HP, _⟩ := H m hm
     have HPc := Persistent.persistent (P := P) m _ HP
-    exact UPred.mono _ HPc (core_incN_core ⟨x2, Hx⟩) SIdx.le_refl
+    exact UPred.mono _ HPc (core_ordN_core ((ordN_op_left m x1 x2).trans Hx)) SIdx.le_refl
   · obtain ⟨x1, x2, Hx, _, HQ⟩ := H m hm
-    exact UPred.mono _ HQ ⟨x1, Hx.trans comm.dist⟩ SIdx.le_refl
+    exact UPred.mono _ HQ ((ordN_op_right m x1 x2).trans Hx) SIdx.le_refl
 
 /-- `later_sep_persistent_l` for the right conjunct. -/
-theorem later_sep_persistent_r (P Q : UPred M) [Persistent Q] :
+theorem later_sep_persistent_r [IncOrd M] (P Q : UPred M) [Persistent Q] :
     iprop(▷ (P ∗ Q)) ⊢ iprop(▷ P ∗ ▷ Q) :=
   (later_mono sep_comm.1).trans <| (later_sep_persistent_l Q P).trans sep_comm.1
 
@@ -145,11 +145,12 @@ theorem satisfiable_intro {P : UPred M} (H : iprop(True ⊢ P)) : satisfiable P 
 theorem satisfiable_mono {P Q : UPred M} (hP : satisfiable P) (H : P ⊢ Q) : satisfiable Q :=
   fun n => let ⟨x, hx, HP⟩ := hP n; ⟨x, hx, H n _ HP⟩
 
-theorem satisfiable_elim {P : UPred M} [Plain P] (hP : satisfiable P) : iprop(True ⊢ P) :=
+theorem satisfiable_elim [IncOrd M] {P : UPred M} [Plain P] (hP : satisfiable P) :
+    iprop(True ⊢ P) :=
   fun n _ _ =>
     let ⟨_, _, HP⟩ := hP n
     have hpl : iprop(P ⊢ ■ P) := Plain.plain
-    UPred.mono _ (hpl n _ HP) incN_unit SIdx.le_refl
+    UPred.mono _ (hpl n _ HP) ordN_unit SIdx.le_refl
 
 theorem satisfiable_later {P : UPred M} (hP : satisfiable iprop(▷ P)) : satisfiable P :=
   fun n =>
@@ -166,7 +167,7 @@ theorem satisfiable_finite_exists {X : Type w} {P : X → UPred M} {Q : X → Pr
     (hfin : ∀ x, Q x → x ∈ l) (hent : ∀ x, P x ⊢ ⌜Q x⌝) (hP : satisfiable iprop(∃ x, P x)) :
     ∃ x, satisfiable (P x) :=
   SIdx.commute_finite_exists (fun a n => ∃ y, ∃ h : ✓{n} y, P a n ⟨y, h⟩) Q l hfin
-    (fun _ _ _ hab ⟨y, hy, H⟩ => ⟨y, validN_of_le hab hy, UPred.mono _ H (incN_refl _) hab⟩)
+    (fun _ _ _ hab ⟨y, hy, H⟩ => ⟨y, validN_of_le hab hy, UPred.mono _ H (ordN_refl _) hab⟩)
     (fun n =>
       let ⟨y, hy, _, ⟨a, rfl⟩, Ha⟩ := hP n
       ⟨a, hent a n _ Ha, y, hy, Ha⟩)
@@ -177,11 +178,11 @@ theorem satisfiable_exists {X : Type v} {P : X → UPred M} (hP : satisfiable ip
     [SIdxLarge SI X] : ∃ x, satisfiable (P x) :=
   SIdxLarge.commute_exists (fun a n => ∃ y, ∃ h : ✓{n} y, P a n ⟨y, h⟩)
     (fun _ _ _ hab ⟨y, hy, H⟩ =>
-      ⟨y, validN_of_le (SIdx.lt_le_incl hab) hy, UPred.mono _ H (incN_refl _) (SIdx.lt_le_incl hab)⟩)
+      ⟨y, validN_of_le (SIdx.lt_le_incl hab) hy, UPred.mono _ H (ordN_refl _) (SIdx.lt_le_incl hab)⟩)
     (fun n => let ⟨y, hy, _, ⟨a, rfl⟩, Ha⟩ := hP n; ⟨a, y, hy, Ha⟩)
 
 @[transfinite_alias uPred_Satisfiable]
-instance instSatisfiable : Satisfiable.{w, v} (UPred M) where
+instance instSatisfiable [IncOrd M] : Satisfiable.{w, v} (UPred M) where
   satisfiable := satisfiable
   intro := satisfiable_intro
   mono := satisfiable_mono

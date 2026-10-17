@@ -155,7 +155,7 @@ end
 /-! ### Thread-pool ghost-state invariant -/
 
 noncomputable section ghost
-open Iris CMRA Iris.Std
+open Iris ORA Iris.Std
 
 variable {GF : BundledGFunctors}
 variable {H : Type _ → Type _} [LawfulFiniteMap H Nat]
@@ -245,7 +245,7 @@ end ghost
 /-! ### Allocation -/
 
 noncomputable section alloc
-open Iris CMRA Iris.Std
+open Iris ORA Iris.Std
 
 variable {GF : BundledGFunctors}
 variable {H : Type _ → Type _} [LawfulFiniteMap H Nat]

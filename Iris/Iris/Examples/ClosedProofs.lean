@@ -41,11 +41,11 @@ section proof
 
 noncomputable def GF : BundledGFunctors.{0} := fun n =>
   match n with
-  | 0  => ⟨InvMapF, by infer_instance⟩
-  | 1  => ⟨ULiftOF (constOF CoPsetDisjL), by infer_instance⟩
-  | 2  => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet)), by infer_instance⟩
-  | 3  => ⟨ULiftOF (AuthURF (constOF Credit)), by infer_instance⟩
-  | _  => ⟨constOFU Unit, by infer_instance⟩
+  | 0  => ⟨InvMapF⟩
+  | 1  => ⟨ULiftOF (constOF CoPsetDisjL)⟩
+  | 2  => ⟨ULiftOF (constOF (DisjointLeibnizSet PosSet))⟩
+  | 3  => ⟨ULiftOF (AuthURF (constOF Credit))⟩
+  | _  => ⟨constOFU Unit⟩
 
 noncomputable instance : WsatGpreS GF where
   inv := ElemG.ofEq 0 (by unfold GF; rfl)

@@ -1,7 +1,7 @@
 /-
 Copyright (c) The Iris-Lean Contributors
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus de Medeiros
+Authors: Markus de Medeiros, Janine Lohse
 -/
 module
 
@@ -23,16 +23,18 @@ open COFE
 
 abbrev GType := Nat
 
-/-- A camera functor for ghost state. Its arguments and results are in `TypeSI u`, the universe
-of `IProp`. -/
+/-- A resource functor admissible in the global ghost state: contractive, with affine algebras.
+Its arguments and results are in `TypeSI u`, the universe of `IProp`. -/
 @[rocq_alias gFunctor]
-abbrev GFunctor :=
-  Σ F : (∀ (α β : TypeSI u) [COFE α] [COFE β], TypeSI u), RFunctorContractive F
+structure GFunctor where
+  F : ∀ (α β : TypeSI u) [COFE α] [COFE β], TypeSI u
+  [contractive : RFunctorContractive F]
+  [affine : RFunctorAffine F]
 
 @[rocq_alias gFunctors]
 def BundledGFunctors := GType → GFunctor.{u}
 
-def BundledGFunctors.default : BundledGFunctors := fun _ => ⟨constOFU Unit, by infer_instance⟩
+def BundledGFunctors.default : BundledGFunctors := fun _ => ⟨constOFU Unit⟩
 
 def BundledGFunctors.set (GF : BundledGFunctors) (i : Nat) (FB : GFunctor) :
     BundledGFunctors :=
@@ -49,8 +51,7 @@ abbrev GName := Nat
 #rocq_ignore gnameO "Use `LeibnizO GName`."
 
 @[rocq_alias iResF]
-abbrev IResF (GF : BundledGFunctors) : OFunctorPre :=
-  DiscreteFunOF (fun i => GenMapOF (GF i).fst)
+abbrev IResF (GF : BundledGFunctors) : OFunctorPre := DiscreteFunOF (fun i => GenMapOF (GF i).F)
 
 #rocq_ignore subG "Superseded by `ElemG`."
 #rocq_ignore subG_inv "Lemma about `subG`; obsolete with `ElemG`."
@@ -58,9 +59,12 @@ abbrev IResF (GF : BundledGFunctors) : OFunctorPre :=
 #rocq_ignore subG_app_l "Lemma about `subG`; obsolete with `ElemG`."
 #rocq_ignore subG_app_r "Lemma about `subG`; obsolete with `ElemG`."
 
-instance (GF : BundledGFunctors) (i : GName) : RFunctorContractive ((GF i).fst) := (GF i).snd
+instance (GF : BundledGFunctors) (i : GType) : RFunctorContractive (GF i).F := (GF i).contractive
+
+instance instRFunctorAffineGF (GF : BundledGFunctors) (i : GType) : RFunctorAffine (GF i).F := (GF i).affine
 
 section IProp
+open ORA
 
 variable (GF : BundledGFunctors.{u})
 
@@ -71,12 +75,15 @@ def IPre : TypeSI u := OFunctor.Transfinite.Fix (UPredOF (IResF GF))
 noncomputable instance : COFE (IPre GF) := inferInstanceAs (COFE (OFunctor.Transfinite.Fix _))
 
 @[rocq_alias iProp_solution.iResUR]
-def IResUR : TypeSI u := (i : GType) → GenMap (GF i |>.fst (IPre GF) (IPre GF))
+def IResUR : TypeSI u := (i : GType) → GenMap ((GF i).F (IPre GF) (IPre GF))
 
 #rocq_ignore iResUR "Sealed copy of `iProp_solution.iResUR`; not needed since Lean does not seal it."
 
-noncomputable instance : UCMRA (IResUR GF) :=
-  ucmraDiscreteFunO (β := fun (i : GType) => GenMap (GF i |>.fst (IPre GF) (IPre GF)))
+noncomputable instance : UORA (IResUR GF) :=
+  ucmraDiscreteFunO (β := fun (i : GType) => GenMap ((GF i).F (IPre GF) (IPre GF)))
+
+instance instIncOrdIResUR : IncOrd (IResUR GF) :=
+  inferInstanceAs (IncOrd ((i : GType) → GenMap ((GF i).F (IPre GF) (IPre GF))))
 
 abbrev IProp : TypeSI u := UPred (IResUR GF)
 

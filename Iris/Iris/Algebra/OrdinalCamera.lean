@@ -35,14 +35,15 @@ instance : Discrete NatOrdinal.{u} := ⟨fun h => h⟩
 
 /-- The ordinal camera (Transfinite Iris: `ordR`, `ordUR`). -/
 instance : UCMRA NatOrdinal.{u} := CommMonoidLike.instUCMRA
-instance : CMRA.Discrete NatOrdinal.{u} := CommMonoidLike.instDiscrete
-instance {a : NatOrdinal.{u}} : CMRA.Cancelable a := CommMonoidLike.instCancelable
+instance : IncOrd NatOrdinal.{u} := inferInstance
+instance : ORA.Discrete NatOrdinal.{u} := CommMonoidLike.instDiscrete
+instance {a : NatOrdinal.{u}} : ORA.Cancelable a := CommMonoidLike.instCancelable
 
 /-- The camera operation is the natural sum. -/
 theorem NatOrdinal.op_eq (a b : NatOrdinal.{u}) : a • b = a + b :=
   rfl
 
 theorem NatOrdinal.valid (a : NatOrdinal.{u}) : ✓ a :=
-  CMRA.valid_iff_validN.mpr fun _ => trivial
+  Valid.valid_iff_validN.mpr fun _ => trivial
 
 end Iris
