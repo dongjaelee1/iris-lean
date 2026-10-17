@@ -2,8 +2,8 @@
 
 - **Fork:** [dongjaelee1/iris-lean](https://github.com/dongjaelee1/iris-lean), branch
   [`transfinite`](https://github.com/dongjaelee1/iris-lean/tree/transfinite)
-- **Baseline:** upstream Iris-Lean `0533d02` (#717), the upstream commit that the branch contains
-- **Measured:** 2026-10-16, branch at `fdc7402`, Lean 4.34.1
+- **Baseline:** upstream Iris-Lean `81bc350` (#688), the upstream commit that the branch contains
+- **Measured:** 2026-10-17, branch at `a85e593`, Lean 4.34.1
 
 ## Summary
 
@@ -20,15 +20,18 @@ Against upstream, which uses `Nat`:
 
 | | Change |
 |---|---:|
-| Clean build of the Iris package, wall time | +6.2% |
-| Clean build, CPU time (with the new `Ordinals` package) | +9.6% |
+| Clean build of the Iris package, wall time | +4.3% |
+| Clean build, CPU time (with the new `Ordinals` package) | +9.2% |
 | Library modules that are in both trees | +3.6% |
-| HeapLang library proofs (the files closest to client proofs) | +3.5% |
-| Tests that are in both trees | +2.5% |
+| HeapLang library proofs (the files closest to client proofs) | +4.0% |
+| Tests that are in both trees | +2.2% |
 | Peak memory | no change |
 
 Half of the extra library time is in new modules, mostly the transfinite COFE solver (10 s). The
-other half is +3.6% over the existing modules, spread thinly (median +1.5% per module).
+other half is +3.6% over the existing modules, spread thinly (median +1.7% per module).
+
+Upstream #688 (ordered resource algebras) makes both trees about 6% slower. It does not change the
+difference: before #688, the modules in both trees also took +3.6%.
 
 These numbers cover all changes of the branch: the step index, the transfinite model and the new
 rules, not only the fixed index.
@@ -63,10 +66,26 @@ class OFE (α : Type _) where
 - Client code does not change: there are no step-index binders, annotations or scoped commands.
 - The same library also builds at `Nat`: `scripts/stepindex.sh nat` selects the stored Nat choice.
 
+### Resource algebras
+
+Upstream's ordered resource algebras (#688) state three axioms with the successor index `n + 1`.
+A chain of successors never reaches a limit index, so here these axioms hold for each index:
+
+```lean
+validN_le : ✓{n} x → n' ≤ n → ✓{n'} x              -- upstream: ✓{n + 1} x → ✓{n} x
+ordN_le   : x ≼ₒ{n} y → n' ≤ n → x ≼ₒ{n'} y        -- upstream: x ≼ₒ{n + 1} y → x ≼ₒ{n} y
+ord_extend : ✓{n} y → x ≼ₒ{n} y → ∃ z, z ≼ₒ y ∧ z ≡{n}≡ x
+  -- upstream: ordN_extend, with z ≼ₒ{n + 1} y
+```
+
+Upstream's forms are derived lemmas. `ownM_timeless` and `later_false_impl_sep` need the exact
+`ord_extend`, because they lift an order from index 0 to each index. Each instance proves
+`ord_extend` in the same way as upstream proves `ordN_extend`.
+
 ### Transfinite Iris on top
 
 - **Model.** `IProp` uses the transfinite COFE solver, ported from upstream PR #709. The solver is
-  noncomputable, so 77 library files are `noncomputable section` (upstream: 3).
+  noncomputable, so 78 library files are `noncomputable section` (upstream: 3).
 - **Later laws.** They follow Rocq Iris MR
   [!1256](https://gitlab.mpi-sws.org/iris/iris/-/merge_requests/1256). `later_sep_1` and
   `later_sExists_false` need a finite index. The new laws `later_false_impl_sExists` and
@@ -85,9 +104,9 @@ class OFE (α : Type _) where
 - **Three levels of ordinals.** With `Ordinal.{3}`, the ordinals of `Ordinal.{0}`, `Ordinal.{1}`
   and `Ordinal.{2}` lift into the index. The existential property of Transfinite Iris
   (`SIdxLarge SI X`) holds for quantifiers over each level.
-- **Also new:** the ordinal camera, satisfiability, the big later `⧍`.
+- **Also new:** the ordinal resource algebra, satisfiability, the big later `⧍`.
 
-Against upstream, 142 of 292 library files change (+6.4k / −1.7k lines), and there are 12 new
+Against upstream, 142 of 292 library files change (+6.6k / −1.7k lines), and there are 12 new
 library modules. The `Ordinals` package adds 6.3k lines with its tests.
 
 ## Performance
@@ -96,86 +115,87 @@ library modules. The `Ordinals` package adds 6.3k lines with its tests.
 
 - **Per file:** `lean --profile` on each library and test file, with the dependencies already
   built, one thread. CPU time is user + sys. *Own time* is the CPU time without the time to import
-  the dependencies. Three alternating rounds per tree (upstream: four), and per file the minimum.
-  The round totals vary by 1.8% (upstream) and 2.8% (transfinite), so read differences under
-  about 2% as noise.
+  the dependencies. Three alternating rounds per tree, and per file the minimum. The round totals
+  vary by 0.1%. Per file the rounds vary by 0.7% (median) and by 1.5% for one file in ten, so
+  read differences under about 2% for one file as noise.
 - **Clean build:** `lake build` of the Iris package with `LEAN_NUM_THREADS=6`, two alternating runs
   per tree, the faster one.
 - **Machine:** Linux x86-64, 36 cores, shared but lightly loaded. We measured CPU time, not
   instruction counts (this machine has no `perf`).
 
-All tables are in [transfinite-bench/results-2026-10-16.md](transfinite-bench/results-2026-10-16.md).
+All tables are in [transfinite-bench/results-2026-10-17.md](transfinite-bench/results-2026-10-17.md).
 
 ### Whole build
 
 | | Upstream | Transfinite | Change |
 |---|---:|---:|---:|
-| Clean build, wall time (s) | 118.1 | 125.4 | +6.2% |
-| Clean build, CPU time (s) | 489.1 | 536.1 | +9.6% |
-| Clean build, peak memory of one process (MB) | 1200 | 1204 | +0.4% |
+| Clean build, wall time (s) | 121.0 | 126.2 | +4.3% |
+| Clean build, CPU time (s) | 510.8 | 557.6 | +9.2% |
+| Clean build, peak memory of one process (MB) | 1224 | 1223 | −0.1% |
 | Library modules | 281 | 293 | +12 |
-| Library, own time, one thread (s) | 311.7 | 335.9 | +7.8% |
-| Tests in both trees, own time (s) | 18.3 | 18.8 | +2.5% |
-| `.olean` size (MB) | 68.3 | 71.0 | +3.9% |
+| Library, own time, one thread (s) | 331.0 | 356.1 | +7.6% |
+| Tests in both trees, own time (s) | 18.6 | 19.0 | +2.2% |
+| `.olean` size (MB) | 71.0 | 73.8 | +3.9% |
 
 The clean build of the branch also builds the `Ordinals` package: 21 modules, 5.5 s own time,
 1.2 MB of `.olean`.
 
 ### Where the extra library time is
 
-The library's own time grows by 24.2 s:
+The library's own time grows by 25.1 s:
 
-- **New modules: 12.8 s.** The transfinite COFE solver takes 10.1 s. The other 11 new modules
-  (index structures, truncation, transfinite facts about the BI and `UPred`, porting attributes,
-  a linter) take 2.7 s together.
-- **Modules in both trees: +11.4 s (+3.6%):**
+- **New modules: 13.2 s.** The transfinite COFE solver takes 10.1 s. The other 11 new modules
+  (index structures, truncation, `ULift`, transfinite facts about the BI and `UPred`, porting
+  attributes, a linter) take 3.1 s together.
+- **Modules in both trees: +11.9 s (+3.6%):**
 
 | Layer | Modules | Upstream (s) | Transfinite (s) | Change |
 |---|---:|---:|---:|---:|
-| Std | 39 | 20.6 | 20.6 | +0.2% |
-| Algebra | 46 | 54.3 | 57.4 | +5.8% |
-| BI | 48 | 54.6 | 56.1 | +2.7% |
-| ProofMode | 60 | 46.7 | 47.4 | +1.3% |
-| Instances | 27 | 28.5 | 30.4 | +6.6% |
-| ProgramLogic | 18 | 22.4 | 23.3 | +3.9% |
-| HeapLang (without `Lib`) | 14 | 64.7 | 67.3 | +4.1% |
-| HeapLang `Lib` | 19 | 17.3 | 17.9 | +3.5% |
-| Examples and other | 10 | 2.6 | 2.7 | +3.0% |
-| **All** | **281** | **311.7** | **323.1** | **+3.6%** |
+| Std | 39 | 20.6 | 20.6 | +0.1% |
+| Algebra | 46 | 69.6 | 73.2 | +5.2% |
+| BI | 48 | 55.7 | 57.2 | +2.6% |
+| ProofMode | 60 | 46.7 | 47.3 | +1.3% |
+| Instances | 27 | 30.2 | 32.0 | +6.1% |
+| ProgramLogic | 18 | 22.8 | 23.6 | +3.4% |
+| HeapLang (without `Lib`) | 14 | 64.9 | 67.7 | +4.4% |
+| HeapLang `Lib` | 19 | 17.7 | 18.5 | +4.0% |
+| Examples and other | 10 | 2.8 | 2.8 | +2.0% |
+| **All** | **281** | **331.0** | **342.9** | **+3.6%** |
 
 In these modules, the extra time is in these profiler categories:
 
 | Category | Change |
 |---|---:|
-| interpretation (tactics and other meta code that runs interpreted) | +4.2 s (+10.7%) |
-| typeclass inference (+0.9 s of it in the proof mode) | +2.9 s (+5.9%) |
-| unaccounted ("blocked") | +2.1 s (+2.1%) |
-| elaboration | +1.3 s (+3.0%) |
-| tactic execution | +0.9 s (+2.2%) |
-| type checking (kernel) | +0.6 s (+3.6%) |
-| simp | +0.4 s (+1.2%) |
+| interpretation (tactics and other meta code that runs interpreted) | +4.5 s (+10.9%) |
+| unaccounted ("blocked") | +3.4 s (+3.2%) |
+| typeclass inference (+1.0 s of it in the proof mode) | +3.2 s (+5.5%) |
+| elaboration | +1.3 s (+2.6%) |
+| tactic execution | +1.0 s (+2.3%) |
+| type checking (kernel) | +0.6 s (+3.5%) |
+| simp | +0.4 s (+1.3%) |
 | compilation | −0.1 s (−0.5%) |
 
-Per module, the change is small for most files: median +1.5%, quartiles +0.7% and +3.8% (153
+Per module, the change is small for most files: median +1.7%, quartiles +0.6% and +3.7% (154
 modules of more than 0.5 s). The largest changes have clear causes:
 
 | Module | Upstream (s) | Transfinite (s) | Change | Cause |
 |---|---:|---:|---:|---|
-| `HeapLang.PrimitiveLaws` | 3.33 | 4.60 | +1.26 s | 4 new rules (`wp_load_later`, ...) and a helper |
-| `HeapLang.ProofMode` | 6.49 | 7.47 | +0.98 s | the heap tactics split the context first |
-| `Algebra.OFE` | 4.45 | 5.42 | +0.96 s | bounded limits for limit indices (26 declarations, from #709) |
-| `Instances.Lib.NaInvariants` | 0.78 | 1.33 | +0.54 s | new rules (`inv_acc_open`, ...) |
-| `Instances.IProp.Instance` | 3.51 | 4.02 | +0.51 s | `ElemG` as a camera isomorphism (from #709) |
+| `HeapLang.PrimitiveLaws` | 3.66 | 4.97 | +1.31 s | 4 new rules (`wp_load_later`, ...) and a helper |
+| `HeapLang.ProofMode` | 6.48 | 7.48 | +1.01 s | the heap tactics split the context first |
+| `Algebra.OFE` | 4.43 | 5.38 | +0.94 s | bounded limits for limit indices (26 declarations, from #709) |
+| `Algebra.CMRA` | 9.60 | 10.32 | +0.71 s | `SIdx` lemmas in place of `Nat` arithmetic; the derived lemmas of #688's axioms |
+| `Instances.Lib.NaInvariants` | 0.83 | 1.40 | +0.57 s | new rules (`inv_acc_open`, ...) |
+| `Instances.IProp.Instance` | 4.40 | 4.86 | +0.46 s | `ElemG` as an isomorphism of resource algebras (from #709) |
 | `Algebra.StepIndex` | 0.46 | 0.80 | +0.34 s | more step-index lemmas |
-| `Instances.Lib.CInvariants` | 1.12 | 0.87 | −0.24 s | the smaller Transfinite Iris representation |
+| `Instances.Lib.CInvariants` | 1.19 | 0.91 | −0.28 s | the smaller Transfinite Iris representation |
 
-The `multipleSIdx` linter (from upstream PR #627, in this branch) costs less than the noise:
-with the linter off, `interpretation` drops by 1.7 s, and the totals do not change measurably.
+The `multipleSIdx` linter (from upstream PR #627, in this branch) costs about 3 s. With the linter
+off, `interpretation` drops by 2.7 s, and the modules in both trees take +2.7% instead of +3.6%.
 
 ### HeapLang library proofs
 
-These 19 files use the program logic as a client does. Together they take 17.3 s upstream and
-17.9 s here (+3.5%). Per file the change is from −2.2% (`TicketLock`) to +8.9% (`Counter`). The
+These 19 files use the program logic as a client does. Together they take 17.7 s upstream and
+18.5 s here (+4.0%). Per file the change is from −1.0% (`TicketLock`) to +9.5% (`Counter`). The
 import time per file is 0.40 s upstream and 0.41 s here.
 
 <details>
@@ -183,37 +203,37 @@ import time per file is 0.40 s upstream and 0.41 s here.
 
 | File | Upstream (s) | Transfinite (s) | Change |
 |---|---:|---:|---:|
-| `Arith` | 0.33 | 0.34 | +3.8% |
-| `Array` | 1.57 | 1.61 | +2.9% |
-| `Assert` | 0.17 | 0.17 | +2.0% |
-| `ClairvoyantCoin` | 0.56 | 0.58 | +4.0% |
-| `Counter` | 1.51 | 1.64 | +8.9% |
-| `Diverge` | 0.14 | 0.15 | +2.9% |
-| `LandinsKnot` | 0.39 | 0.42 | +7.7% |
-| `LazyCoin` | 0.54 | 0.56 | +3.4% |
-| `Lock` | 0.35 | 0.38 | +8.0% |
-| `NondetBool` | 0.28 | 0.29 | +3.9% |
-| `Par` | 0.39 | 0.40 | +2.5% |
-| `Quicksort` | 5.40 | 5.52 | +2.3% |
-| `RwLock` | 0.43 | 0.46 | +5.3% |
-| `RwSpinLock` | 2.16 | 2.28 | +5.6% |
-| `Spawn` | 0.56 | 0.59 | +5.8% |
-| `SpinLock` | 0.69 | 0.71 | +2.9% |
-| `TicketLock` | 1.60 | 1.56 | −2.2% |
-| `Unwrap` | 0.16 | 0.17 | +3.0% |
-| `Lib` (imports only) | 0.10 | 0.10 | +3.8% |
+| `Arith` | 0.34 | 0.35 | +2.7% |
+| `Array` | 1.58 | 1.64 | +4.3% |
+| `Assert` | 0.17 | 0.17 | +4.6% |
+| `ClairvoyantCoin` | 0.56 | 0.59 | +4.6% |
+| `Counter` | 1.63 | 1.79 | +9.5% |
+| `Diverge` | 0.14 | 0.15 | +4.0% |
+| `LandinsKnot` | 0.39 | 0.42 | +6.9% |
+| `LazyCoin` | 0.55 | 0.57 | +4.1% |
+| `Lock` | 0.36 | 0.38 | +6.4% |
+| `NondetBool` | 0.29 | 0.30 | +4.3% |
+| `Par` | 0.40 | 0.41 | +2.5% |
+| `Quicksort` | 5.39 | 5.53 | +2.6% |
+| `RwLock` | 0.44 | 0.47 | +6.6% |
+| `RwSpinLock` | 2.28 | 2.41 | +5.7% |
+| `Spawn` | 0.57 | 0.61 | +6.0% |
+| `SpinLock` | 0.71 | 0.74 | +3.7% |
+| `TicketLock` | 1.71 | 1.69 | −1.0% |
+| `Unwrap` | 0.16 | 0.16 | +2.1% |
+| `Lib` (imports only) | 0.10 | 0.10 | +3.4% |
 
 </details>
 
 ### Tests, memory and size
 
-- **Tests:** the 26 test files in both trees take 18.3 s upstream and 18.8 s here (+2.5%). The
-  largest, `IrisTest.Tactics` (8 s), changes by +1.8%. (`IrisTest.Linter` is left out: it needs
+- **Tests:** the 26 test files in both trees take 18.6 s upstream and 19.0 s here (+2.2%). The
+  largest, `IrisTest.Tactics` (8 s), changes by +1.3%. (`IrisTest.Linter` is left out: it needs
   the options of the lakefile.)
-- **Memory:** the peak memory per module is the same: median 757 MB upstream and 746 MB here,
-  maximum 1.26 GB in both (`HeapLang.ProphErasure`).
+- **Memory:** the peak memory per module is almost the same: median 758 MB upstream and 752 MB
+  here, maximum 1.23 GB and 1.28 GB (`HeapLang.ProphErasure`).
 - **Import time:** 0.31 s per module upstream, 0.32 s here.
-- **Size:** `.lean` lines of the Iris package +5.2% (96.3k to 101.3k); `.olean` +3.9%.
+- **Size:** `.lean` lines of the Iris package +5.1% (98.9k to 103.9k); `.olean` +3.9%.
 
 ## Limits
 
@@ -228,9 +248,9 @@ import time per file is 0.40 s upstream and 0.41 s here.
 
 ```sh
 git clone -b transfinite https://github.com/dongjaelee1/iris-lean tf
-git clone https://github.com/leanprover-community/iris-lean up && git -C up checkout 0533d02
+git clone https://github.com/leanprover-community/iris-lean up && git -C up checkout 81bc350
 for d in tf up; do (cd $d/Iris && lake build && lake build IrisTest); done
-TF=$PWD/tf UP=$PWD/up tf/docs/transfinite-bench/measure.sh results   # about 1.5 hours
+TF=$PWD/tf UP=$PWD/up tf/docs/transfinite-bench/measure.sh results   # about 50 minutes
 python3 tf/docs/transfinite-bench/analyze.py results                   # writes results/summary-TF.md
 ```
 
